@@ -1,3 +1,7 @@
+use tracing::debug;
+
 fn main() {
-    println!("Hello, world!");
+    let _guard = obsidian_tidy_logging::init();
+
+    debug!("Starting obsidian-tidy...");
 }

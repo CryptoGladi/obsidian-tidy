@@ -1,0 +1,10 @@
+[package]
+name = "obsidian-tidy-logging"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tracing.workspace = true
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+obsidian-tidy-core.workspace = true

@@ -15,24 +15,34 @@
     };
   };
 
-  outputs = {
-    flake-utils,
-    naersk,
-    nixpkgs,
-    rust-overlay,
-    ...
-  }:
+  outputs =
+    {
+      flake-utils,
+      naersk,
+      nixpkgs,
+      rust-overlay,
+      ...
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
-        overlays = [(import rust-overlay)];
+      system:
+      let
+        overlays = [ (import rust-overlay) ];
         pkgs = (import nixpkgs) {
           inherit system overlays;
         };
 
-        naersk' = pkgs.callPackage naersk {};
+        rust = pkgs.rust-bin.stable.latest.default.override {
+          extensions = [
+            "rust-src"
+          ];
+        };
 
-        rust = pkgs.rust-bin.stable.latest.default;
-      in {
+        naersk' = pkgs.callPackage naersk {
+          cargo = rust;
+          rustc = rust;
+        };
+      in
+      {
         # For `nix build` & `nix run`:
         packages.default = naersk'.buildPackage {
           src = ./.;
@@ -40,12 +50,14 @@
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
-          nativeBuildInputs = [rust];
+          nativeBuildInputs = [ rust ];
 
           shellHook = ''
             echo "Active nix develop"
           '';
         };
+
+        RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
       }
     );
 }
