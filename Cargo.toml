@@ -18,8 +18,12 @@ tracing = "0.1"
 anyhow = "1"
 obsidian-tidy-logging = { path = "./obsidian-tidy-logging" }
 obsidian-tidy-core = { path = "./obsidian-tidy-core" }
+obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
 
 [dependencies]
 tracing.workspace = true
 obsidian-tidy-logging.workspace = true
-clap = { version = "4.5", features = ["env", "derive"] }
+obsidian-tidy-core.workspace = true
+clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
+toml = { version = "0.9" }
+serde = { version = "1", features = ["derive"] }

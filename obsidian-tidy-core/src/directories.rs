@@ -26,6 +26,7 @@ impl Directories {
     /// Return config dir
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use obsidian_tidy_core::directories::Directories;
     /// let directories = Directories::new();
