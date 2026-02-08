@@ -1,11 +1,7 @@
 use obsidian_tidy_core::lint::Lints;
 use obsidian_tidy_lints::template;
-use serde::{Deserialize, Serialize};
-use std::{
-    fs::OpenOptions,
-    io::{Read, Write},
-    path::Path,
-};
+use serde::Serialize;
+use std::io::{Read, Write};
 use thiserror::Error;
 use tracing::{debug, instrument};
 
@@ -35,6 +31,10 @@ impl Default for Config {
 }
 
 impl Config {
+    pub fn new(lints: Lints) -> Self {
+        Self { lints }
+    }
+
     #[instrument(skip_all)]
     pub fn load(reader: &mut impl Read) -> Result<Self, Error> {
         debug!("Loading config");

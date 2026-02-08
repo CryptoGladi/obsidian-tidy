@@ -33,7 +33,7 @@ fn main() -> anyhow::Result<()> {
                 .write(true)
                 .open(&config_path)?;
 
-            Config::default().save(&mut file)?;
+            Config::new(template.into()).save(&mut file)?;
         }
         Command::Check { ignore_cache } => todo!(),
     }

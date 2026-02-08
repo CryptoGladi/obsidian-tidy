@@ -7,9 +7,10 @@ use std::sync::OnceLock;
 static DIRECTORIES: OnceLock<Directories> = OnceLock::new();
 
 pub fn directories<'a>() -> &'a Directories {
-    DIRECTORIES.get_or_init(|| Directories::new())
+    DIRECTORIES.get_or_init(Directories::new)
 }
 
+#[derive(Debug)]
 pub struct Directories {
     project_dirs: ProjectDirs,
 }

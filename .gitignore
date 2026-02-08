@@ -1,2 +1,3 @@
 target/
 .direnv/
+.obsidian-tidy.toml

@@ -1,0 +1,61 @@
+//! Module for trait lints
+
+mod lints;
+mod toggleable_lint;
+
+use crate::Vault;
+use serde::{Deserialize, Serialize};
+use std::{fmt::Debug, ops::Range};
+use thiserror::Error;
+
+pub use lints::Lints;
+pub use toggleable_lint::ToggleableLint;
+
+pub trait Lint: Send + Sync {
+    /// Unique lint name
+    fn name(&self) -> &str;
+
+    fn description(&self) -> &str;
+
+    fn category(&self) -> Category;
+
+    fn check(&self, content: &Content) -> Vec<Violation>;
+}
+
+impl Debug for dyn Lint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Lint")
+            .field("name", &self.name())
+            .field("description", &self.description())
+            .field("category", &self.category())
+            .finish_non_exhaustive()
+    }
+}
+
+#[derive(Debug, Error, PartialEq)]
+pub enum Error {
+    #[error("Found duplicate name: {0}")]
+    DuplicateName(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Category {
+    Yaml,
+    Heading,
+    Content,
+    Spacing,
+    Custom,
+}
+
+#[derive(Debug, Clone)]
+pub struct Content {
+    #[allow(dead_code)]
+    vault: Vault,
+}
+
+#[derive(Debug, Clone)]
+pub struct Violation {
+    pub message: String,
+    pub location: Range<usize>,
+}

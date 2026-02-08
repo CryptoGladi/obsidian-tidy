@@ -35,7 +35,7 @@ pub struct Test;
 
 impl Lint for Test {
     fn name(&self) -> &str {
-        "TestLint"
+        "test-lint"
     }
 
     fn description(&self) -> &str {
@@ -44,10 +44,6 @@ impl Lint for Test {
 
     fn category(&self) -> Category {
         Category::Custom
-    }
-
-    fn priority(&self) -> u32 {
-        20
     }
 
     fn check(&self, _content: &Content) -> Vec<Violation> {
@@ -59,7 +55,7 @@ pub struct Test1;
 
 impl Lint for Test1 {
     fn name(&self) -> &str {
-        "TestLint1"
+        "test-lint1"
     }
 
     fn description(&self) -> &str {
@@ -68,10 +64,6 @@ impl Lint for Test1 {
 
     fn category(&self) -> Category {
         Category::Custom
-    }
-
-    fn priority(&self) -> u32 {
-        20
     }
 
     fn check(&self, _content: &Content) -> Vec<Violation> {

@@ -49,7 +49,7 @@ impl LoggerBuilder {
             .with(self.file.then_some(file_layer))
             .init();
 
-        return Logger { _guard: guard };
+        Logger { _guard: guard }
     }
 }
 

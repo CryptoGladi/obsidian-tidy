@@ -22,6 +22,7 @@ anyhow = "1"
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
+toml = "0.9"
 
 [dependencies]
 obsidian-tidy-logging.workspace = true
@@ -29,7 +30,7 @@ obsidian-tidy-core.workspace = true
 obsidian-tidy-lints.workspace = true
 tracing.workspace = true
 clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
-toml = "0.9"
 serde.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
+toml.workspace = true
