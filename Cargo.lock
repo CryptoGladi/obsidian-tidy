@@ -357,10 +357,13 @@ dependencies = [
 name = "obsidian-tidy"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "obsidian-tidy-core",
+ "obsidian-tidy-lints",
  "obsidian-tidy-logging",
  "serde",
+ "thiserror",
  "toml",
  "tracing",
 ]
@@ -371,6 +374,15 @@ version = "0.1.0"
 dependencies = [
  "directories",
  "obsidian-parser",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "obsidian-tidy-lints"
+version = "0.1.0"
+dependencies = [
+ "obsidian-tidy-core",
 ]
 
 [[package]]

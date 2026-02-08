@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 directories = "6.0"
 obsidian-parser.workspace = true
+serde.workspace = true
+thiserror.workspace = true

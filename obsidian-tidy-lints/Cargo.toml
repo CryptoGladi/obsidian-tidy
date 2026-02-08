@@ -1,0 +1,7 @@
+[package]
+name = "obsidian-tidy-lints"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+obsidian-tidy-core.workspace = true

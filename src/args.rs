@@ -1,5 +1,9 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use obsidian_tidy_core::directories::directories;
+use obsidian_tidy_core::{
+    directories::directories,
+    lint::{Lint, Lints, ToggleableLint},
+};
+use obsidian_tidy_lints::template;
 use std::path::PathBuf;
 
 fn default_path() -> PathBuf {
@@ -57,4 +61,14 @@ pub enum Template {
     All,
     Standart,
     Empty,
+}
+
+impl Into<Lints> for Template {
+    fn into(self) -> Lints {
+        match self {
+            Template::All => template::all(),
+            Template::Standart => template::standart(),
+            Template::Empty => template::empty(),
+        }
+    }
 }
