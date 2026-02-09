@@ -1,41 +1,35 @@
 mod args;
 mod config;
 
-use std::fs::OpenOptions;
-
+use crate::{args::Template, config::Config};
 use args::{Cli, Command};
 use clap::Parser;
 use obsidian_tidy_logging::LoggerBuilder;
-
-use crate::config::Config;
+use std::{fs::OpenOptions, path::Path};
 
 fn main() -> anyhow::Result<()> {
     let args = Cli::parse();
 
     let _logger = LoggerBuilder::default()
         .stdout(!args.quiet)
-        .path(args.logs)
+        .path(args.logs.clone())
         .init();
+
+    let config_path = args.path.join(".obsidian-tidy.toml");
 
     match args.command {
         Command::Init {
             override_config,
             template,
-        } => {
-            let config_path = args.path.join(".obsidian-tidy.toml");
-
-            if config_path.is_file() && override_config {
-                std::fs::remove_file(&config_path)?;
+        } => config::init_command(&config_path, override_config, template)?,
+        Command::Check => {
+            if !config_path.is_file() {
+                anyhow::bail!(
+                    "Config file in `{}` not found\nRun `obsidian-tidy init`",
+                    config_path.display()
+                );
             }
-
-            let mut file = OpenOptions::new()
-                .create_new(true)
-                .write(true)
-                .open(&config_path)?;
-
-            Config::new(template.into()).save(&mut file)?;
         }
-        Command::Check { ignore_cache } => todo!(),
     }
 
     Ok(())

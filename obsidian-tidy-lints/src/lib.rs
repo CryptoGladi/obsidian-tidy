@@ -1,6 +1,10 @@
 //! Module for Rust writer lints
 
+pub mod content;
+
 use obsidian_tidy_core::lint::{Category, Content, Lint, Violation};
+
+pub const ALL_LINTS: &[&'static dyn Lint] = &[&Test, &Test1];
 
 pub mod template {
     use super::*;

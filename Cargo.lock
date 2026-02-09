@@ -370,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "obsidian-tidy-core"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "directories",
  "obsidian-parser",
@@ -382,14 +382,14 @@ dependencies = [
 
 [[package]]
 name = "obsidian-tidy-lints"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "obsidian-tidy-core",
 ]
 
 [[package]]
 name = "obsidian-tidy-logging"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "obsidian-tidy-core",
  "tracing",

@@ -1,10 +1,8 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use obsidian_tidy_core::{
-    directories::directories,
-    lint::{Lint, Lints, ToggleableLint},
-};
+use obsidian_tidy_core::{directories::directories, lint::Lints};
 use obsidian_tidy_lints::template;
 use std::path::PathBuf;
+use tracing::{instrument, trace};
 
 fn default_path() -> PathBuf {
     std::env::current_dir().unwrap_or(PathBuf::from("."))
@@ -39,17 +37,15 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Run lints
-    Check {
-        /// Use cache
-        #[arg(long)]
-        ignore_cache: bool,
-    },
+    Check,
 
     /// Initialization of config for linter
     Init {
+        /// Override config
         #[arg(long)]
         override_config: bool,
 
+        /// How template use?
         #[arg(long, value_enum, default_value_t = Template::Standart)]
         template: Template,
     },
@@ -64,7 +60,10 @@ pub enum Template {
 }
 
 impl Into<Lints> for Template {
+    #[instrument]
     fn into(self) -> Lints {
+        trace!("Template to lints");
+
         match self {
             Template::All => template::all(),
             Template::Standart => template::standart(),

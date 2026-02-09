@@ -5,11 +5,13 @@ mod toggleable_lint;
 
 use crate::Vault;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Debug, ops::Range};
+use std::{fmt::Debug, ops::Range, sync::Arc};
 use thiserror::Error;
 
 pub use lints::Lints;
 pub use toggleable_lint::ToggleableLint;
+
+pub type DynLint = Arc<dyn Lint>;
 
 pub trait Lint: Send + Sync {
     /// Unique lint name

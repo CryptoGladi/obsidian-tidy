@@ -8,7 +8,7 @@ use tracing::{instrument, trace};
 pub struct Lints(Vec<ToggleableLint>);
 
 impl Lints {
-    #[instrument(ret)]
+    #[instrument(err)]
     fn check_unique_name(lints: &[ToggleableLint]) -> Result<(), Error> {
         trace!("Check unique name");
 

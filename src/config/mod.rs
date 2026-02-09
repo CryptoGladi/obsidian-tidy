@@ -1,7 +1,12 @@
+use crate::args::Template;
 use obsidian_tidy_core::lint::Lints;
 use obsidian_tidy_lints::template;
 use serde::Serialize;
-use std::io::{Read, Write};
+use std::{
+    fs::OpenOptions,
+    io::{Read, Write},
+    path::Path,
+};
 use thiserror::Error;
 use tracing::{debug, instrument};
 
@@ -54,4 +59,23 @@ impl Config {
         writer.write_all(toml.as_bytes())?;
         Ok(())
     }
+}
+
+#[instrument(skip(path))]
+pub fn init_command(
+    path: impl AsRef<Path>,
+    override_config: bool,
+    template: Template,
+) -> anyhow::Result<()> {
+    debug!("Init config");
+    let path = path.as_ref();
+
+    if path.is_file() && override_config {
+        std::fs::remove_file(path)?;
+    }
+
+    let mut file = OpenOptions::new().create_new(true).write(true).open(path)?;
+
+    Config::new(template.into()).save(&mut file)?;
+    Ok(())
 }

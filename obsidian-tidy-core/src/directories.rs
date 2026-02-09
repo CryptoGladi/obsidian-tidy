@@ -3,6 +3,7 @@
 use directories::ProjectDirs;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
+use tracing::{instrument, trace};
 
 static DIRECTORIES: OnceLock<Directories> = OnceLock::new();
 
@@ -16,7 +17,10 @@ pub struct Directories {
 }
 
 impl Directories {
+    #[instrument]
     pub fn new() -> Self {
+        trace!("Init directories");
+
         if let Some(project_dirs) = ProjectDirs::from("com", "CryptoGladi", "obsidian-tidy") {
             return Directories { project_dirs };
         }

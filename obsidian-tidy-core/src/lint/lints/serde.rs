@@ -1,10 +1,11 @@
 use super::Lints as VecLints;
-use crate::lint::Category;
-use serde::{Deserialize, Serialize, Serializer};
+use crate::lint::{Category, Lint, ToggleableLint};
+use ::serde::{Deserialize, Serialize, Serializer};
 use std::{
     collections::BTreeMap,
     ops::{Deref, DerefMut},
 };
+use tracing::{instrument, trace};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LintConfig {
@@ -18,7 +19,10 @@ type CategoryLints = BTreeMap<LintName, LintConfig>;
 struct Lints(BTreeMap<Category, CategoryLints>);
 
 impl Lints {
+    #[instrument]
     fn add_lint(&mut self, category: Category, name: LintName, enable: bool) {
+        trace!("Add lint");
+
         self.entry(category)
             .or_default()
             .insert(name, LintConfig { enable });
@@ -51,6 +55,24 @@ impl Serialize for VecLints {
         }
 
         serializer.serialize_newtype_struct("lints", &lints)
+    }
+}
+
+impl Lints {
+    fn into_lints(self, lints: &[&'static dyn Lint]) -> Result<VecLints, crate::lint::Error> {
+        let mut vec_lints = Vec::with_capacity(lints.len());
+
+        for (category, map) in self.0 {
+            for (name, config) in map {
+                let lint = lints.iter().find(|lint| lint.name() == name).unwrap();
+                let lint = Box::new(*lint);
+
+                // Box -> Arc?
+                //vec_lints.push(ToggleableLint::with_enabled(Box::new(lint), config.enable));
+            }
+        }
+
+        VecLints::new(vec_lints)
     }
 }
 
