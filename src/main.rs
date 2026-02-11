@@ -33,8 +33,7 @@ fn main() -> anyhow::Result<()> {
 
             let mut file = OpenOptions::new().read(true).open(&config_path)?;
             let config = ConfigLoader::new(&ALL_LINTS).load(&mut file)?;
-            //let config = Config::load(&m
-            println!("{config:?}");
+            anyhow::bail!("my config: {config:?}");
         }
     }
 

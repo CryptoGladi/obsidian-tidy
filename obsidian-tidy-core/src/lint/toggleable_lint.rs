@@ -33,6 +33,14 @@ impl Deref for ToggleableLint {
     }
 }
 
+impl PartialEq for ToggleableLint {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.lint, self.enabled) == (&other.lint, other.enabled)
+    }
+}
+
+impl Eq for ToggleableLint {}
+
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;

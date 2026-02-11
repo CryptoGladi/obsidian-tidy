@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use std::ops::{Deref, Index, IndexMut};
 use tracing::{instrument, trace};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Lints(Vec<ToggleableLint>);
 
 impl Lints {

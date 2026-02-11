@@ -9,7 +9,7 @@ use std::{fmt::Debug, ops::Range, sync::Arc};
 use thiserror::Error;
 
 pub use lints::Lints;
-pub use lints::serde::{LintsDeserializer, SerdeLints};
+pub use lints::serde::{LintsSeed, SerdeLints};
 pub use toggleable_lint::ToggleableLint;
 
 pub type DynLint = Arc<dyn Lint>;
@@ -38,6 +38,14 @@ impl Debug for dyn Lint {
             .finish()
     }
 }
+
+impl PartialEq for dyn Lint {
+    fn eq(&self, other: &Self) -> bool {
+        self.name() == other.name()
+    }
+}
+
+impl Eq for dyn Lint {}
 
 #[derive(Debug, Error, PartialEq)]
 pub enum Error {
