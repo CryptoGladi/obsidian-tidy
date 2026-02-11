@@ -1,3 +1,4 @@
+mod check;
 mod cli;
 mod config;
 
@@ -9,6 +10,10 @@ use obsidian_tidy_logging::LoggerBuilder;
 use std::fs::OpenOptions;
 
 fn main() -> anyhow::Result<()> {
+    better_panic::Settings::default()
+        .message("obsidian-tidy panicked (crashed)")
+        .install();
+
     let args = CLI::parse();
 
     let _logger = LoggerBuilder::default()
@@ -30,6 +35,8 @@ fn main() -> anyhow::Result<()> {
                     config_path.display()
                 );
             }
+
+            panic!("SA");
 
             let mut file = OpenOptions::new().read(true).open(&config_path)?;
             let config = ConfigLoader::new(&ALL_LINTS).load(&mut file)?;

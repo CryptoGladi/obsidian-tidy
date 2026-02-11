@@ -3,7 +3,7 @@
 use clap::ValueEnum;
 use obsidian_tidy_core::lint::{Lints, ToggleableLint};
 use obsidian_tidy_lints::ALL_LINTS;
-use std::sync::LazyLock;
+use std::{ops::Deref, sync::LazyLock};
 use tracing::{instrument, trace};
 
 static ALL: LazyLock<Lints> = LazyLock::new(|| {
@@ -75,22 +75,40 @@ impl From<Template> for Lints {
     }
 }
 
+impl Deref for Template {
+    type Target = Lints;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Template::All => &ALL,
+            Template::Standard => &STANDARD,
+            Template::Empty => &EMPTY,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::Template;
     use obsidian_tidy_lints::ALL_LINTS;
 
     #[test]
-    fn all() {
-        assert_eq!(ALL_LINTS.len(), super::ALL.len());
+    fn all_check() {
+        assert_eq!(Template::All.len(), ALL_LINTS.len());
+        assert!(Template::All.iter().all(|lint| lint.enabled()));
     }
 
     #[test]
-    fn empty() {
-        assert_eq!(ALL_LINTS.len(), super::EMPTY.len())
+    fn empty_check() {
+        assert_eq!(Template::Empty.len(), ALL_LINTS.len());
+        assert!(Template::Empty.iter().all(|lint| lint.disabled()));
     }
 
     #[test]
     fn standart() {
-        assert_eq!(ALL_LINTS.len(), super::STANDARD.len());
+        assert_eq!(Template::Standard.len(), ALL_LINTS.len());
+
+        assert!(Template::All.iter().any(|lint| lint.enabled()));
+        assert!(Template::Empty.iter().any(|lint| lint.disabled()));
     }
 }

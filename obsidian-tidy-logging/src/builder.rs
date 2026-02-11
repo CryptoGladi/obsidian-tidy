@@ -1,3 +1,5 @@
+//! Module for build Logger
+
 use super::ENV_NAME;
 use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;

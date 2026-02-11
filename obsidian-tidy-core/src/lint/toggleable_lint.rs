@@ -16,6 +16,10 @@ impl ToggleableLint {
         self.enabled
     }
 
+    pub fn disabled(&self) -> bool {
+        !self.enabled
+    }
+
     pub fn enable(&mut self) {
         self.enabled = true;
     }

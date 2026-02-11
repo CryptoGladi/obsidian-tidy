@@ -46,6 +46,13 @@
         # For `nix build` & `nix run`:
         packages.default = naersk'.buildPackage {
           src = ./.;
+
+          doCheck = true;
+          cargoTestOptions = [
+            "$cargo_release"
+            ''-j "$NIX_BUILD_CORES"''
+            "--workspace"
+          ];
         };
 
         # For `nix develop`:

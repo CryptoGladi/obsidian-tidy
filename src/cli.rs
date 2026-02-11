@@ -44,7 +44,7 @@ pub enum Command {
 
     /// Initialization of config for linter
     Init {
-        /// Override config
+        /// Override config if already exists
         #[arg(long = "override")]
         override_config: bool,
 

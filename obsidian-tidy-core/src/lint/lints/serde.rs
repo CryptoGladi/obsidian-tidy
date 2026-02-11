@@ -18,9 +18,9 @@ type CategoryLints = BTreeMap<LintName, LintConfig>;
 
 /// Impl Lints for serde
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct SerdeLints(BTreeMap<Category, CategoryLints>);
+pub struct InnerLints(BTreeMap<Category, CategoryLints>);
 
-impl SerdeLints {
+impl InnerLints {
     #[instrument]
     fn add_lint(&mut self, category: Category, name: LintName, enable: bool) {
         trace!("Add lint");
@@ -31,7 +31,7 @@ impl SerdeLints {
     }
 }
 
-impl Deref for SerdeLints {
+impl Deref for InnerLints {
     type Target = BTreeMap<Category, CategoryLints>;
 
     fn deref(&self) -> &Self::Target {
@@ -39,7 +39,7 @@ impl Deref for SerdeLints {
     }
 }
 
-impl DerefMut for SerdeLints {
+impl DerefMut for InnerLints {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -50,7 +50,7 @@ impl Serialize for Lints {
     where
         S: Serializer,
     {
-        let mut lints = SerdeLints::default();
+        let mut lints = InnerLints::default();
 
         for lint in &self.0 {
             lints.add_lint(lint.category(), lint.name().to_string(), lint.enabled());
@@ -81,7 +81,7 @@ impl<'de> DeserializeSeed<'de> for LintsSeed<'_> {
     {
         trace!("Run deserialize");
 
-        let inner = SerdeLints::deserialize(deserializer)?;
+        let inner = InnerLints::deserialize(deserializer)?;
         let mut vec_lints = Vec::with_capacity(self.available_lints.len());
 
         for (_category, map) in &inner.0 {
@@ -104,11 +104,10 @@ impl<'de> DeserializeSeed<'de> for LintsSeed<'_> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use super::*;
     use crate::lint::ToggleableLint;
     use crate::test_utils::TestLint;
+    use std::sync::Arc;
 
     #[test]
     fn serialize() {
@@ -141,6 +140,26 @@ enable = false
         let toml = toml::to_string(&lints).unwrap();
 
         let available_lints: Vec<DynLint> = vec![lint1, lint2];
+        let lints_deserialized: Lints = LintsSeed::new(&available_lints)
+            .deserialize(toml::Deserializer::parse(&toml).unwrap())
+            .unwrap();
+
+        assert_eq!(lints, lints_deserialized);
+    }
+
+    #[test]
+    #[should_panic]
+    fn deserialize_with_not_found_lint() {
+        let lint1 = Arc::new(TestLint::new("lint1", Category::Content));
+        let lint2 = Arc::new(TestLint::new("lint2", Category::Spacing));
+
+        let toggleable_lint1 = ToggleableLint::new(lint1.clone(), true);
+        let toggleable_lint2 = ToggleableLint::new(lint2.clone(), false);
+
+        let lints = Lints::new(vec![toggleable_lint1, toggleable_lint2]).unwrap();
+        let toml = toml::to_string(&lints).unwrap();
+
+        let available_lints: Vec<DynLint> = vec![lint1]; // Without lint2
         let lints_deserialized: Lints = LintsSeed::new(&available_lints)
             .deserialize(toml::Deserializer::parse(&toml).unwrap())
             .unwrap();

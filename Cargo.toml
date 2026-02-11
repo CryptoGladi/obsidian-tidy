@@ -34,3 +34,10 @@ serde.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 toml.workspace = true
+better-panic = "0.3"
+
+[profile.release]
+lto = 'thin'
+panic = 'abort'
+codegen-units = 1
+opt-level = 3

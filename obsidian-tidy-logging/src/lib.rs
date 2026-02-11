@@ -1,3 +1,5 @@
+//! Crate for logging
+
 mod builder;
 mod logger;
 

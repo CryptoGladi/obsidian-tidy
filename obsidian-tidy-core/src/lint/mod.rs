@@ -9,7 +9,7 @@ use std::{fmt::Debug, ops::Range, sync::Arc};
 use thiserror::Error;
 
 pub use lints::Lints;
-pub use lints::serde::{LintsSeed, SerdeLints};
+pub use lints::serde::{InnerLints, LintsSeed};
 pub use toggleable_lint::ToggleableLint;
 
 pub type DynLint = Arc<dyn Lint>;

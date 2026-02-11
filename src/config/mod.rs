@@ -8,7 +8,7 @@ pub mod template;
 
 use obsidian_tidy_core::lint::Lints;
 use serde::Serialize;
-use std::{fs::OpenOptions, path::Path};
+use std::{fs::OpenOptions, path::Path, thread::panicking};
 use thiserror::Error;
 use tracing::{debug, instrument};
 
@@ -33,10 +33,11 @@ pub fn init_command(
     debug!("Init config");
     let path = path.as_ref();
 
-    if path.is_file() && override_config {
-        std::fs::remove_file(path)?;
-    } else {
-        anyhow::bail!("Config file already exists. Use `--override`");
+    if path.is_file() {
+        match override_config {
+            true => std::fs::remove_file(path)?,
+            false => anyhow::bail!("Config file already exists. Use `--override`"),
+        };
     }
 
     let config = ConfigBuilder::default().lints(template.into()).build();
