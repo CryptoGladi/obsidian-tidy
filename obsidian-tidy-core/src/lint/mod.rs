@@ -9,18 +9,23 @@ use std::{fmt::Debug, ops::Range, sync::Arc};
 use thiserror::Error;
 
 pub use lints::Lints;
+pub use lints::serde::{LintsDeserializer, SerdeLints};
 pub use toggleable_lint::ToggleableLint;
 
 pub type DynLint = Arc<dyn Lint>;
 
+/// Trait Lint
 pub trait Lint: Send + Sync {
-    /// Unique lint name
+    /// **Unique** lint name
     fn name(&self) -> &str;
 
+    /// Description lint
     fn description(&self) -> &str;
 
+    /// Category lint
     fn category(&self) -> Category;
 
+    /// Run check by lint
     fn check(&self, content: &Content) -> Vec<Violation>;
 }
 
@@ -30,7 +35,7 @@ impl Debug for dyn Lint {
             .field("name", &self.name())
             .field("description", &self.description())
             .field("category", &self.category())
-            .finish_non_exhaustive()
+            .finish()
     }
 }
 

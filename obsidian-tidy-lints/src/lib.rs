@@ -2,38 +2,11 @@
 
 pub mod content;
 
-use obsidian_tidy_core::lint::{Category, Content, Lint, Violation};
+use obsidian_tidy_core::lint::{Category, Content, DynLint, Lint, Violation};
+use std::sync::{Arc, LazyLock};
 
-pub const ALL_LINTS: &[&'static dyn Lint] = &[&Test, &Test1];
-
-pub mod template {
-    use super::*;
-    use obsidian_tidy_core::lint::{Lints, ToggleableLint};
-
-    pub fn empty() -> Lints {
-        Lints::new(vec![
-            ToggleableLint::with_enabled(Box::new(Test), false),
-            ToggleableLint::with_enabled(Box::new(Test1), false),
-        ])
-        .unwrap()
-    }
-
-    pub fn standart() -> Lints {
-        Lints::new(vec![
-            ToggleableLint::with_enabled(Box::new(Test), true),
-            ToggleableLint::with_enabled(Box::new(Test1), false),
-        ])
-        .unwrap()
-    }
-
-    pub fn all() -> Lints {
-        Lints::new(vec![
-            ToggleableLint::with_enabled(Box::new(Test), true),
-            ToggleableLint::with_enabled(Box::new(Test1), true),
-        ])
-        .unwrap()
-    }
-}
+pub const ALL_LINTS: LazyLock<Vec<DynLint>> =
+    LazyLock::new(|| vec![Arc::new(Test), Arc::new(Test1)]);
 
 pub struct Test;
 

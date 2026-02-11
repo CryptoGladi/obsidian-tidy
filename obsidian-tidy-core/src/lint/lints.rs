@@ -1,10 +1,11 @@
-mod serde;
+pub mod serde;
 
 use super::{Error, ToggleableLint};
-use std::{collections::HashSet, ops::Deref};
+use std::collections::HashSet;
+use std::ops::{Deref, Index, IndexMut};
 use tracing::{instrument, trace};
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct Lints(Vec<ToggleableLint>);
 
 impl Lints {
@@ -28,6 +29,34 @@ impl Lints {
         Self::check_unique_name(&lints)?;
         Ok(Self(lints))
     }
+
+    pub fn get_by_name(&self, name: impl AsRef<str>) -> Option<&ToggleableLint> {
+        self.0.iter().find(|lint| lint.name() == name.as_ref())
+    }
+
+    pub fn get_mut_by_name(&mut self, name: impl AsRef<str>) -> Option<&mut ToggleableLint> {
+        self.0.iter_mut().find(|lint| lint.name() == name.as_ref())
+    }
+}
+
+impl<T> Index<T> for Lints
+where
+    T: AsRef<str>,
+{
+    type Output = ToggleableLint;
+
+    fn index(&self, index: T) -> &Self::Output {
+        self.get_by_name(index).expect("Not found lint by name")
+    }
+}
+
+impl<T> IndexMut<T> for Lints
+where
+    T: AsRef<str>,
+{
+    fn index_mut(&mut self, index: T) -> &mut Self::Output {
+        self.get_mut_by_name(index).expect("Not found lint by name")
+    }
 }
 
 impl Deref for Lints {
@@ -41,45 +70,14 @@ impl Deref for Lints {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lint::{Category, Content, Lint, Violation};
-
-    struct TestLint {
-        name: String,
-        category: Category,
-    }
-
-    impl TestLint {
-        pub fn new(name: impl Into<String>, category: Category) -> Self {
-            Self {
-                name: name.into(),
-                category,
-            }
-        }
-    }
-
-    impl Lint for TestLint {
-        fn name(&self) -> &str {
-            &self.name
-        }
-
-        fn description(&self) -> &str {
-            unimplemented!()
-        }
-
-        fn category(&self) -> Category {
-            self.category.clone()
-        }
-
-        fn check(&self, _content: &Content) -> Vec<Violation> {
-            unimplemented!()
-        }
-    }
+    use crate::{lint::Category, test_utils::TestLint};
+    use std::sync::Arc;
 
     #[test]
     fn duplicate_name() {
         let name = "DuplicateName";
-        let lint1 = ToggleableLint::new(Box::new(TestLint::new(name, Category::Custom)));
-        let lint2 = ToggleableLint::new(Box::new(TestLint::new(name, Category::Custom)));
+        let lint1 = ToggleableLint::new(Arc::new(TestLint::new(name, Category::Custom)), true);
+        let lint2 = ToggleableLint::new(Arc::new(TestLint::new(name, Category::Custom)), true);
 
         let lints = Lints::new(vec![lint1, lint2]);
 
@@ -88,8 +86,8 @@ mod tests {
 
     #[test]
     fn new() {
-        let lint1 = ToggleableLint::new(Box::new(TestLint::new("Lint1", Category::Content)));
-        let lint2 = ToggleableLint::new(Box::new(TestLint::new("Lint2", Category::Content)));
+        let lint1 = ToggleableLint::new(Arc::new(TestLint::new("Lint1", Category::Content)), true);
+        let lint2 = ToggleableLint::new(Arc::new(TestLint::new("Lint2", Category::Content)), true);
 
         let lints = Lints::new(vec![lint1, lint2]).unwrap();
         assert_eq!(lints.len(), 2);

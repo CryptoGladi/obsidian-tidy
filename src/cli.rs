@@ -1,13 +1,16 @@
-use clap::{Parser, Subcommand, ValueEnum};
-use obsidian_tidy_core::{directories::directories, lint::Lints};
-use obsidian_tidy_lints::template;
-use std::path::PathBuf;
-use tracing::{instrument, trace};
+//! Module for CLI interfaic
 
-fn default_path() -> PathBuf {
+use crate::config::template::Template;
+use clap::{Parser, Subcommand};
+use obsidian_tidy_core::directories::directories;
+use std::path::PathBuf;
+
+/// Returns the current working directory
+fn current_dir() -> PathBuf {
     std::env::current_dir().unwrap_or(PathBuf::from("."))
 }
 
+/// CLI
 #[derive(Debug, Parser)]
 #[command(name = "obsidian-tidy")]
 #[command(
@@ -15,9 +18,9 @@ fn default_path() -> PathBuf {
     about = "🚀 Blazingly fast Obsidian vault linter",
     long_about = None
 )]
-pub struct Cli {
+pub struct CLI {
     /// Path to Obsidian vault
-    #[arg(long, value_name = "DIRECTORY", default_value = default_path().into_os_string())]
+    #[arg(long, value_name = "DIRECTORY", default_value = current_dir().into_os_string())]
     pub path: PathBuf,
 
     /// Nothing is output to stdout.
@@ -42,32 +45,11 @@ pub enum Command {
     /// Initialization of config for linter
     Init {
         /// Override config
-        #[arg(long)]
+        #[arg(long = "override")]
         override_config: bool,
 
         /// How template use?
-        #[arg(long, value_enum, default_value_t = Template::Standart)]
+        #[arg(long, value_enum, default_value_t = Template::Standard)]
         template: Template,
     },
-}
-
-#[derive(Debug, Clone, ValueEnum)]
-#[clap(rename_all = "kebab-case")]
-pub enum Template {
-    All,
-    Standart,
-    Empty,
-}
-
-impl Into<Lints> for Template {
-    #[instrument]
-    fn into(self) -> Lints {
-        trace!("Template to lints");
-
-        match self {
-            Template::All => template::all(),
-            Template::Standart => template::standart(),
-            Template::Empty => template::empty(),
-        }
-    }
 }

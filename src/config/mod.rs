@@ -1,64 +1,27 @@
-use crate::args::Template;
+//! Module for configuration
+
+pub mod builder;
+pub mod error;
+pub mod loader;
+pub mod saver;
+pub mod template;
+
 use obsidian_tidy_core::lint::Lints;
-use obsidian_tidy_lints::template;
 use serde::Serialize;
-use std::{
-    fs::OpenOptions,
-    io::{Read, Write},
-    path::Path,
-};
+use std::{fs::OpenOptions, path::Path};
 use thiserror::Error;
 use tracing::{debug, instrument};
 
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("IO error: `{0}`")]
-    IO(#[from] std::io::Error),
+pub use error::Error;
+pub use loader::ConfigLoader;
+pub use saver::ConfigSaver;
+pub use template::Template;
 
-    #[error("Toml deserialize error `{0}`")]
-    Deserialize(#[from] toml::de::Error),
-
-    #[error("Toml serialize error `{0}`")]
-    Serialize(#[from] toml::ser::Error),
-}
+use crate::config::builder::ConfigBuilder;
 
 #[derive(Debug, Serialize)]
 pub struct Config {
     lints: Lints,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            lints: template::empty(),
-        }
-    }
-}
-
-impl Config {
-    pub fn new(lints: Lints) -> Self {
-        Self { lints }
-    }
-
-    #[instrument(skip_all)]
-    pub fn load(reader: &mut impl Read) -> Result<Self, Error> {
-        debug!("Loading config");
-
-        let mut buffer = Vec::new();
-        reader.read_to_end(&mut buffer)?;
-
-        //Ok(toml::from_slice(&buffer)?)
-        todo!()
-    }
-
-    #[instrument(skip_all)]
-    pub fn save(&self, writer: &mut impl Write) -> Result<(), Error> {
-        debug!("Save config");
-
-        let toml = toml::to_string_pretty(&self)?;
-        writer.write_all(toml.as_bytes())?;
-        Ok(())
-    }
 }
 
 #[instrument(skip(path))]
@@ -72,10 +35,14 @@ pub fn init_command(
 
     if path.is_file() && override_config {
         std::fs::remove_file(path)?;
+    } else {
+        anyhow::bail!("Config file already exists. Use `--override`");
     }
 
-    let mut file = OpenOptions::new().create_new(true).write(true).open(path)?;
+    let config = ConfigBuilder::default().lints(template.into()).build();
 
-    Config::new(template.into()).save(&mut file)?;
+    let mut file = OpenOptions::new().create_new(true).write(true).open(path)?;
+    ConfigSaver::new(&config).path(path).save(&mut file)?;
+
     Ok(())
 }

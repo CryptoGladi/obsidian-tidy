@@ -1,14 +1,15 @@
-mod args;
+mod cli;
 mod config;
 
-use crate::{args::Template, config::Config};
-use args::{Cli, Command};
+use crate::config::ConfigLoader;
 use clap::Parser;
+use cli::{CLI, Command};
+use obsidian_tidy_lints::ALL_LINTS;
 use obsidian_tidy_logging::LoggerBuilder;
-use std::{fs::OpenOptions, path::Path};
+use std::fs::OpenOptions;
 
 fn main() -> anyhow::Result<()> {
-    let args = Cli::parse();
+    let args = CLI::parse();
 
     let _logger = LoggerBuilder::default()
         .stdout(!args.quiet)
@@ -29,6 +30,11 @@ fn main() -> anyhow::Result<()> {
                     config_path.display()
                 );
             }
+
+            let mut file = OpenOptions::new().read(true).open(&config_path)?;
+            let config = ConfigLoader::new(&ALL_LINTS).load(&mut file)?;
+            //let config = Config::load(&m
+            println!("{config:?}");
         }
     }
 
