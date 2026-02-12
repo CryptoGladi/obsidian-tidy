@@ -1,11 +1,11 @@
 //! Builder for config
 
 use super::Config;
-use obsidian_tidy_core::lint::{Lints, WrappedAnyhowError};
+use obsidian_tidy_core::lint::{Lints, SharedErrorLint};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ConfigBuilder {
-    lints: Lints<WrappedAnyhowError>,
+    lints: Lints<SharedErrorLint>,
 }
 
 impl Default for ConfigBuilder {
@@ -17,7 +17,7 @@ impl Default for ConfigBuilder {
 }
 
 impl ConfigBuilder {
-    pub fn lints(mut self, lints: Lints<WrappedAnyhowError>) -> Self {
+    pub fn lints(mut self, lints: Lints<SharedErrorLint>) -> Self {
         self.lints = lints;
         self
     }

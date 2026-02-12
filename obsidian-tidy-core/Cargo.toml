@@ -8,8 +8,8 @@ directories = "6.0"
 obsidian-parser.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-anyhow.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
 toml.workspace = true
+tracing-test.workspace = true

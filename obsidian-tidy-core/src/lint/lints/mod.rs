@@ -1,6 +1,6 @@
 pub mod serde;
 
-use super::ToggleableLint;
+use super::{Lint, ToggleableLint};
 use std::collections::HashSet;
 use std::ops::{Deref, Index, IndexMut};
 use thiserror::Error;
@@ -13,14 +13,14 @@ pub enum Error {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct Lints<E: std::error::Error>(Vec<ToggleableLint<E>>);
+pub struct Lints<L: Lint>(Vec<ToggleableLint<L>>);
 
-impl<E> Lints<E>
+impl<L> Lints<L>
 where
-    E: std::error::Error,
+    L: Lint,
 {
-    #[instrument(err)]
-    fn check_unique_name(lints: &[ToggleableLint<E>]) -> Result<(), Error> {
+    #[instrument(skip(lints), err)]
+    fn check_unique_name(lints: &[ToggleableLint<L>]) -> Result<(), Error> {
         trace!("Check unique name");
 
         let mut names = HashSet::with_capacity(lints.len());
@@ -35,47 +35,47 @@ where
         Ok(())
     }
 
-    pub fn new(lints: Vec<ToggleableLint<E>>) -> Result<Self, Error> {
+    pub fn new(lints: Vec<ToggleableLint<L>>) -> Result<Self, Error> {
         Self::check_unique_name(&lints)?;
         Ok(Self(lints))
     }
 
-    pub fn get_by_name(&self, name: impl AsRef<str>) -> Option<&ToggleableLint<E>> {
+    pub fn get_by_name(&self, name: impl AsRef<str>) -> Option<&ToggleableLint<L>> {
         self.0.iter().find(|lint| lint.name() == name.as_ref())
     }
 
-    pub fn get_mut_by_name(&mut self, name: impl AsRef<str>) -> Option<&mut ToggleableLint<E>> {
+    pub fn get_mut_by_name(&mut self, name: impl AsRef<str>) -> Option<&mut ToggleableLint<L>> {
         self.0.iter_mut().find(|lint| lint.name() == name.as_ref())
     }
 }
 
-impl<T, E> Index<T> for Lints<E>
+impl<T, L> Index<T> for Lints<L>
 where
     T: AsRef<str>,
-    E: std::error::Error,
+    L: Lint,
 {
-    type Output = ToggleableLint<E>;
+    type Output = ToggleableLint<L>;
 
     fn index(&self, index: T) -> &Self::Output {
         self.get_by_name(index).expect("Not found lint by name")
     }
 }
 
-impl<T, E> IndexMut<T> for Lints<E>
+impl<T, L> IndexMut<T> for Lints<L>
 where
     T: AsRef<str>,
-    E: std::error::Error,
+    L: Lint,
 {
     fn index_mut(&mut self, index: T) -> &mut Self::Output {
         self.get_mut_by_name(index).expect("Not found lint by name")
     }
 }
 
-impl<E> Deref for Lints<E>
+impl<L> Deref for Lints<L>
 where
-    E: std::error::Error,
+    L: Lint,
 {
-    type Target = Vec<ToggleableLint<E>>;
+    type Target = Vec<ToggleableLint<L>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

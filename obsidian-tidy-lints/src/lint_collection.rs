@@ -2,7 +2,7 @@ macro_rules! lint_collection {
     ($($lint:expr),* $(,)?) => {
         LazyLock::new(|| {
             vec![
-               $(obsidian_tidy_core::lint::BoxedErrorLint::new($lint)),*
+               $(obsidian_tidy_core::lint::SharedErrorLint::new($lint)),*
             ]
         })
     };

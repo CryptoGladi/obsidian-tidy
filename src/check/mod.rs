@@ -1,11 +1,9 @@
-use obsidian_tidy_core::lint::{Content, Lints};
+use obsidian_tidy_core::lint::{Content, Lints, SharedErrorLint};
 use rayon::prelude::*;
 use std::sync::mpsc;
 
-/*
-
 pub struct Check {
-    lints: Lints,
+    lints: Lints<SharedErrorLint>,
     content: Content,
 }
 
@@ -15,7 +13,7 @@ impl Check {
 
         self.lints.par_iter().for_each(|lint| {
             let result = lint.check(&self.content);
+            sender.send(result.unwrap());
         });
     }
 }
-*/

@@ -1,5 +1,5 @@
 use super::Lints;
-use crate::lint::{Category, DynLint, ToggleableLint};
+use crate::lint::{Category, Lint, ToggleableLint};
 use ::serde::{Deserialize, Serialize, Serializer};
 use serde::{Deserializer, de::DeserializeSeed};
 use std::{
@@ -22,7 +22,7 @@ pub struct InnerLints(BTreeMap<Category, CategoryLints>);
 
 impl InnerLints {
     #[instrument]
-    fn add_lint(&mut self, category: Category, name: LintName, enable: bool) {
+    fn add_lint(&mut self, name: LintName, category: Category, enable: bool) {
         trace!("Add lint");
 
         self.entry(category)
@@ -45,9 +45,9 @@ impl DerefMut for InnerLints {
     }
 }
 
-impl<E> Serialize for Lints<E>
+impl<L> Serialize for Lints<L>
 where
-    E: std::error::Error,
+    L: Lint,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -56,7 +56,7 @@ where
         let mut lints = InnerLints::default();
 
         for lint in &self.0 {
-            lints.add_lint(lint.category(), lint.name().to_string(), lint.enabled());
+            lints.add_lint(lint.name().to_string(), lint.category(), lint.enabled());
         }
 
         serializer.serialize_newtype_struct("lints", &lints)
@@ -64,29 +64,29 @@ where
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct LintsSeed<'a, E>
+pub struct LintsSeed<'a, L>
 where
-    E: std::error::Error,
+    L: Lint,
 {
-    available_lints: &'a Vec<DynLint<E>>,
+    available_lints: &'a Vec<L>,
 }
 
-impl<'a, E> LintsSeed<'a, E>
+impl<'a, L> LintsSeed<'a, L>
 where
-    E: std::error::Error,
+    L: Lint,
 {
-    pub fn new(available_lints: &'a Vec<DynLint<E>>) -> Self {
+    pub fn new(available_lints: &'a Vec<L>) -> Self {
         Self { available_lints }
     }
 }
 
-impl<'de, E> DeserializeSeed<'de> for LintsSeed<'_, E>
+impl<'de, L> DeserializeSeed<'de> for LintsSeed<'_, L>
 where
-    E: std::error::Error,
+    L: Lint + Clone,
 {
-    type Value = Lints<E>;
+    type Value = Lints<L>;
 
-    #[instrument(skip(deserializer), err)]
+    #[instrument(skip(self, deserializer), err)]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
@@ -157,7 +157,7 @@ enable = false
         let lints = Lints::new(vec![toggleable_lint1, toggleable_lint2]).unwrap();
         let toml = toml::to_string(&lints).unwrap();
 
-        let available_lints: Vec<DynLint<_>> = vec![lint1, lint2];
+        let available_lints = vec![lint1, lint2];
         let lints_deserialized = LintsSeed::new(&available_lints)
             .deserialize(toml::Deserializer::parse(&toml).unwrap())
             .unwrap();
@@ -177,7 +177,7 @@ enable = false
         let lints = Lints::new(vec![toggleable_lint1, toggleable_lint2]).unwrap();
         let toml = toml::to_string(&lints).unwrap();
 
-        let available_lints: Vec<DynLint<_>> = vec![lint1]; // Without lint2
+        let available_lints = vec![lint1]; // Without lint2
         let lints_deserialized = LintsSeed::new(&available_lints)
             .deserialize(toml::Deserializer::parse(&toml).unwrap())
             .unwrap();

@@ -84,8 +84,10 @@ impl Directories {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tracing_test::traced_test;
 
     #[test]
+    #[traced_test]
     fn new() {
         Directories::new();
     }

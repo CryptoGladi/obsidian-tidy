@@ -1,32 +1,32 @@
 //! Module for store template lints
 
 use clap::ValueEnum;
-use obsidian_tidy_core::lint::{Lints, ToggleableLint, WrappedAnyhowError};
+use obsidian_tidy_core::lint::{Lints, SharedErrorLint, ToggleableLint};
 use obsidian_tidy_lints::ALL_LINTS;
 use std::{ops::Deref, sync::LazyLock};
 use tracing::{instrument, trace};
 
-static ALL: LazyLock<Lints<WrappedAnyhowError>> = LazyLock::new(|| {
+static ALL: LazyLock<Lints<SharedErrorLint>> = LazyLock::new(|| {
     let lints = ALL_LINTS
         .clone()
         .into_iter()
-        .map(|lint| ToggleableLint::new(lint.into(), true))
+        .map(|lint| ToggleableLint::new(lint, true))
         .collect();
 
     Lints::new(lints).unwrap()
 });
 
-static EMPTY: LazyLock<Lints<WrappedAnyhowError>> = LazyLock::new(|| {
+static EMPTY: LazyLock<Lints<SharedErrorLint>> = LazyLock::new(|| {
     let lints = ALL_LINTS
         .clone()
         .into_iter()
-        .map(|lint| ToggleableLint::new(lint.into(), false))
+        .map(|lint| ToggleableLint::new(lint, false))
         .collect();
 
     Lints::new(lints).unwrap()
 });
 
-static STANDARD: LazyLock<Lints<WrappedAnyhowError>> = LazyLock::new(|| {
+static STANDARD: LazyLock<Lints<SharedErrorLint>> = LazyLock::new(|| {
     let mut lints = EMPTY.clone();
 
     lints["test-lint"].enable();
@@ -49,9 +49,9 @@ pub enum Template {
     Empty,
 }
 
-impl AsRef<Lints<WrappedAnyhowError>> for Template {
+impl AsRef<Lints<SharedErrorLint>> for Template {
     #[instrument]
-    fn as_ref(&self) -> &Lints<WrappedAnyhowError> {
+    fn as_ref(&self) -> &Lints<SharedErrorLint> {
         trace!("Template to lints");
 
         match self {
@@ -62,9 +62,9 @@ impl AsRef<Lints<WrappedAnyhowError>> for Template {
     }
 }
 
-impl From<Template> for Lints<WrappedAnyhowError> {
+impl From<Template> for Lints<SharedErrorLint> {
     #[instrument]
-    fn from(template: Template) -> Lints<WrappedAnyhowError> {
+    fn from(template: Template) -> Lints<SharedErrorLint> {
         trace!("Template to owned lints");
 
         match template {
@@ -76,7 +76,7 @@ impl From<Template> for Lints<WrappedAnyhowError> {
 }
 
 impl Deref for Template {
-    type Target = Lints<WrappedAnyhowError>;
+    type Target = Lints<SharedErrorLint>;
 
     fn deref(&self) -> &Self::Target {
         match self {

@@ -2,7 +2,7 @@
 
 use super::Config;
 use super::Error;
-use obsidian_tidy_core::lint::{BoxedErrorLint, DynLint, LintsSeed, WrappedAnyhowError};
+use obsidian_tidy_core::lint::{LintsSeed, SharedErrorLint};
 use serde::de::DeserializeSeed;
 use serde::{Deserialize, Deserializer};
 use std::io::Read;
@@ -10,16 +10,16 @@ use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
-    available_lints: &'a Vec<BoxedErrorLint>,
+    available_lints: &'a Vec<SharedErrorLint>,
 }
 
 #[derive(Debug)]
 struct ConfigSeed<'a> {
-    lint_seed: &'a LintsSeed<'a, WrappedAnyhowError>,
+    lint_seed: &'a LintsSeed<'a, SharedErrorLint>,
 }
 
 impl<'a> ConfigSeed<'a> {
-    fn new(lint_seed: &'a LintsSeed<'a, WrappedAnyhowError>) -> Self {
+    fn new(lint_seed: &'a LintsSeed<'a, SharedErrorLint>) -> Self {
         Self { lint_seed }
     }
 }
@@ -45,7 +45,7 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
 }
 
 impl<'a> ConfigLoader<'a> {
-    pub fn new(available_lints: &'a Vec<BoxedErrorLint>) -> Self {
+    pub fn new(available_lints: &'a Vec<SharedErrorLint>) -> Self {
         Self { available_lints }
     }
 

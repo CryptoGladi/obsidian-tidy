@@ -4,10 +4,10 @@ pub mod content;
 pub mod lint_collection;
 
 use lint_collection::lint_collection;
-use obsidian_tidy_core::lint::{BoxedErrorLint, Category, Content, Lint, Violation};
+use obsidian_tidy_core::lint::{Category, Content, Lint, SharedErrorLint, Violation};
 use std::{convert::Infallible, sync::LazyLock};
 
-pub const ALL_LINTS: LazyLock<Vec<BoxedErrorLint>> = lint_collection![Test, Test1];
+pub const ALL_LINTS: LazyLock<Vec<SharedErrorLint>> = lint_collection![Test, Test1];
 
 pub struct Test;
 

@@ -8,7 +8,6 @@ use cli::{CLI, Command};
 use obsidian_tidy_lints::ALL_LINTS;
 use obsidian_tidy_logging::LoggerBuilder;
 use std::fs::OpenOptions;
-use tracing::debug;
 
 fn main() -> anyhow::Result<()> {
     better_panic::Settings::default()
