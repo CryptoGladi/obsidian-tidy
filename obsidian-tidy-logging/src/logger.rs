@@ -1,6 +1,5 @@
 use crate::builder::LoggerBuilder;
-use std::thread::panicking;
-use tracing::{Subscriber, debug, error};
+use tracing::{Subscriber, debug};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{Layer, prelude::*, registry::LookupSpan};
 
@@ -56,9 +55,6 @@ impl LoggerBuilder {
 
 impl Drop for Logger {
     fn drop(&mut self) {
-        match panicking() {
-            true => debug!("Done work"),
-            false => error!("Panic!"),
-        }
+        debug!("Done work")
     }
 }

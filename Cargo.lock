@@ -445,6 +445,7 @@ dependencies = [
  "obsidian-tidy-core",
  "obsidian-tidy-lints",
  "obsidian-tidy-logging",
+ "rayon",
  "serde",
  "thiserror",
  "toml",
@@ -455,6 +456,7 @@ dependencies = [
 name = "obsidian-tidy-core"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "directories",
  "obsidian-parser",
  "serde",

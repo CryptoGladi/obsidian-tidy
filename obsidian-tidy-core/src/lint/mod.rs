@@ -1,21 +1,24 @@
 //! Module for trait lints
 
+mod boxed_error_lint;
 mod lints;
 mod toggleable_lint;
 
 use crate::Vault;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, ops::Range, sync::Arc};
-use thiserror::Error;
 
+pub use boxed_error_lint::{BoxedErrorLint, WrappedAnyhowError};
 pub use lints::Lints;
 pub use lints::serde::{InnerLints, LintsSeed};
 pub use toggleable_lint::ToggleableLint;
 
-pub type DynLint = Arc<dyn Lint>;
+pub type DynLint<E> = Arc<dyn Lint<Error = E>>;
 
 /// Trait Lint
 pub trait Lint: Send + Sync {
+    type Error: std::error::Error;
+
     /// **Unique** lint name
     fn name(&self) -> &str;
 
@@ -26,10 +29,13 @@ pub trait Lint: Send + Sync {
     fn category(&self) -> Category;
 
     /// Run check by lint
-    fn check(&self, content: &Content) -> Vec<Violation>;
+    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error>;
 }
 
-impl Debug for dyn Lint {
+impl<E> Debug for dyn Lint<Error = E>
+where
+    E: std::error::Error,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Lint")
             .field("name", &self.name())
@@ -39,19 +45,16 @@ impl Debug for dyn Lint {
     }
 }
 
-impl PartialEq for dyn Lint {
+impl<E> PartialEq for dyn Lint<Error = E>
+where
+    E: std::error::Error,
+{
     fn eq(&self, other: &Self) -> bool {
         self.name() == other.name()
     }
 }
 
-impl Eq for dyn Lint {}
-
-#[derive(Debug, Error, PartialEq)]
-pub enum Error {
-    #[error("Found duplicate name: {0}")]
-    DuplicateName(String),
-}
+impl<E> Eq for dyn Lint<Error = E> where E: std::error::Error {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]

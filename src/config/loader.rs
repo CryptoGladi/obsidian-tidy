@@ -2,7 +2,7 @@
 
 use super::Config;
 use super::Error;
-use obsidian_tidy_core::lint::{DynLint, LintsSeed};
+use obsidian_tidy_core::lint::{BoxedErrorLint, DynLint, LintsSeed, WrappedAnyhowError};
 use serde::de::DeserializeSeed;
 use serde::{Deserialize, Deserializer};
 use std::io::Read;
@@ -10,16 +10,16 @@ use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
-    available_lints: &'a Vec<DynLint>,
+    available_lints: &'a Vec<BoxedErrorLint>,
 }
 
 #[derive(Debug)]
 struct ConfigSeed<'a> {
-    lint_seed: &'a LintsSeed<'a>,
+    lint_seed: &'a LintsSeed<'a, WrappedAnyhowError>,
 }
 
 impl<'a> ConfigSeed<'a> {
-    fn new(lint_seed: &'a LintsSeed<'a>) -> Self {
+    fn new(lint_seed: &'a LintsSeed<'a, WrappedAnyhowError>) -> Self {
         Self { lint_seed }
     }
 }
@@ -39,13 +39,13 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
         let inner = InnerConfig::deserialize(deserializer)?;
 
         Ok(Self::Value {
-            lints: self.lint_seed.deserialize(inner.lints).unwrap(),
+            lints: self.lint_seed.clone().deserialize(inner.lints).unwrap(),
         })
     }
 }
 
 impl<'a> ConfigLoader<'a> {
-    pub fn new(available_lints: &'a Vec<DynLint>) -> Self {
+    pub fn new(available_lints: &'a Vec<BoxedErrorLint>) -> Self {
         Self { available_lints }
     }
 

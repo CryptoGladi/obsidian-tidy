@@ -45,7 +45,10 @@ impl DerefMut for InnerLints {
     }
 }
 
-impl Serialize for Lints {
+impl<E> Serialize for Lints<E>
+where
+    E: std::error::Error,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -61,18 +64,27 @@ impl Serialize for Lints {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct LintsSeed<'a> {
-    available_lints: &'a Vec<DynLint>,
+pub struct LintsSeed<'a, E>
+where
+    E: std::error::Error,
+{
+    available_lints: &'a Vec<DynLint<E>>,
 }
 
-impl<'a> LintsSeed<'a> {
-    pub fn new(available_lints: &'a Vec<DynLint>) -> Self {
+impl<'a, E> LintsSeed<'a, E>
+where
+    E: std::error::Error,
+{
+    pub fn new(available_lints: &'a Vec<DynLint<E>>) -> Self {
         Self { available_lints }
     }
 }
 
-impl<'de> DeserializeSeed<'de> for LintsSeed<'_> {
-    type Value = Lints;
+impl<'de, E> DeserializeSeed<'de> for LintsSeed<'_, E>
+where
+    E: std::error::Error,
+{
+    type Value = Lints<E>;
 
     #[instrument(skip(deserializer), err)]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
@@ -111,8 +123,14 @@ mod tests {
 
     #[test]
     fn serialize() {
-        let lint1 = ToggleableLint::new(Arc::new(TestLint::new("lint1", Category::Content)), true);
-        let lint2 = ToggleableLint::new(Arc::new(TestLint::new("lint2", Category::Spacing)), false);
+        let lint1 = ToggleableLint::new(
+            Arc::new(TestLint::new("lint1", "", Category::Content)),
+            true,
+        );
+        let lint2 = ToggleableLint::new(
+            Arc::new(TestLint::new("lint2", "", Category::Spacing)),
+            false,
+        );
 
         let lints = Lints::new(vec![lint1, lint2]).unwrap();
         let toml = toml::to_string(&lints).unwrap();
@@ -130,8 +148,8 @@ enable = false
 
     #[test]
     fn deserialize() {
-        let lint1 = Arc::new(TestLint::new("lint1", Category::Content));
-        let lint2 = Arc::new(TestLint::new("lint2", Category::Spacing));
+        let lint1 = Arc::new(TestLint::new("lint1", "", Category::Content));
+        let lint2 = Arc::new(TestLint::new("lint2", "", Category::Spacing));
 
         let toggleable_lint1 = ToggleableLint::new(lint1.clone(), true);
         let toggleable_lint2 = ToggleableLint::new(lint2.clone(), false);
@@ -139,8 +157,8 @@ enable = false
         let lints = Lints::new(vec![toggleable_lint1, toggleable_lint2]).unwrap();
         let toml = toml::to_string(&lints).unwrap();
 
-        let available_lints: Vec<DynLint> = vec![lint1, lint2];
-        let lints_deserialized: Lints = LintsSeed::new(&available_lints)
+        let available_lints: Vec<DynLint<_>> = vec![lint1, lint2];
+        let lints_deserialized = LintsSeed::new(&available_lints)
             .deserialize(toml::Deserializer::parse(&toml).unwrap())
             .unwrap();
 
@@ -150,8 +168,8 @@ enable = false
     #[test]
     #[should_panic]
     fn deserialize_with_not_found_lint() {
-        let lint1 = Arc::new(TestLint::new("lint1", Category::Content));
-        let lint2 = Arc::new(TestLint::new("lint2", Category::Spacing));
+        let lint1 = Arc::new(TestLint::new("lint1", "", Category::Content));
+        let lint2 = Arc::new(TestLint::new("lint2", "", Category::Spacing));
 
         let toggleable_lint1 = ToggleableLint::new(lint1.clone(), true);
         let toggleable_lint2 = ToggleableLint::new(lint2.clone(), false);
@@ -159,8 +177,8 @@ enable = false
         let lints = Lints::new(vec![toggleable_lint1, toggleable_lint2]).unwrap();
         let toml = toml::to_string(&lints).unwrap();
 
-        let available_lints: Vec<DynLint> = vec![lint1]; // Without lint2
-        let lints_deserialized: Lints = LintsSeed::new(&available_lints)
+        let available_lints: Vec<DynLint<_>> = vec![lint1]; // Without lint2
+        let lints_deserialized = LintsSeed::new(&available_lints)
             .deserialize(toml::Deserializer::parse(&toml).unwrap())
             .unwrap();
 

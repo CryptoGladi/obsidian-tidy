@@ -1,32 +1,32 @@
 //! Module for store template lints
 
 use clap::ValueEnum;
-use obsidian_tidy_core::lint::{Lints, ToggleableLint};
+use obsidian_tidy_core::lint::{Lints, ToggleableLint, WrappedAnyhowError};
 use obsidian_tidy_lints::ALL_LINTS;
 use std::{ops::Deref, sync::LazyLock};
 use tracing::{instrument, trace};
 
-static ALL: LazyLock<Lints> = LazyLock::new(|| {
+static ALL: LazyLock<Lints<WrappedAnyhowError>> = LazyLock::new(|| {
     let lints = ALL_LINTS
         .clone()
         .into_iter()
-        .map(|lint| ToggleableLint::new(lint, true))
+        .map(|lint| ToggleableLint::new(lint.into(), true))
         .collect();
 
     Lints::new(lints).unwrap()
 });
 
-static EMPTY: LazyLock<Lints> = LazyLock::new(|| {
+static EMPTY: LazyLock<Lints<WrappedAnyhowError>> = LazyLock::new(|| {
     let lints = ALL_LINTS
         .clone()
         .into_iter()
-        .map(|lint| ToggleableLint::new(lint, false))
+        .map(|lint| ToggleableLint::new(lint.into(), false))
         .collect();
 
     Lints::new(lints).unwrap()
 });
 
-static STANDARD: LazyLock<Lints> = LazyLock::new(|| {
+static STANDARD: LazyLock<Lints<WrappedAnyhowError>> = LazyLock::new(|| {
     let mut lints = EMPTY.clone();
 
     lints["test-lint"].enable();
@@ -49,9 +49,9 @@ pub enum Template {
     Empty,
 }
 
-impl AsRef<Lints> for Template {
+impl AsRef<Lints<WrappedAnyhowError>> for Template {
     #[instrument]
-    fn as_ref(&self) -> &Lints {
+    fn as_ref(&self) -> &Lints<WrappedAnyhowError> {
         trace!("Template to lints");
 
         match self {
@@ -62,9 +62,9 @@ impl AsRef<Lints> for Template {
     }
 }
 
-impl From<Template> for Lints {
+impl From<Template> for Lints<WrappedAnyhowError> {
     #[instrument]
-    fn from(template: Template) -> Lints {
+    fn from(template: Template) -> Lints<WrappedAnyhowError> {
         trace!("Template to owned lints");
 
         match template {
@@ -76,7 +76,7 @@ impl From<Template> for Lints {
 }
 
 impl Deref for Template {
-    type Target = Lints;
+    type Target = Lints<WrappedAnyhowError>;
 
     fn deref(&self) -> &Self::Target {
         match self {

@@ -6,9 +6,9 @@ pub mod loader;
 pub mod saver;
 pub mod template;
 
-use obsidian_tidy_core::lint::Lints;
+use obsidian_tidy_core::lint::{Lints, WrappedAnyhowError};
 use serde::Serialize;
-use std::{fs::OpenOptions, path::Path, thread::panicking};
+use std::{fs::OpenOptions, path::Path};
 use thiserror::Error;
 use tracing::{debug, instrument};
 
@@ -21,7 +21,7 @@ use crate::config::builder::ConfigBuilder;
 
 #[derive(Debug, Serialize)]
 pub struct Config {
-    lints: Lints,
+    lints: Lints<WrappedAnyhowError>,
 }
 
 #[instrument(skip(path))]

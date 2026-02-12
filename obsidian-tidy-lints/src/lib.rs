@@ -1,16 +1,19 @@
 //! Module for Rust writer lints
 
 pub mod content;
+pub mod lint_collection;
 
-use obsidian_tidy_core::lint::{Category, Content, DynLint, Lint, Violation};
-use std::sync::{Arc, LazyLock};
+use lint_collection::lint_collection;
+use obsidian_tidy_core::lint::{BoxedErrorLint, Category, Content, Lint, Violation};
+use std::{convert::Infallible, sync::LazyLock};
 
-pub const ALL_LINTS: LazyLock<Vec<DynLint>> =
-    LazyLock::new(|| vec![Arc::new(Test), Arc::new(Test1)]);
+pub const ALL_LINTS: LazyLock<Vec<BoxedErrorLint>> = lint_collection![Test, Test1];
 
 pub struct Test;
 
 impl Lint for Test {
+    type Error = Infallible;
+
     fn name(&self) -> &str {
         "test-lint"
     }
@@ -23,14 +26,16 @@ impl Lint for Test {
         Category::Custom
     }
 
-    fn check(&self, _content: &Content) -> Vec<Violation> {
-        Vec::new()
+    fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
+        Ok(Vec::new())
     }
 }
 
 pub struct Test1;
 
 impl Lint for Test1 {
+    type Error = Infallible;
+
     fn name(&self) -> &str {
         "test-lint1"
     }
@@ -43,7 +48,7 @@ impl Lint for Test1 {
         Category::Custom
     }
 
-    fn check(&self, _content: &Content) -> Vec<Violation> {
-        Vec::new()
+    fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
+        Ok(Vec::new())
     }
 }
