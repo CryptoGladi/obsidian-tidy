@@ -1,28 +1,28 @@
 //! Builder for config
 
 use super::Config;
-use obsidian_tidy_core::lint::{Lints, SharedErrorLint};
+use obsidian_tidy_core::rule::{Rules, SharedErrorRule};
 
 #[derive(Debug)]
 pub struct ConfigBuilder {
-    lints: Lints<SharedErrorLint>,
+    rules: Rules<SharedErrorRule>,
 }
 
 impl Default for ConfigBuilder {
     fn default() -> Self {
         Self {
-            lints: Lints::new(Vec::new()).unwrap(),
+            rules: Rules::new(Vec::new()).unwrap(),
         }
     }
 }
 
 impl ConfigBuilder {
-    pub fn lints(mut self, lints: Lints<SharedErrorLint>) -> Self {
-        self.lints = lints;
+    pub fn rules(mut self, rules: Rules<SharedErrorRule>) -> Self {
+        self.rules = rules;
         self
     }
 
     pub fn build(self) -> Config {
-        Config { lints: self.lints }
+        Config { rules: self.rules }
     }
 }

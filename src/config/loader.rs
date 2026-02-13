@@ -2,7 +2,7 @@
 
 use super::Config;
 use super::Error;
-use obsidian_tidy_core::lint::{LintsSeed, SharedErrorLint};
+use obsidian_tidy_core::rule::{RulesSeed, SharedErrorRule};
 use serde::de::DeserializeSeed;
 use serde::{Deserialize, Deserializer};
 use std::io::Read;
@@ -10,17 +10,17 @@ use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
-    available_lints: &'a Vec<SharedErrorLint>,
+    available_rules: &'a Vec<SharedErrorRule>,
 }
 
 #[derive(Debug)]
 struct ConfigSeed<'a> {
-    lint_seed: &'a LintsSeed<'a, SharedErrorLint>,
+    rule_seed: &'a RulesSeed<'a, SharedErrorRule>,
 }
 
 impl<'a> ConfigSeed<'a> {
-    fn new(lint_seed: &'a LintsSeed<'a, SharedErrorLint>) -> Self {
-        Self { lint_seed }
+    fn new(rule_seed: &'a RulesSeed<'a, SharedErrorRule>) -> Self {
+        Self { rule_seed }
     }
 }
 
@@ -33,20 +33,20 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
     {
         #[derive(Deserialize)]
         struct InnerConfig {
-            lints: toml::Value,
+            rules: toml::Value,
         }
 
         let inner = InnerConfig::deserialize(deserializer)?;
 
         Ok(Self::Value {
-            lints: self.lint_seed.clone().deserialize(inner.lints).unwrap(),
+            rules: self.rule_seed.clone().deserialize(inner.rules).unwrap(),
         })
     }
 }
 
 impl<'a> ConfigLoader<'a> {
-    pub fn new(available_lints: &'a Vec<SharedErrorLint>) -> Self {
-        Self { available_lints }
+    pub fn new(available_rules: &'a Vec<SharedErrorRule>) -> Self {
+        Self { available_rules }
     }
 
     /// Load config from reader
@@ -57,8 +57,8 @@ impl<'a> ConfigLoader<'a> {
         let mut buffer = String::new();
         reader.read_to_string(&mut buffer)?;
 
-        let lint_seed = LintsSeed::new(self.available_lints);
+        let rule_seed = RulesSeed::new(self.available_rules);
 
-        Ok(ConfigSeed::new(&lint_seed).deserialize(toml::Deserializer::parse(&buffer)?)?)
+        Ok(ConfigSeed::new(&rule_seed).deserialize(toml::Deserializer::parse(&buffer)?)?)
     }
 }

@@ -1,9 +1,11 @@
-use super::{Category, Content, Lint, Violation};
+//! Module for impl [`Rule`] for smart pointer (Box and Arc)
+
+use super::{Category, Content, Rule, Violation};
 use std::sync::Arc;
 
-impl<L> Lint for Box<L>
+impl<L> Rule for Box<L>
 where
-    L: Lint,
+    L: Rule,
 {
     type Error = L::Error;
 
@@ -24,9 +26,9 @@ where
     }
 }
 
-impl<L> Lint for Arc<L>
+impl<L> Rule for Arc<L>
 where
-    L: Lint,
+    L: Rule,
 {
     type Error = L::Error;
 
@@ -50,25 +52,25 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TestLint;
+    use crate::test_utils::TestRule;
     use std::convert::Infallible;
     use tracing_test::traced_test;
 
     #[test]
     #[traced_test]
     fn check_box() {
-        let test_lint = TestLint::new("test-lint", "", Category::Heading);
-        let test_lint = Box::new(test_lint) as Box<dyn Lint<Error = Infallible>>;
+        let test_rule = TestRule::new("test-rule", "", Category::Heading);
+        let test_rule = Box::new(test_rule) as Box<dyn Rule<Error = Infallible>>;
 
-        assert_eq!(test_lint.name(), "test-lint");
+        assert_eq!(test_rule.name(), "test-rule");
     }
 
     #[test]
     #[traced_test]
     fn check_arc() {
-        let test_lint = TestLint::new("test-lint", "", Category::Heading);
-        let test_lint = Arc::new(test_lint) as Arc<dyn Lint<Error = Infallible>>;
+        let test_rule = TestRule::new("test-rule", "", Category::Heading);
+        let test_rule = Arc::new(test_rule) as Arc<dyn Rule<Error = Infallible>>;
 
-        assert_eq!(test_lint.name(), "test-lint");
+        assert_eq!(test_rule.name(), "test-rule");
     }
 }

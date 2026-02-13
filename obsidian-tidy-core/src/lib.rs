@@ -1,7 +1,7 @@
 //! Core crate for obsidian-tidy
 
 pub mod directories;
-pub mod lint;
+pub mod rule;
 
 #[cfg(test)]
 pub(crate) mod test_utils;

@@ -8,6 +8,7 @@ Inspired by `clang-tidy` and built for power users with large knowledge bases.
 [![GitHub release](https://img.shields.io/github/v/release/CryptoGladi/obsidian-tidy)](https://github.com/CryptoGladi/obsidian-tidy/releases)
 [![Build status](https://img.shields.io/github/actions/workflow/status/CryptoGladi/obsidian-tidy/ci.yml)](https://github.com/CryptoGladi/obsidian-tidy/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Rust](https://img.shields.io/badge/Rust-orange.svg)](https://www.rust-lang.org)
 
 ## Why obsidian-tidy?
 

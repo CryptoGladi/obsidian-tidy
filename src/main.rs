@@ -5,8 +5,8 @@ mod config;
 use crate::config::ConfigLoader;
 use clap::Parser;
 use cli::{CLI, Command};
-use obsidian_tidy_lints::ALL_LINTS;
 use obsidian_tidy_logging::LoggerBuilder;
+use obsidian_tidy_rules::ALL_RULES;
 use std::fs::OpenOptions;
 
 fn main() -> anyhow::Result<()> {
@@ -37,16 +37,16 @@ fn main() -> anyhow::Result<()> {
             }
 
             let mut file = OpenOptions::new().read(true).open(&config_path)?;
-            let config = ConfigLoader::new(&ALL_LINTS).load(&mut file)?;
+            let config = ConfigLoader::new(&ALL_RULES).load(&mut file)?;
             anyhow::bail!("my config: {config:?}");
         }
 
         Command::ListRules => {
             println!("List rules:");
 
-            ALL_LINTS
+            ALL_RULES
                 .iter()
-                .map(|lint| format!("* `{}` - {}", lint.name(), lint.description()))
+                .map(|rule| format!("* `{}` - {}", rule.name(), rule.description()))
                 .for_each(|line| println!("{line}"));
         }
     }

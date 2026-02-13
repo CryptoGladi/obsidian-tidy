@@ -39,10 +39,10 @@ pub struct CLI {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Run lints
+    /// Run rules
     Check,
 
-    /// Initialization of config for linter
+    /// Initialization of config for obsidian-tidy
     Init {
         /// Override config if already exists
         #[arg(long = "override")]

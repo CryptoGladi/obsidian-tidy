@@ -1,24 +1,24 @@
-use super::{Category, Content, Lint, Violation};
-use crate::lint::DynLint;
+use super::{Category, Content, Rule, Violation};
+use crate::rule::DynRule;
 use std::{ops::Deref, sync::Arc};
 
 #[derive(Debug, Clone)]
-pub struct SharedErrorLint {
-    inner: DynLint<Arc<dyn std::error::Error>>,
+pub struct SharedErrorRule {
+    inner: DynRule<Arc<dyn std::error::Error>>,
 }
 
-impl SharedErrorLint {
-    pub fn new<L>(lint: L) -> Self
+impl SharedErrorRule {
+    pub fn new<R>(rule: R) -> Self
     where
-        L: Lint + 'static,
-        L::Error: 'static,
+        R: Rule + 'static,
+        R::Error: 'static,
     {
-        let boxed = Arc::new(ErasingLint(lint));
+        let boxed = Arc::new(ErasingRule(rule));
         Self { inner: boxed }
     }
 }
 
-impl Lint for SharedErrorLint {
+impl Rule for SharedErrorRule {
     type Error = Arc<dyn std::error::Error>;
 
     fn name(&self) -> &str {
@@ -38,37 +38,37 @@ impl Lint for SharedErrorLint {
     }
 }
 
-impl Deref for SharedErrorLint {
-    type Target = DynLint<Arc<dyn std::error::Error>>;
+impl Deref for SharedErrorRule {
+    type Target = DynRule<Arc<dyn std::error::Error>>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
 
-impl PartialEq for SharedErrorLint {
+impl PartialEq for SharedErrorRule {
     fn eq(&self, other: &Self) -> bool {
         &self.inner == &other.inner
     }
 }
 
-impl Eq for SharedErrorLint {}
+impl Eq for SharedErrorRule {}
 
-struct ErasingLint<L: Lint>(L);
+struct ErasingRule<R: Rule>(R);
 
-impl<L> From<L> for ErasingLint<L>
+impl<R> From<R> for ErasingRule<R>
 where
-    L: Lint,
+    R: Rule,
 {
-    fn from(value: L) -> Self {
+    fn from(value: R) -> Self {
         Self(value)
     }
 }
 
-impl<L> Lint for ErasingLint<L>
+impl<R> Rule for ErasingRule<R>
 where
-    L: Lint,
-    L::Error: 'static,
+    R: Rule,
+    R::Error: 'static,
 {
     type Error = Arc<dyn std::error::Error>;
 
@@ -92,7 +92,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TestLint;
+    use crate::test_utils::TestRule;
     use thiserror::Error;
     use tracing_test::traced_test;
 
@@ -102,13 +102,13 @@ mod tests {
         OhNo,
     }
 
-    struct ErrorLint;
+    struct ErrorRule;
 
-    impl Lint for ErrorLint {
+    impl Rule for ErrorRule {
         type Error = self::Error;
 
         fn name(&self) -> &str {
-            "error-lint"
+            "error-rule"
         }
 
         fn description(&self) -> &str {
@@ -127,36 +127,37 @@ mod tests {
     #[test]
     #[traced_test]
     fn new() {
-        let test_lint = TestLint::new("test-ling", "", Category::Custom);
-        let error_lint = ErrorLint;
+        let test_rule = TestRule::new("test-rule", "", Category::Custom);
+        let error_rule = ErrorRule;
 
-        let lints = vec![
-            SharedErrorLint::new(test_lint),
-            SharedErrorLint::new(error_lint),
+        let rules = vec![
+            SharedErrorRule::new(test_rule),
+            SharedErrorRule::new(error_rule),
         ];
 
         let content = Content::default();
-        let error = lints
+        let error = rules
             .into_iter()
-            .find_map(|lint| lint.check(&content).err());
+            .find_map(|rule| rule.check(&content).err());
 
         assert_eq!(error.unwrap().downcast_ref(), Some(&self::Error::OhNo));
     }
 
     #[test]
     #[traced_test]
-    fn erasing_lint() {
-        let test_lint = TestLint::new("test-ling", "", Category::Custom);
-        let error_lint = ErrorLint;
+    fn erasing_rule() {
+        let test_rule = TestRule::new("test-rule", "", Category::Custom);
+        let error_rule = ErrorRule;
 
-        let test_lint = ErasingLint::from(test_lint);
-        let error_lint = ErasingLint::from(error_lint);
+        let test_rule = ErasingRule::from(test_rule);
+        let error_rule = ErasingRule::from(error_rule);
 
         let content = Content::default();
 
-        assert_eq!(test_lint.check(&content).ok(), Some(Vec::new()));
+        assert_eq!(test_rule.check(&content).ok(), Some(Vec::new()));
+
         assert_eq!(
-            error_lint.check(&content).err().unwrap().downcast_ref(),
+            error_rule.check(&content).err().unwrap().downcast_ref(),
             Some(&self::Error::OhNo)
         );
     }

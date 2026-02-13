@@ -11,12 +11,12 @@ keywords = ["obsidian", "vault", "linter", "tidy", "knowledge-graph", "graph"]
 categories = ["parser-implementations", "data-structures"]
 
 [workspace]
-members = ["obsidian-tidy-core", "obsidian-tidy-lints", "obsidian-tidy-logging"]
+members = ["obsidian-tidy-core", "obsidian-tidy-rules", "obsidian-tidy-logging"]
 
 [workspace.dependencies]
 obsidian-tidy-logging = { path = "./obsidian-tidy-logging" }
 obsidian-tidy-core = { path = "./obsidian-tidy-core" }
-obsidian-tidy-lints = { path = "./obsidian-tidy-lints" }
+obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
 tracing = "0.1"
 anyhow = "1"
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
@@ -28,7 +28,7 @@ tracing-test = "0.2"
 [dependencies]
 obsidian-tidy-logging.workspace = true
 obsidian-tidy-core.workspace = true
-obsidian-tidy-lints.workspace = true
+obsidian-tidy-rules.workspace = true
 tracing.workspace = true
 clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
 serde.workspace = true

@@ -1,45 +1,46 @@
-//! Module for trait lints
+//! Module for trait rules
 
-mod lints;
-mod shared_error_lint;
+mod rules;
+mod shared_error_rule;
 mod smart_pointer;
-mod toggleable_lint;
+mod toggleable_rule;
 
 use crate::Vault;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, ops::Range, sync::Arc};
 
-pub use lints::Lints;
-pub use lints::serde::{InnerLints, LintsSeed};
-pub use shared_error_lint::SharedErrorLint;
-pub use toggleable_lint::ToggleableLint;
+pub use rules::Rules;
+pub use rules::serde::{InnerRules, RulesSeed};
+pub use shared_error_rule::SharedErrorRule;
+pub use toggleable_rule::ToggleableRule;
 
-pub type DynLint<E> = Arc<dyn Lint<Error = E>>;
+/// Dyn for [`Rule`]
+pub type DynRule<E> = Arc<dyn Rule<Error = E>>;
 
-/// Trait Lint
-pub trait Lint: Send + Sync {
-    /// Error while work Lint
+/// Trait for rule
+pub trait Rule: Send + Sync {
+    /// Error while work rule
     type Error: std::error::Error;
 
-    /// **Unique** lint name
+    /// **Unique** rule name
     fn name(&self) -> &str;
 
-    /// Description lint
+    /// Description rule
     fn description(&self) -> &str;
 
-    /// Category lint
+    /// Category rule
     fn category(&self) -> Category;
 
-    /// Run check by lint
+    /// Run check by this rule
     fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error>;
 }
 
-impl<E> Debug for dyn Lint<Error = E>
+impl<E> Debug for dyn Rule<Error = E>
 where
     E: std::error::Error,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Lint")
+        f.debug_struct("Rule")
             .field("name", &self.name())
             .field("description", &self.description())
             .field("category", &self.category())
@@ -47,7 +48,7 @@ where
     }
 }
 
-impl<E> PartialEq for dyn Lint<Error = E>
+impl<E> PartialEq for dyn Rule<Error = E>
 where
     E: std::error::Error,
 {
@@ -56,7 +57,7 @@ where
     }
 }
 
-impl<E> Eq for dyn Lint<Error = E> where E: std::error::Error {}
+impl<E> Eq for dyn Rule<Error = E> where E: std::error::Error {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -83,22 +84,22 @@ pub struct Violation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TestLint;
+    use crate::test_utils::TestRule;
     use tracing_test::traced_test;
 
     #[test]
     #[traced_test]
     fn partial_eq() {
-        let lint1 = TestLint::new("lint1", "", Category::Heading);
-        let lint1_same = TestLint::new("lint1", "", Category::Heading);
+        let rule1 = TestRule::new("rule1", "", Category::Heading);
+        let rule1_same = TestRule::new("rule1", "", Category::Heading);
 
-        let lint2 = TestLint::new("lint2", "", Category::Heading);
-        let lint2_same = TestLint::new("lint2", "", Category::Heading);
+        let rule2 = TestRule::new("rule2", "", Category::Heading);
+        let rule2_same = TestRule::new("rule2", "", Category::Heading);
 
-        assert_eq!(lint1, lint1_same);
-        assert_eq!(lint2, lint2_same);
+        assert_eq!(rule1, rule1_same);
+        assert_eq!(rule2, rule2_same);
 
-        assert_ne!(lint1, lint2);
-        assert_ne!(lint1_same, lint2_same);
+        assert_ne!(rule1, rule2);
+        assert_ne!(rule1_same, rule2_same);
     }
 }

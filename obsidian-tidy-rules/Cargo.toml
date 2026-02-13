@@ -1,5 +1,5 @@
 [package]
-name = "obsidian-tidy-lints"
+name = "obsidian-tidy-rules"
 version = "0.0.0"
 edition = "2024"
 

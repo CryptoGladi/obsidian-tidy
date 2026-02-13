@@ -6,7 +6,7 @@ pub mod loader;
 pub mod saver;
 pub mod template;
 
-use obsidian_tidy_core::lint::{Lints, SharedErrorLint};
+use obsidian_tidy_core::rule::{Rules, SharedErrorRule};
 use serde::Serialize;
 use std::{fs::OpenOptions, path::Path};
 use thiserror::Error;
@@ -21,7 +21,7 @@ use crate::config::builder::ConfigBuilder;
 
 #[derive(Debug, Serialize)]
 pub struct Config {
-    lints: Lints<SharedErrorLint>,
+    rules: Rules<SharedErrorRule>,
 }
 
 #[instrument(skip(path))]
@@ -40,7 +40,7 @@ pub fn init_command(
         };
     }
 
-    let config = ConfigBuilder::default().lints(template.into()).build();
+    let config = ConfigBuilder::default().rules(template.into()).build();
 
     let mut file = OpenOptions::new().create_new(true).write(true).open(path)?;
     ConfigSaver::new(&config).path(path).save(&mut file)?;

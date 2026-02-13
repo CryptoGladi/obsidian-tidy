@@ -1,9 +1,9 @@
-use obsidian_tidy_core::lint::{Content, Lints, SharedErrorLint};
+use obsidian_tidy_core::rule::{Content, Rules, SharedErrorRule};
 use rayon::prelude::*;
 use std::sync::mpsc;
 
 pub struct Check {
-    lints: Lints<SharedErrorLint>,
+    rules: Rules<SharedErrorRule>,
     content: Content,
 }
 
@@ -11,8 +11,8 @@ impl Check {
     pub fn run(&self) {
         let (sender, receiver) = mpsc::channel();
 
-        self.lints.par_iter().for_each(|lint| {
-            let result = lint.check(&self.content);
+        self.rules.par_iter().for_each(|rule| {
+            let result = rule.check(&self.content);
             sender.send(result.unwrap());
         });
     }

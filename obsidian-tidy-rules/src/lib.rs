@@ -1,25 +1,25 @@
-//! Module for Rust writer lints
+//! Module for Rust writer rules
 
 pub mod content;
-pub mod lint_collection;
+pub mod rules;
 
-use lint_collection::lint_collection;
-use obsidian_tidy_core::lint::{Category, Content, Lint, SharedErrorLint, Violation};
+use obsidian_tidy_core::rule::{Category, Content, Rule, SharedErrorRule, Violation};
+use rules::rules;
 use std::{convert::Infallible, sync::LazyLock};
 
-pub const ALL_LINTS: LazyLock<Vec<SharedErrorLint>> = lint_collection![Test, Test1];
+pub const ALL_RULES: LazyLock<Vec<SharedErrorRule>> = rules![Test, Test1];
 
 pub struct Test;
 
-impl Lint for Test {
+impl Rule for Test {
     type Error = Infallible;
 
     fn name(&self) -> &str {
-        "test-lint"
+        "test-rule"
     }
 
     fn description(&self) -> &str {
-        "Test lint"
+        "Test rule"
     }
 
     fn category(&self) -> Category {
@@ -33,15 +33,15 @@ impl Lint for Test {
 
 pub struct Test1;
 
-impl Lint for Test1 {
+impl Rule for Test1 {
     type Error = Infallible;
 
     fn name(&self) -> &str {
-        "test-lint1"
+        "test-rule1"
     }
 
     fn description(&self) -> &str {
-        "Test lint 1"
+        "Test rule 1"
     }
 
     fn category(&self) -> Category {

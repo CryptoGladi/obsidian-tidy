@@ -1,21 +1,21 @@
 //! Module for testing
 
-use crate::lint::{Category, Content, Lint, Violation};
+use crate::rule::{Category, Content, Rule, Violation};
 use std::convert::Infallible;
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct TestLint {
+pub(crate) struct TestRule {
     name: String,
     description: String,
     category: Category,
 }
 
-impl TestLint {
+impl TestRule {
     pub fn new(
         name: impl Into<String>,
         description: impl Into<String>,
         category: Category,
-    ) -> TestLint {
+    ) -> TestRule {
         Self {
             name: name.into(),
             description: description.into(),
@@ -24,7 +24,7 @@ impl TestLint {
     }
 }
 
-impl Lint for TestLint {
+impl Rule for TestRule {
     type Error = Infallible;
 
     fn name(&self) -> &str {
@@ -56,10 +56,10 @@ mod tests {
         const TEST_DESCRIPTION: &str = "test description";
         const TEST_CATEGORY: Category = Category::Heading;
 
-        let test_lint = TestLint::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY);
+        let test_rule = TestRule::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY);
 
-        assert_eq!(test_lint.name(), TEST_NAME);
-        assert_eq!(test_lint.description(), TEST_DESCRIPTION);
-        assert_eq!(test_lint.category(), TEST_CATEGORY);
+        assert_eq!(test_rule.name(), TEST_NAME);
+        assert_eq!(test_rule.description(), TEST_DESCRIPTION);
+        assert_eq!(test_rule.category(), TEST_CATEGORY);
     }
 }

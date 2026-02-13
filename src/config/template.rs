@@ -1,58 +1,58 @@
-//! Module for store template lints
+//! Module for store template rules
 
 use clap::ValueEnum;
-use obsidian_tidy_core::lint::{Lints, SharedErrorLint, ToggleableLint};
-use obsidian_tidy_lints::ALL_LINTS;
+use obsidian_tidy_core::rule::{Rules, SharedErrorRule, ToggleableRule};
+use obsidian_tidy_rules::ALL_RULES;
 use std::{ops::Deref, sync::LazyLock};
 use tracing::{instrument, trace};
 
-static ALL: LazyLock<Lints<SharedErrorLint>> = LazyLock::new(|| {
-    let lints = ALL_LINTS
+static ALL: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
+    let rules = ALL_RULES
         .clone()
         .into_iter()
-        .map(|lint| ToggleableLint::new(lint, true))
+        .map(|rule| ToggleableRule::new(rule, true))
         .collect();
 
-    Lints::new(lints).unwrap()
+    Rules::new(rules).unwrap()
 });
 
-static EMPTY: LazyLock<Lints<SharedErrorLint>> = LazyLock::new(|| {
-    let lints = ALL_LINTS
+static EMPTY: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
+    let rules = ALL_RULES
         .clone()
         .into_iter()
-        .map(|lint| ToggleableLint::new(lint, false))
+        .map(|rule| ToggleableRule::new(rule, false))
         .collect();
 
-    Lints::new(lints).unwrap()
+    Rules::new(rules).unwrap()
 });
 
-static STANDARD: LazyLock<Lints<SharedErrorLint>> = LazyLock::new(|| {
-    let mut lints = EMPTY.clone();
+static STANDARD: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
+    let mut rules = EMPTY.clone();
 
-    lints["test-lint"].enable();
+    rules["test-rule"].enable();
 
-    lints
+    rules
 });
 
 /// Template config
 #[derive(Debug, Clone, ValueEnum)]
 #[clap(rename_all = "kebab-case")]
 pub enum Template {
-    /// Enabled all lints
+    /// Enabled all rules
     All,
 
     /// Standard config.
     /// Recommended for most users
     Standard,
 
-    /// Disabled all lints
+    /// Disabled all rule
     Empty,
 }
 
-impl AsRef<Lints<SharedErrorLint>> for Template {
+impl AsRef<Rules<SharedErrorRule>> for Template {
     #[instrument]
-    fn as_ref(&self) -> &Lints<SharedErrorLint> {
-        trace!("Template to lints");
+    fn as_ref(&self) -> &Rules<SharedErrorRule> {
+        trace!("Template to rules");
 
         match self {
             Template::All => &ALL,
@@ -62,10 +62,10 @@ impl AsRef<Lints<SharedErrorLint>> for Template {
     }
 }
 
-impl From<Template> for Lints<SharedErrorLint> {
+impl From<Template> for Rules<SharedErrorRule> {
     #[instrument]
-    fn from(template: Template) -> Lints<SharedErrorLint> {
-        trace!("Template to owned lints");
+    fn from(template: Template) -> Rules<SharedErrorRule> {
+        trace!("Template to owned rules");
 
         match template {
             Template::All => ALL.clone(),
@@ -76,7 +76,7 @@ impl From<Template> for Lints<SharedErrorLint> {
 }
 
 impl Deref for Template {
-    type Target = Lints<SharedErrorLint>;
+    type Target = Rules<SharedErrorRule>;
 
     fn deref(&self) -> &Self::Target {
         match self {
@@ -90,25 +90,25 @@ impl Deref for Template {
 #[cfg(test)]
 mod tests {
     use super::Template;
-    use obsidian_tidy_lints::ALL_LINTS;
+    use obsidian_tidy_rules::ALL_RULES;
 
     #[test]
     fn all_check() {
-        assert_eq!(Template::All.len(), ALL_LINTS.len());
-        assert!(Template::All.iter().all(|lint| lint.enabled()));
+        assert_eq!(Template::All.len(), ALL_RULES.len());
+        assert!(Template::All.iter().all(|rule| rule.enabled()));
     }
 
     #[test]
     fn empty_check() {
-        assert_eq!(Template::Empty.len(), ALL_LINTS.len());
-        assert!(Template::Empty.iter().all(|lint| lint.disabled()));
+        assert_eq!(Template::Empty.len(), ALL_RULES.len());
+        assert!(Template::Empty.iter().all(|rule| rule.disabled()));
     }
 
     #[test]
     fn standart() {
-        assert_eq!(Template::Standard.len(), ALL_LINTS.len());
+        assert_eq!(Template::Standard.len(), ALL_RULES.len());
 
-        assert!(Template::All.iter().any(|lint| lint.enabled()));
-        assert!(Template::Empty.iter().any(|lint| lint.disabled()));
+        assert!(Template::All.iter().any(|rule| rule.enabled()));
+        assert!(Template::Empty.iter().any(|rule| rule.disabled()));
     }
 }
