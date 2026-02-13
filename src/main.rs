@@ -40,6 +40,15 @@ fn main() -> anyhow::Result<()> {
             let config = ConfigLoader::new(&ALL_LINTS).load(&mut file)?;
             anyhow::bail!("my config: {config:?}");
         }
+
+        Command::ListRules => {
+            println!("List rules:");
+
+            ALL_LINTS
+                .iter()
+                .map(|lint| format!("* `{}` - {}", lint.name(), lint.description()))
+                .for_each(|line| println!("{line}"));
+        }
     }
 
     Ok(())

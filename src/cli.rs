@@ -52,4 +52,7 @@ pub enum Command {
         #[arg(long, value_enum, default_value_t = Template::Standard)]
         template: Template,
     },
+
+    /// List all available built‑in rules
+    ListRules,
 }

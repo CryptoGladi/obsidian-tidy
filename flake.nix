@@ -48,11 +48,6 @@
           src = ./.;
 
           doCheck = true;
-          cargoTestOptions = [
-            "$cargo_release"
-            ''-j "$NIX_BUILD_CORES"''
-            "--workspace"
-          ];
         };
 
         # For `nix develop`:
