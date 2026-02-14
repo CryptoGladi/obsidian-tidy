@@ -1,0 +1,15 @@
+[package]
+name = "obsidian-tidy-cli"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+obsidian-tidy-core.workspace = true
+obsidian-tidy-rules.workspace = true
+obsidian-tidy-config.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+itertools.workspace = true
+rayon.workspace = true
+clap.workspace = true
+owo-colors = "4.2"

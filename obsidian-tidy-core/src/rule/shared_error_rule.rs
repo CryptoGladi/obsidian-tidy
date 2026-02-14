@@ -4,14 +4,14 @@ use std::{ops::Deref, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub struct SharedErrorRule {
-    inner: DynRule<Arc<dyn std::error::Error>>,
+    inner: DynRule<Arc<dyn std::error::Error + Send + Sync>>,
 }
 
 impl SharedErrorRule {
     pub fn new<R>(rule: R) -> Self
     where
         R: Rule + 'static,
-        R::Error: 'static,
+        R::Error: Send + Sync + 'static,
     {
         let boxed = Arc::new(ErasingRule(rule));
         Self { inner: boxed }
@@ -19,7 +19,7 @@ impl SharedErrorRule {
 }
 
 impl Rule for SharedErrorRule {
-    type Error = Arc<dyn std::error::Error>;
+    type Error = Arc<dyn std::error::Error + Send + Sync>;
 
     fn name(&self) -> &str {
         self.inner.name()
@@ -39,7 +39,7 @@ impl Rule for SharedErrorRule {
 }
 
 impl Deref for SharedErrorRule {
-    type Target = DynRule<Arc<dyn std::error::Error>>;
+    type Target = DynRule<Arc<dyn std::error::Error + Send + Sync>>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -68,9 +68,9 @@ where
 impl<R> Rule for ErasingRule<R>
 where
     R: Rule,
-    R::Error: 'static,
+    R::Error: Send + Sync + 'static,
 {
-    type Error = Arc<dyn std::error::Error>;
+    type Error = Arc<dyn std::error::Error + Send + Sync>;
 
     fn name(&self) -> &str {
         self.0.name()
@@ -85,7 +85,7 @@ where
     fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
         self.0
             .check(content)
-            .map_err(|e| Arc::new(e) as Arc<dyn std::error::Error>)
+            .map_err(|e| Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>)
     }
 }
 
@@ -116,7 +116,7 @@ mod tests {
         }
 
         fn category(&self) -> Category {
-            Category::Custom
+            Category::Other
         }
 
         fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
@@ -127,7 +127,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn new() {
-        let test_rule = TestRule::new("test-rule", "", Category::Custom);
+        let test_rule = TestRule::new("test-rule", "", Category::Other, []);
         let error_rule = ErrorRule;
 
         let rules = vec![
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn erasing_rule() {
-        let test_rule = TestRule::new("test-rule", "", Category::Custom);
+        let test_rule = TestRule::new("test-rule", "", Category::Other, []);
         let error_rule = ErrorRule;
 
         let test_rule = ErasingRule::from(test_rule);

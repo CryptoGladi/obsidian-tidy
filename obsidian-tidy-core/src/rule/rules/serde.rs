@@ -16,7 +16,7 @@ pub struct RuleConfig {
 type RuleName = String;
 type CategoryRules = BTreeMap<RuleName, RuleConfig>;
 
-/// Impl Lints for serde
+/// Impl Ls for serde
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct InnerRules(BTreeMap<Category, CategoryRules>);
 
@@ -56,7 +56,7 @@ where
         let mut rules = InnerRules::default();
 
         for rule in &self.0 {
-            rules.add_rule(rule.name().to_string(), rule.category(), rule.enabled());
+            rules.add_rule(rule.name().to_string(), rule.category(), rule.is_enabled());
         }
 
         serializer.serialize_newtype_struct("rules", &rules)
@@ -96,7 +96,7 @@ where
         let inner = InnerRules::deserialize(deserializer)?;
         let mut vec_rules = Vec::with_capacity(self.available_rules.len());
 
-        for (_category, map) in &inner.0 {
+        for map in inner.0.values() {
             for (name, config) in map {
                 let rule = self
                     .available_rules
@@ -124,11 +124,11 @@ mod tests {
     #[test]
     fn serialize() {
         let rule1 = ToggleableRule::new(
-            Arc::new(TestRule::new("rule1", "", Category::Content)),
+            Arc::new(TestRule::new("rule1", "", Category::Content, [])),
             true,
         );
         let rule2 = ToggleableRule::new(
-            Arc::new(TestRule::new("rule2", "", Category::Spacing)),
+            Arc::new(TestRule::new("rule2", "", Category::Spacing, [])),
             false,
         );
 
@@ -148,8 +148,8 @@ enable = false
 
     #[test]
     fn deserialize() {
-        let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content));
-        let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing));
+        let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content, []));
+        let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing, []));
 
         let toggleable_rule1 = ToggleableRule::new(rule1.clone(), true);
         let toggleable_rule2 = ToggleableRule::new(rule2.clone(), false);
@@ -168,8 +168,8 @@ enable = false
     #[test]
     #[should_panic]
     fn deserialize_with_not_found_rule() {
-        let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content));
-        let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing));
+        let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content, []));
+        let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing, []));
 
         let toggleable_rule1 = ToggleableRule::new(rule1.clone(), true);
         let toggleable_rule2 = ToggleableRule::new(rule2.clone(), false);

@@ -16,9 +16,8 @@ pub struct Directories {
     project_dirs: ProjectDirs,
 }
 
-impl Directories {
-    #[instrument]
-    pub fn new() -> Self {
+impl Default for Directories {
+    fn default() -> Self {
         trace!("Init directories");
 
         if let Some(project_dirs) = ProjectDirs::from("com", "CryptoGladi", "obsidian-tidy") {
@@ -26,6 +25,13 @@ impl Directories {
         }
 
         panic!("No valid home directory path could be retrieved from the operating system");
+    }
+}
+
+impl Directories {
+    #[instrument]
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Return config dir

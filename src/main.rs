@@ -1,55 +1,18 @@
-mod check;
-mod cli;
-mod config;
-
-use crate::config::ConfigLoader;
-use clap::Parser;
-use cli::{CLI, Command};
+use obsidian_tidy_cli::{Cli, Parser};
 use obsidian_tidy_logging::LoggerBuilder;
-use obsidian_tidy_rules::ALL_RULES;
-use std::fs::OpenOptions;
 
 fn main() -> anyhow::Result<()> {
     better_panic::Settings::default()
         .message("obsidian-tidy panicked (crashed)")
         .install();
 
-    let args = CLI::parse();
+    let args = Cli::parse();
 
     let _logger = LoggerBuilder::default()
         .stdout(!args.quiet)
         .path(args.logs.clone())
         .init();
 
-    let config_path = args.path.join(".obsidian-tidy.toml");
-
-    match args.command {
-        Command::Init {
-            override_config,
-            template,
-        } => config::init_command(&config_path, override_config, template)?,
-        Command::Check => {
-            if !config_path.is_file() {
-                anyhow::bail!(
-                    "Config file in `{}` not found\nRun `obsidian-tidy init`",
-                    config_path.display()
-                );
-            }
-
-            let mut file = OpenOptions::new().read(true).open(&config_path)?;
-            let config = ConfigLoader::new(&ALL_RULES).load(&mut file)?;
-            anyhow::bail!("my config: {config:?}");
-        }
-
-        Command::ListRules => {
-            println!("List rules:");
-
-            ALL_RULES
-                .iter()
-                .map(|rule| format!("* `{}` - {}", rule.name(), rule.description()))
-                .for_each(|line| println!("{line}"));
-        }
-    }
-
+    args.command.execute(&args)?;
     Ok(())
 }

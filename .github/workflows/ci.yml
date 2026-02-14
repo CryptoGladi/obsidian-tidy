@@ -9,4 +9,5 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - uses: cachix/install-nix-action@v31
-    - run: nix build
+    - name: Build obsidian-tidy by Nix
+      run: nix build

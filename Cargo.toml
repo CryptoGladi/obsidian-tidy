@@ -11,12 +11,20 @@ keywords = ["obsidian", "vault", "linter", "tidy", "knowledge-graph", "graph"]
 categories = ["parser-implementations", "data-structures"]
 
 [workspace]
-members = ["obsidian-tidy-core", "obsidian-tidy-rules", "obsidian-tidy-logging"]
+members = [
+    "obsidian-tidy-core",
+    "obsidian-tidy-rules",
+    "obsidian-tidy-logging",
+    "obsidian-tidy-cli",
+    "obsidian-tidy-config",
+]
 
 [workspace.dependencies]
 obsidian-tidy-logging = { path = "./obsidian-tidy-logging" }
 obsidian-tidy-core = { path = "./obsidian-tidy-core" }
 obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
+obsidian-tidy-config = { path = "./obsidian-tidy-config" }
+obsidian-tidy-cli = { path = "./obsidian-tidy-cli" }
 tracing = "0.1"
 anyhow = "1"
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
@@ -24,16 +32,16 @@ serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 toml = "0.9"
 tracing-test = "0.2"
+itertools = "0.14"
+clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
+rayon = "1.11"
 
 [dependencies]
 obsidian-tidy-logging.workspace = true
 obsidian-tidy-core.workspace = true
-obsidian-tidy-rules.workspace = true
+obsidian-tidy-cli.workspace = true
 tracing.workspace = true
-clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
 serde.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
-toml.workspace = true
 better-panic = "0.3"
-rayon = "1.11"

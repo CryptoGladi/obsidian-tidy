@@ -8,6 +8,7 @@ pub(crate) struct TestRule {
     name: String,
     description: String,
     category: Category,
+    check_result: Vec<Violation>,
 }
 
 impl TestRule {
@@ -15,11 +16,13 @@ impl TestRule {
         name: impl Into<String>,
         description: impl Into<String>,
         category: Category,
+        check_result: impl IntoIterator<Item = Violation>,
     ) -> TestRule {
         Self {
             name: name.into(),
             description: description.into(),
             category,
+            check_result: check_result.into_iter().collect(),
         }
     }
 }
@@ -40,7 +43,7 @@ impl Rule for TestRule {
     }
 
     fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
-        Ok(Vec::new())
+        Ok(self.check_result.clone())
     }
 }
 
@@ -56,7 +59,7 @@ mod tests {
         const TEST_DESCRIPTION: &str = "test description";
         const TEST_CATEGORY: Category = Category::Heading;
 
-        let test_rule = TestRule::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY);
+        let test_rule = TestRule::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY, []);
 
         assert_eq!(test_rule.name(), TEST_NAME);
         assert_eq!(test_rule.description(), TEST_DESCRIPTION);

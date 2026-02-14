@@ -1,0 +1,13 @@
+[package]
+name = "obsidian-tidy-config"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+obsidian-tidy-core.workspace = true
+obsidian-tidy-rules.workspace = true
+toml.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+clap.workspace = true

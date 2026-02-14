@@ -1,18 +1,21 @@
 //! Module for trait rules
 
+mod category;
 mod rules;
 mod shared_error_rule;
 mod smart_pointer;
 mod toggleable_rule;
+mod violation;
 
 use crate::Vault;
-use serde::{Deserialize, Serialize};
-use std::{fmt::Debug, ops::Range, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
+pub use category::Category;
 pub use rules::Rules;
 pub use rules::serde::{InnerRules, RulesSeed};
 pub use shared_error_rule::SharedErrorRule;
 pub use toggleable_rule::ToggleableRule;
+pub use violation::Violation;
 
 /// Dyn for [`Rule`]
 pub type DynRule<E> = Arc<dyn Rule<Error = E>>;
@@ -59,26 +62,10 @@ where
 
 impl<E> Eq for dyn Rule<Error = E> where E: std::error::Error {}
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Category {
-    Yaml,
-    Heading,
-    Content,
-    Spacing,
-    Custom,
-}
-
 #[derive(Debug, Default, Clone)]
 pub struct Content {
     #[allow(dead_code)]
     vault: Vault,
-}
-
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct Violation {
-    pub message: String,
-    pub location: Range<usize>,
 }
 
 #[cfg(test)]
@@ -90,11 +77,11 @@ mod tests {
     #[test]
     #[traced_test]
     fn partial_eq() {
-        let rule1 = TestRule::new("rule1", "", Category::Heading);
-        let rule1_same = TestRule::new("rule1", "", Category::Heading);
+        let rule1 = TestRule::new("rule1", "", Category::Heading, []);
+        let rule1_same = TestRule::new("rule1", "", Category::Heading, []);
 
-        let rule2 = TestRule::new("rule2", "", Category::Heading);
-        let rule2_same = TestRule::new("rule2", "", Category::Heading);
+        let rule2 = TestRule::new("rule2", "", Category::Heading, []);
+        let rule2_same = TestRule::new("rule2", "", Category::Heading, []);
 
         assert_eq!(rule1, rule1_same);
         assert_eq!(rule2, rule2_same);

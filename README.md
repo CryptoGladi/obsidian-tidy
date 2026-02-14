@@ -68,7 +68,7 @@ Download the latest release for your platform from the releases page:
 nix run github:CryptoGladi/obsidian-tidy
 
 # Or install it permanently
-nix profile install github:CryptoGladi/obsidian-tidy
+nix profile add github:CryptoGladi/obsidian-tidy
 ```
 
 ## Usage

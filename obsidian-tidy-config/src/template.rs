@@ -35,7 +35,7 @@ static STANDARD: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
 });
 
 /// Template config
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
 #[clap(rename_all = "kebab-case")]
 pub enum Template {
     /// Enabled all rules
@@ -95,20 +95,20 @@ mod tests {
     #[test]
     fn all_check() {
         assert_eq!(Template::All.len(), ALL_RULES.len());
-        assert!(Template::All.iter().all(|rule| rule.enabled()));
+        assert!(Template::All.iter().all(|rule| rule.is_enabled()));
     }
 
     #[test]
     fn empty_check() {
         assert_eq!(Template::Empty.len(), ALL_RULES.len());
-        assert!(Template::Empty.iter().all(|rule| rule.disabled()));
+        assert!(Template::Empty.iter().all(|rule| rule.is_disabled()));
     }
 
     #[test]
     fn standart() {
         assert_eq!(Template::Standard.len(), ALL_RULES.len());
 
-        assert!(Template::All.iter().any(|rule| rule.enabled()));
-        assert!(Template::Empty.iter().any(|rule| rule.disabled()));
+        assert!(Template::All.iter().any(|rule| rule.is_enabled()));
+        assert!(Template::Empty.iter().any(|rule| rule.is_disabled()));
     }
 }

@@ -59,7 +59,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn check_box() {
-        let test_rule = TestRule::new("test-rule", "", Category::Heading);
+        let test_rule = TestRule::new("test-rule", "", Category::Heading, []);
         let test_rule = Box::new(test_rule) as Box<dyn Rule<Error = Infallible>>;
 
         assert_eq!(test_rule.name(), "test-rule");
@@ -68,7 +68,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn check_arc() {
-        let test_rule = TestRule::new("test-rule", "", Category::Heading);
+        let test_rule = TestRule::new("test-rule", "", Category::Heading, []);
         let test_rule = Arc::new(test_rule) as Arc<dyn Rule<Error = Infallible>>;
 
         assert_eq!(test_rule.name(), "test-rule");

@@ -7,7 +7,7 @@ use obsidian_tidy_core::rule::{Category, Content, Rule, SharedErrorRule, Violati
 use rules::rules;
 use std::{convert::Infallible, sync::LazyLock};
 
-pub const ALL_RULES: LazyLock<Vec<SharedErrorRule>> = rules![Test, Test1];
+pub static ALL_RULES: LazyLock<Vec<SharedErrorRule>> = rules![Test, Test1];
 
 pub struct Test;
 
@@ -23,7 +23,7 @@ impl Rule for Test {
     }
 
     fn category(&self) -> Category {
-        Category::Custom
+        Category::Other
     }
 
     fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
@@ -45,7 +45,7 @@ impl Rule for Test1 {
     }
 
     fn category(&self) -> Category {
-        Category::Custom
+        Category::Other
     }
 
     fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {

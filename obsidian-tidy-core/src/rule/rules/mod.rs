@@ -91,8 +91,10 @@ mod tests {
     #[test]
     fn duplicate_name() {
         let name = "DuplicateName";
-        let rule1 = ToggleableRule::new(Arc::new(TestRule::new(name, "", Category::Custom)), true);
-        let rule2 = ToggleableRule::new(Arc::new(TestRule::new(name, "", Category::Custom)), true);
+        let rule1 =
+            ToggleableRule::new(Arc::new(TestRule::new(name, "", Category::Other, [])), true);
+        let rule2 =
+            ToggleableRule::new(Arc::new(TestRule::new(name, "", Category::Other, [])), true);
 
         let rules = Rules::new(vec![rule1, rule2]);
 
@@ -102,12 +104,12 @@ mod tests {
     #[test]
     fn new() {
         let rule1 = ToggleableRule::new(
-            Arc::new(TestRule::new("Rule1", "", Category::Content)),
+            Arc::new(TestRule::new("Rule1", "", Category::Content, [])),
             true,
         );
 
         let rule2 = ToggleableRule::new(
-            Arc::new(TestRule::new("Rule2", "", Category::Content)),
+            Arc::new(TestRule::new("Rule2", "", Category::Content, [])),
             true,
         );
 

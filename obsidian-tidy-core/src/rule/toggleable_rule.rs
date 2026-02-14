@@ -1,4 +1,4 @@
-use crate::rule::Rule;
+use crate::rule::{Category, Content, Rule, Violation};
 use std::ops::Deref;
 
 #[derive(Debug, Clone)]
@@ -19,12 +19,12 @@ where
     }
 
     #[must_use]
-    pub fn enabled(&self) -> bool {
+    pub fn is_enabled(&self) -> bool {
         self.enabled
     }
 
     #[must_use]
-    pub fn disabled(&self) -> bool {
+    pub fn is_disabled(&self) -> bool {
         !self.enabled
     }
 
@@ -48,6 +48,35 @@ where
     }
 }
 
+/// Impl [`Rule`] for `ToggleableRule`
+impl<R> Rule for ToggleableRule<R>
+where
+    R: Rule,
+{
+    type Error = R::Error;
+
+    fn name(&self) -> &str {
+        self.deref().name()
+    }
+
+    fn description(&self) -> &str {
+        self.deref().description()
+    }
+
+    fn category(&self) -> Category {
+        self.deref().category()
+    }
+
+    /// If lint is enabled, then run check
+    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
+        if self.is_enabled() {
+            return self.deref().check(content);
+        }
+
+        Ok(Vec::new())
+    }
+}
+
 impl<R> PartialEq for ToggleableRule<R>
 where
     R: Rule + PartialEq,
@@ -61,7 +90,7 @@ impl<L> Eq for ToggleableRule<L> where L: Rule + PartialEq {}
 
 #[cfg(test)]
 mod tests {
-    use crate::rule::{Category, ToggleableRule};
+    use crate::rule::{Category, Content, Rule, ToggleableRule, Violation};
     use crate::test_utils::TestRule;
     use std::sync::Arc;
     use tracing_test::traced_test;
@@ -69,33 +98,59 @@ mod tests {
     #[test]
     #[traced_test]
     fn new() {
-        let rule = Arc::new(TestRule::new("TestRule", "", Category::Content));
+        let rule = Arc::new(TestRule::new("TestRule", "", Category::Content, []));
         let rule_enabled = ToggleableRule::new(rule.clone(), true);
         let rule_disabled = ToggleableRule::new(rule, false);
 
-        assert!(rule_enabled.enabled());
-        assert!(rule_disabled.disabled());
+        assert!(rule_enabled.is_enabled());
+        assert!(rule_disabled.is_disabled());
     }
 
     #[test]
     #[traced_test]
     fn enable() {
-        let rule = Arc::new(TestRule::new("TestRule", "", Category::Content));
+        let rule = TestRule::new("TestRule", "", Category::Content, []);
         let mut rule = ToggleableRule::new(rule, false);
 
-        assert!(rule.disabled());
+        assert!(rule.is_disabled());
         rule.enable();
-        assert!(rule.enabled());
+        assert!(rule.is_enabled());
     }
 
     #[test]
     #[traced_test]
     fn disable() {
-        let rule = Arc::new(TestRule::new("TestRule", "", Category::Content));
+        let rule = TestRule::new("TestRule", "", Category::Content, []);
         let mut rule = ToggleableRule::new(rule, true);
 
-        assert!(rule.enabled());
+        assert!(rule.is_enabled());
         rule.disable();
-        assert!(rule.disabled());
+        assert!(rule.is_disabled());
+    }
+
+    #[test]
+    #[traced_test]
+    fn check_enabled() {
+        let violation = vec![Violation::new("Super error", 1..2).unwrap()];
+
+        let rule = TestRule::new("test-rule", "", Category::Other, violation.clone());
+
+        let rule_enable = ToggleableRule::new(rule, true);
+        let result = rule_enable.check(&Content::default()).unwrap();
+
+        assert_eq!(result, violation);
+    }
+
+    #[test]
+    #[traced_test]
+    fn check_disabled() {
+        let violation = vec![Violation::new("Super error", 1..2).unwrap()];
+
+        let rule = TestRule::new("test-rule", "", Category::Other, violation.clone());
+
+        let rule_enable = ToggleableRule::new(rule, false);
+        let result = rule_enable.check(&Content::default()).unwrap();
+
+        assert!(result.is_empty());
     }
 }

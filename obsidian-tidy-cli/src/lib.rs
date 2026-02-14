@@ -1,9 +1,12 @@
 //! Module for CLI interfaic
 
-use crate::config::template::Template;
-use clap::{Parser, Subcommand};
+pub mod command;
+
 use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
+
+pub use clap::Parser;
+pub use command::Command;
 
 /// Returns the current working directory
 fn current_dir() -> PathBuf {
@@ -18,7 +21,7 @@ fn current_dir() -> PathBuf {
     about = "🚀 Blazingly fast Obsidian vault linter",
     long_about = None
 )]
-pub struct CLI {
+pub struct Cli {
     /// Path to Obsidian vault
     #[arg(long, value_name = "DIRECTORY", default_value = current_dir().into_os_string())]
     pub path: PathBuf,
@@ -35,24 +38,4 @@ pub struct CLI {
     /// Command
     #[command(subcommand)]
     pub command: Command,
-}
-
-#[derive(Debug, Subcommand)]
-pub enum Command {
-    /// Run rules
-    Check,
-
-    /// Initialization of config for obsidian-tidy
-    Init {
-        /// Override config if already exists
-        #[arg(long = "override")]
-        override_config: bool,
-
-        /// How template use?
-        #[arg(long, value_enum, default_value_t = Template::Standard)]
-        template: Template,
-    },
-
-    /// List all available built‑in rules
-    ListRules,
 }
