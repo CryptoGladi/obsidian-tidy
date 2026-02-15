@@ -131,7 +131,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn check_enabled() {
-        let violation = vec![Violation::new("Super error", 1..2).unwrap()];
+        let violation = vec![Violation::new("Super error", "note.md", 1..2).unwrap()];
 
         let rule = TestRule::new("test-rule", "", Category::Other, violation.clone());
 
@@ -144,7 +144,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn check_disabled() {
-        let violation = vec![Violation::new("Super error", 1..2).unwrap()];
+        let violation = vec![Violation::new("Super error", "note.md", 1..2).unwrap()];
 
         let rule = TestRule::new("test-rule", "", Category::Other, violation.clone());
 

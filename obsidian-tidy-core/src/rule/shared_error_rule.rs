@@ -48,7 +48,7 @@ impl Deref for SharedErrorRule {
 
 impl PartialEq for SharedErrorRule {
     fn eq(&self, other: &Self) -> bool {
-        &self.inner == &other.inner
+        self.inner.eq(&other.inner)
     }
 }
 

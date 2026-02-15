@@ -48,6 +48,13 @@
           src = ./.;
 
           doCheck = true;
+
+          cargoTestOptions =
+            old:
+            old
+            ++ [
+              "--workspace"
+            ];
         };
 
         # For `nix develop`:

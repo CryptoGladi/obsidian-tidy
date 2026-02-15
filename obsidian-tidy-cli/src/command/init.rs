@@ -25,9 +25,7 @@ impl Runner for RunnerInit {
             };
         }
 
-        let config = ConfigBuilder::default()
-            .rules(self.template.clone().into())
-            .build();
+        let config = ConfigBuilder::default().rules(self.template.into()).build();
 
         let mut file = OpenOptions::new()
             .create_new(true)

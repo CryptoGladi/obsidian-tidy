@@ -3,11 +3,15 @@
 pub mod content;
 pub mod rules;
 
+#[cfg(test)]
+pub(crate) mod test_utils;
+
 use obsidian_tidy_core::rule::{Category, Content, Rule, SharedErrorRule, Violation};
 use rules::rules;
 use std::{convert::Infallible, sync::LazyLock};
 
-pub static ALL_RULES: LazyLock<Vec<SharedErrorRule>> = rules![Test, Test1];
+pub static ALL_RULES: LazyLock<Vec<SharedErrorRule>> =
+    rules![Test, Test1, content::empty_content::EmptyContent];
 
 pub struct Test;
 

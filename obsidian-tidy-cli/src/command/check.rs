@@ -19,7 +19,7 @@ impl Runner for RunnerCheck<'_> {
         let (sender, receiver) = mpsc::channel();
 
         self.config.rules().par_iter().for_each(|rule| {
-            let result = rule.check(&self.content);
+            let result = rule.check(self.content);
             sender.send(result).unwrap();
         });
 

@@ -64,8 +64,7 @@ impl<E> Eq for dyn Rule<Error = E> where E: std::error::Error {}
 
 #[derive(Debug, Default, Clone)]
 pub struct Content {
-    #[allow(dead_code)]
-    vault: Vault,
+    pub vault: Vault,
 }
 
 #[cfg(test)]

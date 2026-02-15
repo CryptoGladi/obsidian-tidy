@@ -48,9 +48,10 @@ impl Runner for RunnerListRules<'_> {
                 };
 
                 println!(
-                    "  {} {}",
+                    "  {} {}: {}",
                     status,
-                    format!("{}: {}", rule.name().bold(), rule.description())
+                    rule.name().bold(),
+                    rule.description()
                 );
             }
 
