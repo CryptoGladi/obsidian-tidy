@@ -1,6 +1,5 @@
 //! Errors for Config
 
-use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -13,7 +12,4 @@ pub enum Error {
 
     #[error("Toml serialize error `{0}`")]
     Serialize(#[from] toml::ser::Error),
-
-    #[error("Config file already exists")]
-    AlreadyExists(PathBuf),
 }

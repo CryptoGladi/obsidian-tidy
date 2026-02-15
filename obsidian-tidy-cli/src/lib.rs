@@ -39,3 +39,10 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
 }
+
+impl Cli {
+    /// Return path to config
+    pub fn config(&self) -> PathBuf {
+        self.path.join(".obsidian-tidy.toml")
+    }
+}

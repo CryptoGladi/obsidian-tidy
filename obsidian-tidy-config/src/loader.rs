@@ -3,6 +3,7 @@
 use super::Config;
 use super::Error;
 use obsidian_tidy_core::rule::{RulesSeed, SharedErrorRule};
+use obsidian_tidy_rules::ALL_RULES;
 use serde::de::DeserializeSeed;
 use serde::{Deserialize, Deserializer};
 use std::io::Read;
@@ -11,6 +12,12 @@ use tracing::{debug, instrument};
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
     available_rules: &'a Vec<SharedErrorRule>,
+}
+
+impl Default for ConfigLoader<'_> {
+    fn default() -> Self {
+        Self::new(&ALL_RULES)
+    }
 }
 
 #[derive(Debug)]
@@ -47,6 +54,11 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
 impl<'a> ConfigLoader<'a> {
     pub fn new(available_rules: &'a Vec<SharedErrorRule>) -> Self {
         Self { available_rules }
+    }
+
+    pub fn available_rules(mut self, available_rules: &'a Vec<SharedErrorRule>) -> Self {
+        self.available_rules = available_rules;
+        self
     }
 
     /// Load config from reader

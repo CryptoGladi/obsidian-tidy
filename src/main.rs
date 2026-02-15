@@ -1,10 +1,8 @@
 use obsidian_tidy_cli::{Cli, Parser};
 use obsidian_tidy_logging::LoggerBuilder;
 
-fn main() -> anyhow::Result<()> {
-    better_panic::Settings::default()
-        .message("obsidian-tidy panicked (crashed)")
-        .install();
+fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
 
     let args = Cli::parse();
 
@@ -13,6 +11,8 @@ fn main() -> anyhow::Result<()> {
         .path(args.logs.clone())
         .init();
 
-    args.command.execute(&args)?;
+    let command = args.command;
+    command.execute(&args)?;
+
     Ok(())
 }

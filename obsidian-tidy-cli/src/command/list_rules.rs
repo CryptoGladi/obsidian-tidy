@@ -1,23 +1,28 @@
-use super::{Cli, Runner};
+use std::convert::Infallible;
+
+use super::Cli;
+use crate::command::runner::Runner;
 use itertools::Itertools;
 use obsidian_tidy_config::template::Template;
 use owo_colors::OwoColorize;
 use tracing::{debug, instrument};
 
 #[derive(Debug)]
-pub struct RunnerListRules<'a> {
-    from_template: &'a Template,
+pub struct RunnerListRules {
+    from_template: Template,
 }
 
-impl<'a> RunnerListRules<'a> {
-    pub fn new(from_template: &'a Template) -> Self {
+impl RunnerListRules {
+    pub fn new(from_template: Template) -> Self {
         Self { from_template }
     }
 }
 
-impl Runner for RunnerListRules<'_> {
+impl Runner for RunnerListRules {
+    type Error = Infallible;
+
     #[instrument]
-    fn run(&self, args: &Cli) -> anyhow::Result<()> {
+    fn run(&self, args: &Cli) -> Result<(), Self::Error> {
         debug!("Run command `list-rules`");
 
         let rules_by_category = self

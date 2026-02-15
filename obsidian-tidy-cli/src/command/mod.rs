@@ -1,17 +1,18 @@
 mod check;
 mod init;
 mod list_rules;
-
-use std::fs::OpenOptions;
+mod runner;
 
 use super::Cli;
-use crate::command::{check::RunnerCheck, init::RunnerInit, list_rules::RunnerListRules};
+use crate::command::{
+    check::RunnerCheck, init::RunnerInit, list_rules::RunnerListRules, runner::SharedRunner,
+};
 use clap::Subcommand;
-use obsidian_tidy_config::{loader::ConfigLoader, template::Template};
-use obsidian_tidy_core::rule::Content;
-use obsidian_tidy_rules::ALL_RULES;
+use obsidian_tidy_config::template::Template;
+use std::sync::Arc;
+use tracing::{debug, instrument};
 
-#[derive(Debug, Subcommand)]
+#[derive(Debug, Clone, Copy, Subcommand)]
 pub enum Command {
     /// Run rules
     Check,
@@ -35,29 +36,18 @@ pub enum Command {
     },
 }
 
-pub trait Runner {
-    fn run(&self, args: &Cli) -> anyhow::Result<()>;
-}
-
 impl Command {
-    pub fn execute(&self, args: &Cli) -> anyhow::Result<()> {
-        let config_path = args.path.join(".obsidian-tidy.toml");
+    #[instrument]
+    pub fn execute(self, args: &Cli) -> Result<(), Arc<dyn std::error::Error + Send + Sync>> {
+        debug!("Execute command");
 
-        let runner: &dyn Runner = match self {
-            Command::Check => &RunnerCheck {
-                content: &Content::default(),
-                config: &ConfigLoader::new(&ALL_RULES)
-                    .load(&mut OpenOptions::new().read(true).open(&config_path)?)?,
-            },
+        let runner: SharedRunner = match self {
+            Command::Check => RunnerCheck::new().into(),
             Command::Init {
                 override_config,
                 template,
-            } => &RunnerInit {
-                config_path,
-                override_config: *override_config,
-                template: *template,
-            },
-            Command::ListRules { from_template } => &RunnerListRules::new(from_template),
+            } => RunnerInit::new(override_config, template).into(),
+            Command::ListRules { from_template } => RunnerListRules::new(from_template).into(),
         };
 
         runner.run(args)

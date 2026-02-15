@@ -12,3 +12,4 @@ tracing.workspace = true
 tracing-test.workspace = true
 rand = "0.10"
 tempfile = "3.25"
+lipsum = "0.9.1"

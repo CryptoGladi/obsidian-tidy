@@ -44,4 +44,4 @@ tracing.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
-better-panic = "0.3"
+color-eyre = "0.6"

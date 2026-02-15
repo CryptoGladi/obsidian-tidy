@@ -1,8 +1,10 @@
+use lipsum::lipsum_words;
 use obsidian_parser::prelude::*;
-use rand::distr::Alphanumeric;
 use rand::prelude::*;
+use rand::rngs::ThreadRng;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
+use std::ops::Range;
 use tempfile::TempDir;
 use tracing::{debug, instrument};
 
@@ -12,21 +14,30 @@ pub trait NoteGenerator {
     fn generate(&mut self, file: &mut File) -> Result<(), Self::Error>;
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct DefaultNoteGenerator {
-    rng: rand::rngs::ThreadRng,
+    rng: ThreadRng,
+    count_words: Range<usize>,
+}
+
+impl Default for DefaultNoteGenerator {
+    fn default() -> Self {
+        Self {
+            count_words: 100..150,
+            rng: ThreadRng::default(),
+        }
+    }
 }
 
 impl NoteGenerator for DefaultNoteGenerator {
     type Error = std::io::Error;
 
     fn generate(&mut self, file: &mut File) -> Result<(), Self::Error> {
-        let bytes: Vec<u8> = (&mut self.rng)
-            .sample_iter(Alphanumeric)
-            .take(150)
-            .collect();
+        let count_worlds = self.rng.random_range(self.count_words.clone());
 
-        file.write_all(&bytes)?;
+        let words = lipsum_words(count_worlds);
+        file.write_all(words.as_bytes())?;
+
         Ok(())
     }
 }
@@ -61,6 +72,7 @@ where
         self
     }
 
+    #[allow(unused)]
     pub fn generator(mut self, generator: G) -> Self {
         self.generator = generator;
         self
