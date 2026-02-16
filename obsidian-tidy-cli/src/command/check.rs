@@ -3,8 +3,9 @@ use crate::command::runner::Runner;
 use obsidian_tidy_config::{Config, Error as ConfigError, loader::ConfigLoader};
 use obsidian_tidy_core::rule::Content;
 use obsidian_tidy_rules::ALL_RULES;
+use owo_colors::OwoColorize;
 use rayon::prelude::*;
-use std::{fs::OpenOptions, path::Path, sync::mpsc};
+use std::{fs::OpenOptions, path::Path};
 use thiserror::Error;
 use tracing::{debug, instrument};
 
@@ -40,17 +41,22 @@ impl Runner for RunnerCheck {
         debug!("Run command `check`");
 
         let config = load_config(args.config())?;
-        let content = Content::default();
+        let content = Content::new(&args.path);
 
-        let (sender, receiver) = mpsc::channel();
+        let violations: Vec<_> = config
+            .rules()
+            .par_iter()
+            .map(|lint| lint.check(&content).unwrap())
+            .flatten()
+            .collect();
 
-        config.rules().par_iter().for_each(|rule| {
-            let result = rule.check(&content);
-            sender.send(result).unwrap();
-        });
-
-        for data in receiver.iter() {
-            println!("{data:?}");
+        for violation in violations {
+            println!(
+                "{} in `{}`: {}",
+                "PROBLEM".red().bold(),
+                violation.from().strip_prefix(&args.path).unwrap().display(),
+                violation.message().yellow()
+            );
         }
 
         Ok(())

@@ -13,3 +13,4 @@ rayon.workspace = true
 clap.workspace = true
 thiserror.workspace = true
 owo-colors = "4.2"
+miette = "7.6"

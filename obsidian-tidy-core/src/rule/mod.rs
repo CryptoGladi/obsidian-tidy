@@ -1,16 +1,17 @@
 //! Module for trait rules
 
 mod category;
+mod content;
 mod rules;
 mod shared_error_rule;
 mod smart_pointer;
 mod toggleable_rule;
 mod violation;
 
-use crate::Vault;
 use std::{fmt::Debug, sync::Arc};
 
 pub use category::Category;
+pub use content::Content;
 pub use rules::Rules;
 pub use rules::serde::{InnerRules, RulesSeed};
 pub use shared_error_rule::SharedErrorRule;
@@ -61,11 +62,6 @@ where
 }
 
 impl<E> Eq for dyn Rule<Error = E> where E: std::error::Error {}
-
-#[derive(Debug, Default, Clone)]
-pub struct Content {
-    pub vault: Vault,
-}
 
 #[cfg(test)]
 mod tests {

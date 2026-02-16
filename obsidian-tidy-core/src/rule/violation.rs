@@ -1,6 +1,6 @@
 use std::{
     ops::{Bound, Range, RangeBounds},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 use thiserror::Error;
 use tracing::instrument;
@@ -52,6 +52,14 @@ impl Violation {
             from: from.into(),
             location: start..end,
         })
+    }
+
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+
+    pub fn from(&self) -> &Path {
+        &self.from
     }
 }
 
