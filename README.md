@@ -99,9 +99,9 @@ respect_gitignore = true
 
 [rules]
 # Built‑in rules
-"yaml.title" = "warn"
-"yaml.timestamp" = { level = "error", format = "YYYY-MM-DD" }
-"heading.capitalize" = "off"
+yaml.title = "warn"
+yaml.timestamp = { level = "error", format = "YYYY-MM-DD" }
+heading.capitalize = "off"
 
 # Custom Lua rule
 [rules.custom]

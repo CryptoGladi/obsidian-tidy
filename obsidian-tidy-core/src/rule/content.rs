@@ -19,3 +19,9 @@ impl Content {
         Self { vault }
     }
 }
+
+impl From<Vault> for Content {
+    fn from(vault: Vault) -> Self {
+        Self { vault }
+    }
+}

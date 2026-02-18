@@ -7,6 +7,7 @@ edition = "2024"
 obsidian-tidy-core.workspace = true
 obsidian-tidy-rules.workspace = true
 obsidian-tidy-config.workspace = true
+obsidian-parser.workspace = true
 tracing.workspace = true
 itertools.workspace = true
 rayon.workspace = true

@@ -5,13 +5,20 @@ use rand::rngs::ThreadRng;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::ops::Range;
-use tempfile::TempDir;
+use tempfile::{NamedTempFile, TempDir};
 use tracing::{debug, instrument};
 
 pub trait NoteGenerator {
     type Error: std::error::Error;
 
     fn generate(&mut self, file: &mut File) -> Result<(), Self::Error>;
+
+    fn create_temp_note(&self) -> Result<NamedTempFile, Self::Error>
+    where
+        Self::Error: From<std::io::Error>,
+    {
+        Ok(NamedTempFile::new()?)
+    }
 }
 
 #[derive(Debug)]

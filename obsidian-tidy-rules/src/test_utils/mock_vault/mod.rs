@@ -1,37 +1,53 @@
 pub mod builder;
 
-use obsidian_parser::prelude::*;
+use obsidian_tidy_core::Vault;
+use obsidian_tidy_core::rule::{Content, Rule, Violation};
 use std::ops::Deref;
 use tempfile::TempDir;
 
 pub use builder::{DefaultNoteGenerator, MockVaultBuilder, NoteGenerator};
 
-pub struct MockVault<N = NoteInMemory>
-where
-    N: Note,
-{
+pub struct MockVault {
     #[allow(unused)]
     temp_dir: TempDir,
 
-    vault: Vault<N>,
+    vault: Vault,
 }
 
-impl<N> Deref for MockVault<N>
-where
-    N: Note,
-{
-    type Target = Vault<N>;
+impl MockVault {
+    pub fn run_rule<R>(&self, rule: &R) -> Result<Vec<Violation>, R::Error>
+    where
+        R: Rule,
+    {
+        let content = Content::from(self.vault.clone());
+
+        let violations = self
+            .notes()
+            .iter()
+            .map(|note| rule.check(&content, note).unwrap())
+            .flatten()
+            .collect();
+
+        Ok(violations)
+    }
+}
+
+impl Deref for MockVault {
+    type Target = Vault;
 
     fn deref(&self) -> &Self::Target {
         &self.vault
     }
 }
 
-impl<N> From<MockVault<N>> for Vault<N>
-where
-    N: Note,
-{
-    fn from(value: MockVault<N>) -> Self {
-        value.vault
+impl AsRef<Vault> for MockVault {
+    fn as_ref(&self) -> &Vault {
+        &self.vault
+    }
+}
+
+impl From<MockVault> for Vault {
+    fn from(mock_vault: MockVault) -> Self {
+        mock_vault.vault
     }
 }

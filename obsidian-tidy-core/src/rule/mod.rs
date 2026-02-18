@@ -1,13 +1,14 @@
 //! Module for trait rules
 
-mod category;
-mod content;
-mod rules;
-mod shared_error_rule;
-mod smart_pointer;
-mod toggleable_rule;
-mod violation;
+pub mod category;
+pub mod content;
+pub mod rules;
+pub mod shared_error_rule;
+pub mod smart_pointer;
+pub mod toggleable_rule;
+pub mod violation;
 
+use crate::Note;
 use std::{fmt::Debug, sync::Arc};
 
 pub use category::Category;
@@ -36,7 +37,7 @@ pub trait Rule: Send + Sync {
     fn category(&self) -> Category;
 
     /// Run check by this rule
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error>;
+    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error>;
 }
 
 impl<E> Debug for dyn Rule<Error = E>

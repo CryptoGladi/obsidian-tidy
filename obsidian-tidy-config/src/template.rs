@@ -29,7 +29,7 @@ static EMPTY: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
 static STANDARD: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
     let mut rules = EMPTY.clone();
 
-    rules["test-rule"].enable();
+    rules["empty-content"].enable();
 
     rules
 });

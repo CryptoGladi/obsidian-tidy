@@ -1,5 +1,5 @@
 use super::{Category, Content, Rule, Violation};
-use crate::rule::DynRule;
+use crate::{Note, rule::DynRule};
 use std::{ops::Deref, sync::Arc};
 
 #[derive(Debug, Clone)]
@@ -21,26 +21,31 @@ impl SharedErrorRule {
 impl Rule for SharedErrorRule {
     type Error = Arc<dyn std::error::Error + Send + Sync>;
 
+    #[inline]
     fn name(&self) -> &str {
         self.inner.name()
     }
 
+    #[inline]
     fn description(&self) -> &str {
         self.inner.description()
     }
 
+    #[inline]
     fn category(&self) -> Category {
         self.inner.category()
     }
 
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
-        self.inner.check(content)
+    #[inline]
+    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
+        self.inner.check(content, note)
     }
 }
 
 impl Deref for SharedErrorRule {
     type Target = DynRule<Arc<dyn std::error::Error + Send + Sync>>;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -72,19 +77,24 @@ where
 {
     type Error = Arc<dyn std::error::Error + Send + Sync>;
 
+    #[inline]
     fn name(&self) -> &str {
         self.0.name()
     }
+
+    #[inline]
     fn description(&self) -> &str {
         self.0.description()
     }
+
+    #[inline]
     fn category(&self) -> Category {
         self.0.category()
     }
 
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
+    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
         self.0
-            .check(content)
+            .check(content, note)
             .map_err(|e| Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>)
     }
 }
@@ -119,7 +129,7 @@ mod tests {
             Category::Other
         }
 
-        fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
+        fn check(&self, _content: &Content, _note: &Note) -> Result<Vec<Violation>, Self::Error> {
             Err(self::Error::OhNo)
         }
     }
@@ -138,7 +148,7 @@ mod tests {
         let content = Content::default();
         let error = rules
             .into_iter()
-            .find_map(|rule| rule.check(&content).err());
+            .find_map(|rule| rule.check(&content, &Note::default()).err());
 
         assert_eq!(error.unwrap().downcast_ref(), Some(&self::Error::OhNo));
     }
@@ -153,11 +163,16 @@ mod tests {
         let error_rule = ErasingRule::from(error_rule);
 
         let content = Content::default();
+        let note = Note::default();
 
-        assert_eq!(test_rule.check(&content).ok(), Some(Vec::new()));
+        assert_eq!(test_rule.check(&content, &note).ok(), Some(Vec::new()));
 
         assert_eq!(
-            error_rule.check(&content).err().unwrap().downcast_ref(),
+            error_rule
+                .check(&content, &note)
+                .err()
+                .unwrap()
+                .downcast_ref(),
             Some(&self::Error::OhNo)
         );
     }

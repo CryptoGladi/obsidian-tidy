@@ -582,6 +582,7 @@ dependencies = [
  "clap",
  "itertools",
  "miette",
+ "obsidian-parser",
  "obsidian-tidy-config",
  "obsidian-tidy-core",
  "obsidian-tidy-rules",
@@ -636,6 +637,7 @@ dependencies = [
  "obsidian-tidy-core",
  "rand 0.10.0",
  "tempfile",
+ "thiserror",
  "tracing",
  "tracing-test",
 ]

@@ -7,6 +7,7 @@ edition = "2024"
 obsidian-tidy-core.workspace = true
 obsidian-parser.workspace = true
 tracing.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 tracing-test.workspace = true

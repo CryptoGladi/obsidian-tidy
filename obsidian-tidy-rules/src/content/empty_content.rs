@@ -1,15 +1,26 @@
 //! Rule for search notes with empty content
 
-use obsidian_parser::prelude::*;
-use obsidian_tidy_core::rule::{Category, Content, Rule, Violation};
-use std::convert::Infallible;
-use tracing::{debug, instrument};
+use obsidian_parser::note::Note as _;
+use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
+use obsidian_tidy_core::rule::{Category, Content, Rule};
+use obsidian_tidy_core::{Note, NoteError};
+use thiserror::Error;
+use tracing::{instrument, trace};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct EmptyContent;
 
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("Error from parser: `{0}`")]
+    Parser(#[from] NoteError),
+
+    #[error("Failed create violation: `{0}`")]
+    Violation(#[from] ViolationError),
+}
+
 impl Rule for EmptyContent {
-    type Error = Infallible;
+    type Error = self::Error;
 
     fn name(&self) -> &str {
         "empty-content"
@@ -23,19 +34,16 @@ impl Rule for EmptyContent {
         Category::Content
     }
 
-    #[instrument(skip(content))]
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
-        debug!("Run check `EmptyContent`");
+    #[instrument(skip(_content))]
+    fn check(&self, _content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
+        trace!("Run check `EmptyContent`");
 
-        let violation = content
-            .vault
-            .notes()
-            .iter()
-            .filter(|note| note.count_words_from_content().unwrap() == 0)
-            .map(|note| Violation::new("Empty note", note.path().unwrap(), 0..1).unwrap())
-            .collect();
+        if note.count_words_from_content()? == 0 {
+            let violation = Violation::new("Note is empty", 1..=1)?;
+            return Ok(vec![violation]);
+        }
 
-        Ok(violation)
+        Ok(Vec::new())
     }
 }
 
@@ -45,6 +53,7 @@ mod tests {
     use crate::test_utils::{
         DEFAULT_MOCK_VAULT, DefaultNoteGenerator, MockVaultBuilder, NoteGenerator as Generator,
     };
+    use obsidian_parser::note::{NoteDefault, NoteFromString};
     use tracing_test::traced_test;
 
     #[derive(Default, Debug)]
@@ -68,21 +77,38 @@ mod tests {
 
     #[test]
     #[traced_test]
-    fn not_empty_notes() {
+    fn empty_note() {
         let rule = EmptyContent::default();
 
-        let violation = rule
-            .check(&Content {
-                vault: DEFAULT_MOCK_VAULT.clone(),
-            })
-            .unwrap();
+        let note = Note::from_string_default("").unwrap();
+        let violation = rule.check(&Content::default(), &note).unwrap();
+
+        assert_eq!(violation.len(), 1);
+    }
+
+    #[test]
+    #[traced_test]
+    fn not_empty_note() {
+        let rule = EmptyContent::default();
+
+        let note = Note::from_string_default("Super data").unwrap();
+        let violation = rule.check(&Content::default(), &note).unwrap();
 
         assert!(violation.is_empty());
     }
 
     #[test]
     #[traced_test]
-    fn with_empty_note() {
+    fn not_empty_notes() {
+        let rule = EmptyContent::default();
+
+        let violations = DEFAULT_MOCK_VAULT.run_rule(&rule).unwrap();
+        assert!(violations.is_empty());
+    }
+
+    #[test]
+    #[traced_test]
+    fn with_empty_notes() {
         let rule = EmptyContent::default();
 
         let mock_vault = MockVaultBuilder::<MyGenerator>::default()
@@ -90,12 +116,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let violations = rule
-            .check(&Content {
-                vault: mock_vault.into(),
-            })
-            .unwrap();
-
+        let violations = mock_vault.run_rule(&rule).unwrap();
         assert_eq!(violations.len(), 1);
     }
 
@@ -108,12 +129,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let violations = rule
-            .check(&Content {
-                vault: mock_vault.into(),
-            })
-            .unwrap();
-
+        let violations = mock_vault.run_rule(&rule).unwrap();
         assert!(violations.is_empty());
     }
 }

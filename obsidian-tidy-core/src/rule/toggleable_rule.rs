@@ -1,4 +1,7 @@
-use crate::rule::{Category, Content, Rule, Violation};
+use crate::{
+    Note,
+    rule::{Category, Content, Rule, Violation},
+};
 use std::ops::Deref;
 
 #[derive(Debug, Clone)]
@@ -55,22 +58,25 @@ where
 {
     type Error = R::Error;
 
+    #[inline]
     fn name(&self) -> &str {
         self.deref().name()
     }
 
+    #[inline]
     fn description(&self) -> &str {
         self.deref().description()
     }
 
+    #[inline]
     fn category(&self) -> Category {
         self.deref().category()
     }
 
     /// If lint is enabled, then run check
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
+    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
         if self.is_enabled() {
-            return self.deref().check(content);
+            return self.deref().check(content, note);
         }
 
         Ok(Vec::new())
@@ -90,6 +96,7 @@ impl<L> Eq for ToggleableRule<L> where L: Rule + PartialEq {}
 
 #[cfg(test)]
 mod tests {
+    use crate::Note;
     use crate::rule::{Category, Content, Rule, ToggleableRule, Violation};
     use crate::test_utils::TestRule;
     use std::sync::Arc;
@@ -131,12 +138,14 @@ mod tests {
     #[test]
     #[traced_test]
     fn check_enabled() {
-        let violation = vec![Violation::new("Super error", "note.md", 1..2).unwrap()];
+        let violation = vec![Violation::new("Super error", 1..2).unwrap()];
 
         let rule = TestRule::new("test-rule", "", Category::Other, violation.clone());
+        let note = Note::default();
+        let content = Content::default();
 
         let rule_enable = ToggleableRule::new(rule, true);
-        let result = rule_enable.check(&Content::default()).unwrap();
+        let result = rule_enable.check(&content, &note).unwrap();
 
         assert_eq!(result, violation);
     }
@@ -144,12 +153,14 @@ mod tests {
     #[test]
     #[traced_test]
     fn check_disabled() {
-        let violation = vec![Violation::new("Super error", "note.md", 1..2).unwrap()];
+        let violation = vec![Violation::new("Super error", 1..2).unwrap()];
 
         let rule = TestRule::new("test-rule", "", Category::Other, violation.clone());
+        let note = Note::default();
+        let content = Content::default();
 
         let rule_enable = ToggleableRule::new(rule, false);
-        let result = rule_enable.check(&Content::default()).unwrap();
+        let result = rule_enable.check(&content, &note).unwrap();
 
         assert!(result.is_empty());
     }

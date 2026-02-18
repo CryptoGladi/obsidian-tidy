@@ -1,6 +1,9 @@
 //! Module for testing
 
-use crate::rule::{Category, Content, Rule, Violation};
+use crate::{
+    Note,
+    rule::{Category, Content, Rule, Violation},
+};
 use std::convert::Infallible;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -42,7 +45,7 @@ impl Rule for TestRule {
         self.category.clone()
     }
 
-    fn check(&self, _content: &Content) -> Result<Vec<Violation>, Self::Error> {
+    fn check(&self, _content: &Content, _note: &Note) -> Result<Vec<Violation>, Self::Error> {
         Ok(self.check_result.clone())
     }
 }

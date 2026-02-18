@@ -1,5 +1,7 @@
 //! Module for impl [`Rule`] for smart pointer (Box and Arc)
 
+use crate::Note;
+
 use super::{Category, Content, Rule, Violation};
 use std::sync::Arc;
 
@@ -21,8 +23,8 @@ where
         self.as_ref().category()
     }
 
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
-        self.as_ref().check(content)
+    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
+        self.as_ref().check(content, note)
     }
 }
 
@@ -44,8 +46,8 @@ where
         self.as_ref().category()
     }
 
-    fn check(&self, content: &Content) -> Result<Vec<Violation>, Self::Error> {
-        self.as_ref().check(content)
+    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
+        self.as_ref().check(content, note)
     }
 }
 

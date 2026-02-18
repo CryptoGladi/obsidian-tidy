@@ -1,14 +1,10 @@
-use std::{
-    ops::{Bound, Range, RangeBounds},
-    path::{Path, PathBuf},
-};
+use std::ops::{Bound, Range, RangeBounds};
 use thiserror::Error;
 use tracing::instrument;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Violation {
     message: String,
-    from: PathBuf,
     location: Range<usize>,
 }
 
@@ -28,7 +24,6 @@ impl Violation {
     #[instrument(skip_all, err)]
     pub fn new(
         message: impl Into<String>,
-        from: impl Into<PathBuf>,
         location: impl RangeBounds<usize>,
     ) -> Result<Self, Error> {
         let start = match location.start_bound() {
@@ -49,17 +44,18 @@ impl Violation {
 
         Ok(Self {
             message: message.into(),
-            from: from.into(),
             location: start..end,
         })
     }
 
+    #[inline]
     pub fn message(&self) -> &str {
         &self.message
     }
 
-    pub fn from(&self) -> &Path {
-        &self.from
+    #[inline]
+    pub fn location(&self) -> &Range<usize> {
+        &self.location
     }
 }
 
@@ -71,13 +67,12 @@ mod tests {
     #[test]
     #[traced_test]
     fn new() {
-        let violation = Violation::new("Super error", "super.md", 43..50).unwrap();
+        let violation = Violation::new("Super error", 43..50).unwrap();
 
         assert_eq!(
             violation,
             Violation {
                 message: "Super error".to_string(),
-                from: PathBuf::from("super.md"),
                 location: 43..50
             }
         )
@@ -86,14 +81,13 @@ mod tests {
     #[test]
     #[traced_test]
     fn new_with_inclusive() {
-        let violation = Violation::new("Super error", "super.md", 43..=50).unwrap();
-        let violation1 = Violation::new("Super error", "super.md", 43..=43).unwrap();
+        let violation = Violation::new("Super error", 43..=50).unwrap();
+        let violation1 = Violation::new("Super error", 43..=43).unwrap();
 
         assert_eq!(
             violation,
             Violation {
                 message: "Super error".to_string(),
-                from: PathBuf::from("super.md"),
                 location: 43..51
             }
         );
@@ -102,7 +96,6 @@ mod tests {
             violation1,
             Violation {
                 message: "Super error".to_string(),
-                from: PathBuf::from("super.md"),
                 location: 43..44
             }
         );
@@ -111,21 +104,21 @@ mod tests {
     #[test]
     #[traced_test]
     fn new_with_unbounded_start() {
-        let result = Violation::new("Super error", "note.md", ..50);
+        let result = Violation::new("Super error", ..50);
         assert_eq!(result, Err(Error::UnboundedStart));
     }
 
     #[test]
     #[traced_test]
     fn new_with_unbounded_end() {
-        let result = Violation::new("Super error", "note.md", 20..);
+        let result = Violation::new("Super error", 20..);
         assert_eq!(result, Err(Error::UnboundedEnd));
     }
 
     #[test]
     #[traced_test]
     fn new_with_invalid_range() {
-        let result = Violation::new("Super error", "note.md", 50..20);
+        let result = Violation::new("Super error", 50..20);
         assert_eq!(result, Err(Error::InvalidRange { start: 50, end: 20 }));
     }
 }
