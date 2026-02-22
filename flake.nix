@@ -55,6 +55,20 @@
           commonArgs
           // {
             inherit cargoArtifacts;
+
+            postInstall = ''
+              # Bash completions
+              mkdir -p $out/share/bash-completion/completions
+              $out/bin/obsidian-tidy --disable-logger completions bash > $out/share/bash-completion/completions/obsidian-tidy
+
+              # Zsh completions
+              mkdir -p $out/share/zsh/site-functions
+              $out/bin/obsidian-tidy --disable-logger completions zsh > $out/share/zsh/site-functions/_obsidian-tidy
+
+              # Fish completions
+              mkdir -p $out/share/fish/vendor_completions.d
+              $out/bin/obsidian-tidy --disable-logger completions fish > $out/share/fish/vendor_completions.d/obsidian-tidy.fish
+            '';
           }
         );
       in
@@ -62,7 +76,6 @@
         checks = {
           obsidian-tidy-tests = obsidian-tidy // {
             doCheck = true;
-
             cargoTestCommand = "cargo test --workspace";
           };
 
@@ -97,18 +110,12 @@
 
         packages.default = obsidian-tidy // {
           doCheck = true;
-
           cargoTestCommand = "cargo test --workspace";
-        };
-
-        apps.default = flake-utils.lib.mkApp {
-          drv = obsidian-tidy;
         };
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
             rust
-
             pkgs.taplo
           ];
 

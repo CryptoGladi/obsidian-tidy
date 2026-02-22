@@ -1,10 +1,9 @@
-use std::convert::Infallible;
-
 use super::Cli;
 use crate::command::runner::Runner;
 use itertools::Itertools;
 use obsidian_tidy_config::template::Template;
 use owo_colors::OwoColorize;
+use std::convert::Infallible;
 use tracing::{debug, instrument};
 
 #[derive(Debug)]

@@ -1,11 +1,13 @@
 mod check;
+mod completions;
 mod init;
 mod list_rules;
 mod runner;
 
 use super::Cli;
 use crate::command::{
-    check::RunnerCheck, init::RunnerInit, list_rules::RunnerListRules, runner::SharedRunner,
+    check::RunnerCheck, completions::RunnerCompletions, init::RunnerInit,
+    list_rules::RunnerListRules, runner::SharedRunner,
 };
 use clap::Subcommand;
 use obsidian_tidy_config::template::Template;
@@ -34,6 +36,13 @@ pub enum Command {
         #[arg(long, value_enum, default_value_t = Template::All)]
         from_template: Template,
     },
+
+    /// Generate shell completions
+    Completions {
+        /// Shell type
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
 }
 
 impl Command {
@@ -48,6 +57,7 @@ impl Command {
                 template,
             } => RunnerInit::new(override_config, template).into(),
             Command::ListRules { from_template } => RunnerListRules::new(from_template).into(),
+            Command::Completions { shell } => RunnerCompletions::new(shell).into(),
         };
 
         runner.run(args)

@@ -6,3 +6,4 @@ mod logger;
 const ENV_NAME: &str = "OBSIDIAN_TIDY_LOG";
 
 pub use builder::LoggerBuilder;
+pub use logger::Logger;
