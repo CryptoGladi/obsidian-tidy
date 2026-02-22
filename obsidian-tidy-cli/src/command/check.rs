@@ -4,7 +4,6 @@ use obsidian_parser::prelude::Note as _;
 use obsidian_tidy_config::{Config, Error as ConfigError, loader::ConfigLoader};
 use obsidian_tidy_core::rule::{Content, Violation};
 use obsidian_tidy_rules::ALL_RULES;
-use owo_colors::OwoColorize;
 use rayon::prelude::*;
 use std::{
     fs::OpenOptions,
@@ -39,6 +38,7 @@ fn load_config(path: impl AsRef<Path>) -> Result<Config, ConfigError> {
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct Diagnostic {
     message: String,
     location: Range<usize>,

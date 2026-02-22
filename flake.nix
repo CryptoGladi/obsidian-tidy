@@ -9,26 +9,29 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    naersk = {
-      url = "github:nix-community/naersk";
-      inputs.nixpkgs.follows = "nixpkgs";
+    crane.url = "github:ipetkov/crane";
+
+    advisory-db = {
+      url = "github:rustsec/advisory-db";
+      flake = false;
     };
   };
 
   outputs =
     {
-      flake-utils,
-      naersk,
       nixpkgs,
+      crane,
+      flake-utils,
+      advisory-db,
       rust-overlay,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [ (import rust-overlay) ];
-        pkgs = (import nixpkgs) {
-          inherit system overlays;
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ (import rust-overlay) ];
         };
 
         rust = pkgs.rust-bin.stable.latest.default.override {
@@ -37,36 +40,84 @@
           ];
         };
 
-        naersk' = pkgs.callPackage naersk {
-          cargo = rust;
-          rustc = rust;
+        craneLib = (crane.mkLib pkgs).overrideToolchain (p: rust);
+
+        src = craneLib.cleanCargoSource ./.;
+
+        commonArgs = {
+          inherit src;
+          strictDeps = true;
         };
+
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+        obsidian-tidy = craneLib.buildPackage (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+          }
+        );
       in
       {
-        # For `nix build` & `nix run`:
-        packages.default = naersk'.buildPackage {
-          src = ./.;
+        checks = {
+          obsidian-tidy-tests = obsidian-tidy // {
+            doCheck = true;
 
-          doCheck = true;
+            cargoTestCommand = "cargo test --workspace";
+          };
 
-          cargoTestOptions =
-            old:
-            old
-            ++ [
-              "--workspace"
-            ];
+          obsidian-tidy-clippy = craneLib.cargoClippy (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
+
+          obsidian-tidy-doc = craneLib.cargoDoc (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              env.RUSTDOCFLAGS = "--deny warnings";
+            }
+          );
+
+          obsidian-tidy-fmt = craneLib.cargoFmt {
+            inherit src;
+          };
+
+          obsidian-tidy-toml-fmt = craneLib.taploFmt {
+            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
+          };
+
+          obsidian-tidy-audit = craneLib.cargoAudit {
+            inherit src advisory-db;
+          };
         };
 
-        # For `nix develop`:
+        packages.default = obsidian-tidy // {
+          doCheck = true;
+
+          cargoTestCommand = "cargo test --workspace";
+        };
+
+        apps.default = flake-utils.lib.mkApp {
+          drv = obsidian-tidy;
+        };
+
         devShell = pkgs.mkShell {
-          nativeBuildInputs = [ rust ];
+          nativeBuildInputs = [
+            rust
+
+            pkgs.taplo
+          ];
 
           shellHook = ''
             echo "Active nix develop"
           '';
-        };
 
-        RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+          RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+        };
       }
     );
 }
