@@ -1,4 +1,4 @@
-name: "Build"
+name: "Build and testing"
 on:
   pull_request:
   push:
@@ -9,10 +9,13 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - uses: cachix/install-nix-action@v31
+
+    - uses: cachix/cachix-action@v15
       with:
-        name: cache
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+        name: obsidian-tidy
+        authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
         extraPullNames: nix-community
+
     - name: Run nix flake check
       run: nix flake check
     - name: Build obsidian-tidy by Nix
