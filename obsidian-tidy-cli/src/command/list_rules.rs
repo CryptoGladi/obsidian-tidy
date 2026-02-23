@@ -14,7 +14,7 @@ pub struct RunnerListRules {
 }
 
 impl RunnerListRules {
-    pub fn new(from_template: Template) -> Self {
+    pub const fn new(from_template: Template) -> Self {
         Self { from_template }
     }
 }
@@ -42,15 +42,16 @@ impl Runner for RunnerListRules {
             println!(
                 "\n{} {} ({} rule{})",
                 "📁".cyan(),
-                format!("{}", category).bold().blue(),
+                format!("{category}").bold().blue(),
                 rules_vec.len(),
                 if rules_vec.len() == 1 { "" } else { "s" }
             );
 
             for rule in &rules_vec {
-                let status = match rule.is_enabled() {
-                    true => "✓".green().to_string(),
-                    false => "✘".red().to_string(),
+                let status = if rule.is_enabled() {
+                    "✓".green().to_string()
+                } else {
+                    "✘".red().to_string()
                 };
 
                 println!(

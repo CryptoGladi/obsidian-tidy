@@ -1,5 +1,7 @@
 //! Core crate for obsidian-tidy
 
+#![forbid(clippy::print_stdout)]
+
 pub mod directories;
 pub mod rule;
 

@@ -574,7 +574,6 @@ dependencies = [
 name = "obsidian-tidy"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "color-eyre",
  "obsidian-tidy-cli",
  "obsidian-tidy-core",

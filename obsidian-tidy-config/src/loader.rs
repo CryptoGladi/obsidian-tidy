@@ -26,7 +26,7 @@ struct ConfigSeed<'a> {
 }
 
 impl<'a> ConfigSeed<'a> {
-    fn new(rule_seed: &'a RulesSeed<'a, SharedErrorRule>) -> Self {
+    const fn new(rule_seed: &'a RulesSeed<'a, SharedErrorRule>) -> Self {
         Self { rule_seed }
     }
 }
@@ -52,11 +52,13 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
 }
 
 impl<'a> ConfigLoader<'a> {
-    pub fn new(available_rules: &'a Vec<SharedErrorRule>) -> Self {
+    #[must_use]
+    pub const fn new(available_rules: &'a Vec<SharedErrorRule>) -> Self {
         Self { available_rules }
     }
 
-    pub fn available_rules(mut self, available_rules: &'a Vec<SharedErrorRule>) -> Self {
+    #[must_use]
+    pub const fn available_rules(mut self, available_rules: &'a Vec<SharedErrorRule>) -> Self {
         self.available_rules = available_rules;
         self
     }
@@ -70,7 +72,9 @@ impl<'a> ConfigLoader<'a> {
         reader.read_to_string(&mut buffer)?;
 
         let rule_seed = RulesSeed::new(self.available_rules);
+        let toml = toml::Deserializer::parse(&buffer)?;
 
-        Ok(ConfigSeed::new(&rule_seed).deserialize(toml::Deserializer::parse(&buffer)?)?)
+        let config = ConfigSeed::new(&rule_seed).deserialize(toml)?;
+        Ok(config)
     }
 }

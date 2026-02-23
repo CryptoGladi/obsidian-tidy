@@ -11,6 +11,7 @@ pub struct ConfigSaver<'a> {
 }
 
 impl<'a> ConfigSaver<'a> {
+    #[must_use]
     pub fn new(config: &'a Config) -> Self {
         Self {
             path: std::env::current_dir().unwrap_or(PathBuf::from(".")),
@@ -18,6 +19,7 @@ impl<'a> ConfigSaver<'a> {
         }
     }
 
+    #[must_use]
     pub fn path(mut self, path: impl Into<PathBuf>) -> Self {
         self.path = path.into();
         self

@@ -20,7 +20,8 @@ pub struct Config {
 
 impl Config {
     /// Get all rules
-    pub fn rules(&self) -> &Rules<SharedErrorRule> {
+    #[must_use]
+    pub const fn rules(&self) -> &Rules<SharedErrorRule> {
         &self.rules
     }
 }

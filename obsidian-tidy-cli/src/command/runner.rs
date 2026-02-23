@@ -63,7 +63,7 @@ impl<R> ErasingRunner<R>
 where
     R: Runner + Send + Sync,
 {
-    pub fn new(runner: R) -> Self {
+    pub const fn new(runner: R) -> Self {
         Self { inner: runner }
     }
 }

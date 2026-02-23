@@ -17,6 +17,7 @@ pub struct Directories {
 }
 
 impl Default for Directories {
+    #[allow(clippy::panic)]
     fn default() -> Self {
         trace!("Init directories");
 
@@ -48,6 +49,7 @@ impl Directories {
     ///     "/home/gladi/.config/obsidian-tidy"
     /// );
     /// ```
+    #[must_use]
     pub fn config_dir(&self) -> &Path {
         self.project_dirs.config_dir()
     }
@@ -65,6 +67,7 @@ impl Directories {
     ///     "/home/gladi/.local/share/obsidian-tidy"
     /// );
     /// ```
+    #[must_use]
     pub fn data_local_dir(&self) -> &Path {
         self.project_dirs.data_local_dir()
     }
@@ -82,6 +85,7 @@ impl Directories {
     ///     "/home/gladi/.config/obsidian-tidy/logs"
     /// );
     /// ```
+    #[must_use]
     pub fn logs_dir(&self) -> PathBuf {
         self.data_local_dir().join("logs")
     }

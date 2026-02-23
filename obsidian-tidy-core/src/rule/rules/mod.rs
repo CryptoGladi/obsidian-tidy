@@ -24,7 +24,7 @@ where
         trace!("Check unique name");
 
         let mut names = HashSet::with_capacity(rules.len());
-        let iter = rules.iter().map(|rule| rule.name());
+        let iter = rules.iter().map(Rule::name);
 
         for name in iter {
             if !names.insert(name) {
@@ -83,6 +83,7 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::similar_names)]
 mod tests {
     use super::*;
     use crate::{rule::Category, test_utils::TestRule};
@@ -91,14 +92,18 @@ mod tests {
     #[test]
     fn duplicate_name() {
         let name = "DuplicateName";
+
         let rule1 =
             ToggleableRule::new(Arc::new(TestRule::new(name, "", Category::Other, [])), true);
-        let rule2 =
-            ToggleableRule::new(Arc::new(TestRule::new(name, "", Category::Other, [])), true);
+
+        let rule2 = ToggleableRule::new(
+            Arc::new(TestRule::new(name, "", Category::Heading, [])),
+            true,
+        );
 
         let rules = Rules::new(vec![rule1, rule2]);
 
-        assert_eq!(rules.err(), Some(Error::DuplicateName(name.to_string())))
+        assert_eq!(rules.err(), Some(Error::DuplicateName(name.to_string())));
     }
 
     #[test]

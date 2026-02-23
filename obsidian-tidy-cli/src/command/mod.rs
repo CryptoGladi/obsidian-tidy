@@ -47,6 +47,11 @@ pub enum Command {
 
 impl Command {
     /// Run command
+    ///
+    /// # Errors
+    ///
+    /// Returns an error about executing a specific command.
+    /// Just run unwrap and don't worry about it.
     #[instrument(skip(args))]
     pub fn execute(self, args: &Cli) -> Result<(), Arc<dyn std::error::Error + Send + Sync>> {
         debug!("Execute command");

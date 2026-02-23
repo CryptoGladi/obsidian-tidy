@@ -29,7 +29,7 @@ pub struct RunnerInit {
 }
 
 impl RunnerInit {
-    pub fn new(override_config: bool, template: Template) -> Self {
+    pub const fn new(override_config: bool, template: Template) -> Self {
         Self {
             override_config,
             template,
@@ -47,10 +47,11 @@ impl Runner for RunnerInit {
         let config_path = args.config();
 
         if config_path.is_file() {
-            match self.override_config {
-                true => std::fs::remove_file(&config_path)?,
-                false => return Err(Error::AlreadyExists(config_path)),
-            };
+            if self.override_config {
+                std::fs::remove_file(&config_path)?;
+            } else {
+                return Err(Error::AlreadyExists(config_path));
+            }
         }
 
         let config = ConfigBuilder::default().rules(self.template.into()).build();

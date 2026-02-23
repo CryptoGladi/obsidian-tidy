@@ -1,5 +1,7 @@
 //! Module for Rust writer rules
 
+#![forbid(clippy::print_stdout)]
+
 pub mod content;
 pub mod rules;
 

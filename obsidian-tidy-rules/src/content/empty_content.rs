@@ -22,11 +22,11 @@ pub enum Error {
 impl Rule for EmptyContent {
     type Error = self::Error;
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "empty-content"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Rule for search notes with empty content"
     }
 
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn empty_note() {
-        let rule = EmptyContent::default();
+        let rule = EmptyContent;
 
         let note = Note::from_string_default("").unwrap();
         let violation = rule.check(&Content::default(), &note).unwrap();
@@ -89,7 +89,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn not_empty_note() {
-        let rule = EmptyContent::default();
+        let rule = EmptyContent;
 
         let note = Note::from_string_default("Super data").unwrap();
         let violation = rule.check(&Content::default(), &note).unwrap();
@@ -100,7 +100,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn generated_note() {
-        let rule = EmptyContent::default();
+        let rule = EmptyContent;
 
         let mut generator = DefaultNoteGenerator::default();
         let mut note = generator.generate_temp_note().unwrap();
@@ -113,36 +113,36 @@ mod tests {
     #[test]
     #[traced_test]
     fn not_empty_notes() {
-        let rule = EmptyContent::default();
+        let rule = EmptyContent;
 
-        let violations = DEFAULT_MOCK_VAULT.run_rule(&rule).unwrap();
+        let violations = DEFAULT_MOCK_VAULT.run_rule(&rule);
         assert!(violations.is_empty());
     }
 
     #[test]
     #[traced_test]
     fn with_empty_notes() {
-        let rule = EmptyContent::default();
+        let rule = EmptyContent;
 
         let mock_vault = MockVaultBuilder::<MyGenerator>::default()
             .count_notes(10)
             .build()
             .unwrap();
 
-        let violations = mock_vault.run_rule(&rule).unwrap();
+        let violations = mock_vault.run_rule(&rule);
         assert_eq!(violations.len(), 1);
     }
 
     #[test]
     fn empty_vault() {
-        let rule = EmptyContent::default();
+        let rule = EmptyContent;
 
         let mock_vault = MockVaultBuilder::<DefaultNoteGenerator>::default()
             .count_notes(0)
             .build()
             .unwrap();
 
-        let violations = mock_vault.run_rule(&rule).unwrap();
+        let violations = mock_vault.run_rule(&rule);
         assert!(violations.is_empty());
     }
 }

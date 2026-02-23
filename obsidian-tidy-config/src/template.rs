@@ -90,25 +90,26 @@ impl Deref for Template {
 #[cfg(test)]
 mod tests {
     use super::Template;
+    use obsidian_tidy_core::rule::ToggleableRule;
     use obsidian_tidy_rules::ALL_RULES;
 
     #[test]
     fn all_check() {
         assert_eq!(Template::All.len(), ALL_RULES.len());
-        assert!(Template::All.iter().all(|rule| rule.is_enabled()));
+        assert!(Template::All.iter().all(ToggleableRule::is_enabled));
     }
 
     #[test]
     fn empty_check() {
         assert_eq!(Template::Empty.len(), ALL_RULES.len());
-        assert!(Template::Empty.iter().all(|rule| rule.is_disabled()));
+        assert!(Template::Empty.iter().all(ToggleableRule::is_disabled));
     }
 
     #[test]
     fn standart() {
         assert_eq!(Template::Standard.len(), ALL_RULES.len());
 
-        assert!(Template::All.iter().any(|rule| rule.is_enabled()));
-        assert!(Template::Empty.iter().any(|rule| rule.is_disabled()));
+        assert!(Template::All.iter().any(ToggleableRule::is_enabled));
+        assert!(Template::Empty.iter().any(ToggleableRule::is_disabled));
     }
 }

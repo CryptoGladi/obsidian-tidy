@@ -12,7 +12,7 @@ pub struct RunnerCompletions {
 }
 
 impl RunnerCompletions {
-    pub fn new(shell: clap_complete::Shell) -> Self {
+    pub const fn new(shell: clap_complete::Shell) -> Self {
         Self { shell }
     }
 }
@@ -21,7 +21,7 @@ impl Runner for RunnerCompletions {
     type Error = Infallible;
 
     #[instrument]
-    fn run(&self, _args: &Cli) -> Result<(), Self::Error> {
+    fn run(&self, args: &Cli) -> Result<(), Self::Error> {
         debug!("Run completions command");
 
         clap_complete::generate(

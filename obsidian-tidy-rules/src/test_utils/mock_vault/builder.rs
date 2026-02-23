@@ -99,7 +99,7 @@ where
         let root = temp_dir.path();
 
         for i in 1..=self.count_notes {
-            let path = root.join(format!("note_{}.md", i));
+            let path = root.join(format!("note_{i}.md"));
 
             let mut file = OpenOptions::new().create_new(true).write(true).open(path)?;
             self.generator.generate(&mut file)?;

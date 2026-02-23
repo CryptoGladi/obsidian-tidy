@@ -15,20 +15,16 @@ pub struct MockVault {
 }
 
 impl MockVault {
-    pub fn run_rule<R>(&self, rule: &R) -> Result<Vec<Violation>, R::Error>
+    pub fn run_rule<R>(&self, rule: &R) -> Vec<Violation>
     where
         R: Rule,
     {
         let content = Content::from(self.vault.clone());
 
-        let violations = self
-            .notes()
+        self.notes()
             .iter()
-            .map(|note| rule.check(&content, note).unwrap())
-            .flatten()
-            .collect();
-
-        Ok(violations)
+            .flat_map(|note| rule.check(&content, note).unwrap())
+            .collect()
     }
 }
 

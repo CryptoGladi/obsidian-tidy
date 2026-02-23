@@ -26,7 +26,6 @@ obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
 obsidian-tidy-config = { path = "./obsidian-tidy-config" }
 obsidian-tidy-cli = { path = "./obsidian-tidy-cli" }
 tracing = "0.1"
-anyhow = "1"
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
@@ -40,6 +39,17 @@ tracing-subscriber = "0.3"
 [workspace.lints.rust]
 unsafe_code = "forbid"
 
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "deny"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+panic = "deny"
+missing_errors_doc = "allow"
+undocumented_unsafe_blocks = "warn"
+needless_pass_by_value = "warn"
+missing_const_for_fn = "warn"
+
 [lints]
 workspace = true
 
@@ -50,5 +60,4 @@ obsidian-tidy-cli.workspace = true
 tracing.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-anyhow.workspace = true
 color-eyre = "0.6"

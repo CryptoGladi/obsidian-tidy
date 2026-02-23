@@ -17,11 +17,13 @@ impl Default for ConfigBuilder {
 }
 
 impl ConfigBuilder {
+    #[must_use]
     pub fn rules(mut self, rules: Rules<SharedErrorRule>) -> Self {
         self.rules = rules;
         self
     }
 
+    #[must_use]
     pub fn build(self) -> Config {
         Config { rules: self.rules }
     }

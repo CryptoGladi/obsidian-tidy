@@ -21,7 +21,7 @@ fn existing_dir(s: &str) -> Result<PathBuf, String> {
     if path.exists() && path.is_dir() {
         Ok(path)
     } else {
-        Err(format!("'{}' is not an existing directory", s))
+        Err(format!("'{s}' is not an existing directory"))
     }
 }
 
@@ -49,6 +49,7 @@ pub struct Cli {
 
 impl Cli {
     /// Return path to config
+    #[must_use]
     pub fn config(&self) -> PathBuf {
         self.path.join(".obsidian-tidy.toml")
     }

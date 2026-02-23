@@ -25,7 +25,7 @@ pub enum Error {
 pub struct RunnerCheck;
 
 impl RunnerCheck {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }

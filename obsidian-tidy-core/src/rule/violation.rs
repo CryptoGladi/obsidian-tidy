@@ -49,12 +49,14 @@ impl Violation {
     }
 
     #[inline]
+    #[must_use]
     pub fn message(&self) -> &str {
         &self.message
     }
 
     #[inline]
-    pub fn location(&self) -> &Range<usize> {
+    #[must_use]
+    pub const fn location(&self) -> &Range<usize> {
         &self.location
     }
 }
@@ -75,7 +77,7 @@ mod tests {
                 message: "Super error".to_string(),
                 location: 43..50
             }
-        )
+        );
     }
 
     #[test]
@@ -117,6 +119,7 @@ mod tests {
 
     #[test]
     #[traced_test]
+    #[allow(clippy::reversed_empty_ranges)]
     fn new_with_invalid_range() {
         let result = Violation::new("Super error", 50..20);
         assert_eq!(result, Err(Error::InvalidRange { start: 50, end: 20 }));

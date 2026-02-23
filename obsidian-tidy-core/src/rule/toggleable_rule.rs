@@ -17,25 +17,25 @@ impl<R> ToggleableRule<R>
 where
     R: Rule,
 {
-    pub fn new(rule: R, enabled: bool) -> Self {
+    pub const fn new(rule: R, enabled: bool) -> Self {
         Self { rule, enabled }
     }
 
     #[must_use]
-    pub fn is_enabled(&self) -> bool {
+    pub const fn is_enabled(&self) -> bool {
         self.enabled
     }
 
     #[must_use]
-    pub fn is_disabled(&self) -> bool {
+    pub const fn is_disabled(&self) -> bool {
         !self.enabled
     }
 
-    pub fn enable(&mut self) {
+    pub const fn enable(&mut self) {
         self.enabled = true;
     }
 
-    pub fn disable(&mut self) {
+    pub const fn disable(&mut self) {
         self.enabled = false;
     }
 }

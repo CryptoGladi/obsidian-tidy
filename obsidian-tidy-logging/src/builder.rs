@@ -34,23 +34,27 @@ impl Default for LoggerBuilder {
 
 impl LoggerBuilder {
     /// Enable input log to stdout
-    pub fn stdout(mut self, enable: bool) -> Self {
+    #[must_use]
+    pub const fn stdout(mut self, enable: bool) -> Self {
         self.stdout = enable;
         self
     }
 
     /// Enable input log to file
-    pub fn file(mut self, enable: bool) -> Self {
+    #[must_use]
+    pub const fn file(mut self, enable: bool) -> Self {
         self.file = enable;
         self
     }
 
+    #[must_use]
     pub fn path(mut self, path: PathBuf) -> Self {
         self.path = path;
         self
     }
 
-    pub fn filter(mut self, filter: LevelFilter) -> Self {
+    #[must_use]
+    pub const fn filter(mut self, filter: LevelFilter) -> Self {
         self.filter = filter;
         self
     }

@@ -117,11 +117,11 @@ mod tests {
     impl Rule for ErrorRule {
         type Error = self::Error;
 
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "error-rule"
         }
 
-        fn description(&self) -> &str {
+        fn description(&self) -> &'static str {
             ""
         }
 

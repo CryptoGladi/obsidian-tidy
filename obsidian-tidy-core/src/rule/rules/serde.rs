@@ -75,7 +75,8 @@ impl<'a, R> RulesSeed<'a, R>
 where
     R: Rule,
 {
-    pub fn new(available_rules: &'a Vec<R>) -> Self {
+    #[must_use]
+    pub const fn new(available_rules: &'a Vec<R>) -> Self {
         Self { available_rules }
     }
 }
@@ -115,6 +116,7 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::similar_names)]
 mod tests {
     use super::*;
     use crate::rule::ToggleableRule;
@@ -137,12 +139,12 @@ mod tests {
 
         assert_eq!(
             toml,
-            r#"[content.rule1]
+            r"[content.rule1]
 enable = true
 
 [spacing.rule2]
 enable = false
-"#
+"
         );
     }
 
@@ -166,7 +168,7 @@ enable = false
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "not found rule")]
     fn deserialize_with_not_found_rule() {
         let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content, []));
         let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing, []));

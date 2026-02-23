@@ -1,5 +1,7 @@
 //! Crate for logging
 
+#![forbid(clippy::print_stdout)]
+
 mod builder;
 mod logger;
 

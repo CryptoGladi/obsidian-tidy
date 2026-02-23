@@ -38,6 +38,7 @@ impl LoggerBuilder {
         (layer, guard)
     }
 
+    #[must_use]
     pub fn init(self) -> Logger {
         let registry = tracing_subscriber::registry();
 
@@ -55,6 +56,6 @@ impl LoggerBuilder {
 
 impl Drop for Logger {
     fn drop(&mut self) {
-        debug!("Done work")
+        debug!("Done work");
     }
 }
