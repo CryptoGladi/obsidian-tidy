@@ -600,6 +600,7 @@ dependencies = [
  "rayon",
  "thiserror",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -3,12 +3,16 @@ name = "obsidian-tidy-cli"
 version = "0.0.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 obsidian-tidy-core.workspace = true
 obsidian-tidy-rules.workspace = true
 obsidian-tidy-config.workspace = true
 obsidian-parser.workspace = true
 tracing.workspace = true
+tracing-subscriber.workspace = true
 itertools.workspace = true
 rayon.workspace = true
 clap.workspace = true

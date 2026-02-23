@@ -3,6 +3,9 @@ name = "obsidian-tidy-core"
 version = "0.0.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 directories = "6.0"
 obsidian-parser.workspace = true

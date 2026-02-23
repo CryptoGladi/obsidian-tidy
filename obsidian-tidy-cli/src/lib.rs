@@ -1,13 +1,14 @@
 //! Module for CLI interfaic
 
 pub mod command;
+pub mod logger_config;
 
 use clap::ValueHint;
-use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
 
 pub use clap::Parser;
 pub use command::Command;
+pub use logger_config::{LogLevel, LoggerConfig};
 
 /// Returns the current working directory
 fn current_dir() -> PathBuf {
@@ -37,18 +38,9 @@ pub struct Cli {
     #[arg(long, value_name = "DIRECTORY", value_hint = ValueHint::DirPath, value_parser = existing_dir, default_value = current_dir().into_os_string())]
     pub path: PathBuf,
 
-    /// Nothing is output to stdout.
-    #[arg(long)]
-    pub quiet: bool,
-
-    /// Path to directory for logs
-    /// Default save to locale share data
-    #[arg(long, value_name = "DIRECTORY", value_hint = ValueHint::DirPath, default_value = directories().logs_dir().into_os_string())]
-    pub logs: PathBuf,
-
-    /// Disable write logs
-    #[arg(long)]
-    pub disable_logger: bool,
+    /// Logger options
+    #[command(flatten, next_help_heading = "Logger options")]
+    pub logger: LoggerConfig,
 
     /// Command
     #[command(subcommand)]

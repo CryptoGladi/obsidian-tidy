@@ -1,14 +1,13 @@
 //! Module for build Logger
 
-use super::ENV_NAME;
 use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::filter::LevelFilter;
 
 /// Builder for [`Logger`]
 pub struct LoggerBuilder {
     /// Filter
-    pub(crate) filter: EnvFilter,
+    pub(crate) filter: LevelFilter,
 
     /// Enable input to stdout
     pub(crate) stdout: bool,
@@ -22,12 +21,11 @@ pub struct LoggerBuilder {
 
 impl Default for LoggerBuilder {
     fn default() -> Self {
-        let filter = EnvFilter::try_from_env(ENV_NAME).unwrap_or(EnvFilter::new("off"));
         let logs_dir = directories().logs_dir();
 
         Self {
             path: logs_dir,
-            filter,
+            filter: LevelFilter::INFO,
             stdout: true,
             file: true,
         }
@@ -47,8 +45,13 @@ impl LoggerBuilder {
         self
     }
 
-    pub fn path(mut self, value: PathBuf) -> Self {
-        self.path = value;
+    pub fn path(mut self, path: PathBuf) -> Self {
+        self.path = path;
+        self
+    }
+
+    pub fn filter(mut self, filter: LevelFilter) -> Self {
+        self.filter = filter;
         self
     }
 }

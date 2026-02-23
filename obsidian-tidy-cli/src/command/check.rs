@@ -1,3 +1,5 @@
+//! Run check to vault
+
 use super::Cli;
 use crate::command::runner::Runner;
 use obsidian_parser::prelude::Note as _;

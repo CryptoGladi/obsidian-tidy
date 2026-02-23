@@ -1,3 +1,5 @@
+//! Command for init config file
+
 use super::Cli;
 use crate::command::runner::Runner;
 use obsidian_tidy_config::ConfigSaver;

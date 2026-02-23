@@ -3,6 +3,9 @@ name = "obsidian-tidy-rules"
 version = "0.0.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 obsidian-tidy-core.workspace = true
 obsidian-parser.workspace = true

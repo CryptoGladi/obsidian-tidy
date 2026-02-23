@@ -16,7 +16,7 @@ impl LoggerBuilder {
         tracing_subscriber::fmt::layer()
             .with_writer(std::io::stdout)
             .with_target(false)
-            .with_filter(self.filter.clone())
+            .with_filter(self.filter)
     }
 
     fn file_layer<S>(&self) -> (impl Layer<S>, WorkerGuard)
@@ -33,7 +33,7 @@ impl LoggerBuilder {
             .with_target(true)
             .with_line_number(true)
             .with_file(true)
-            .with_filter(self.filter.clone());
+            .with_filter(self.filter);
 
         (layer, guard)
     }

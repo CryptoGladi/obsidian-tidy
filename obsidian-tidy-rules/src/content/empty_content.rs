@@ -53,7 +53,7 @@ mod tests {
     use crate::test_utils::{
         DEFAULT_MOCK_VAULT, DefaultNoteGenerator, MockVaultBuilder, NoteGenerator as Generator,
     };
-    use obsidian_parser::note::{NoteDefault, NoteFromString};
+    use obsidian_parser::note::{NoteDefault, NoteFromReader};
     use tracing_test::traced_test;
 
     #[derive(Default, Debug)]
@@ -95,6 +95,19 @@ mod tests {
         let violation = rule.check(&Content::default(), &note).unwrap();
 
         assert!(violation.is_empty());
+    }
+
+    #[test]
+    #[traced_test]
+    fn generated_note() {
+        let rule = EmptyContent::default();
+
+        let mut generator = DefaultNoteGenerator::default();
+        let mut note = generator.generate_temp_note().unwrap();
+
+        let content = Content::new(note.path());
+        rule.check(&content, &Note::from_reader(note.as_file_mut()).unwrap())
+            .unwrap();
     }
 
     #[test]

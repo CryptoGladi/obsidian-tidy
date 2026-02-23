@@ -1,3 +1,5 @@
+//! Generate shell completions
+
 use super::runner::Runner;
 use crate::Cli;
 use clap::CommandFactory;

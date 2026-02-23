@@ -19,6 +19,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Get all rules
     pub fn rules(&self) -> &Rules<SharedErrorRule> {
         &self.rules
     }

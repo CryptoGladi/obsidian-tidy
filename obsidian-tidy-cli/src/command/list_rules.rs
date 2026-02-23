@@ -1,3 +1,5 @@
+//! Get list all rules
+
 use super::Cli;
 use crate::command::runner::Runner;
 use itertools::Itertools;

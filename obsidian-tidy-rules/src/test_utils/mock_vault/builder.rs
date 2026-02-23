@@ -13,11 +13,14 @@ pub trait NoteGenerator {
 
     fn generate(&mut self, file: &mut File) -> Result<(), Self::Error>;
 
-    fn create_temp_note(&self) -> Result<NamedTempFile, Self::Error>
+    fn generate_temp_note(&mut self) -> Result<NamedTempFile, Self::Error>
     where
         Self::Error: From<std::io::Error>,
     {
-        Ok(NamedTempFile::new()?)
+        let mut note = NamedTempFile::new()?;
+        self.generate(note.as_file_mut())?;
+
+        Ok(note)
     }
 }
 

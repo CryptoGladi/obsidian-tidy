@@ -46,7 +46,8 @@ pub enum Command {
 }
 
 impl Command {
-    #[instrument]
+    /// Run command
+    #[instrument(skip(args))]
     pub fn execute(self, args: &Cli) -> Result<(), Arc<dyn std::error::Error + Send + Sync>> {
         debug!("Execute command");
 
