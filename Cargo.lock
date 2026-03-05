@@ -622,6 +622,7 @@ dependencies = [
  "directories",
  "obsidian-parser",
  "serde",
+ "serde_json",
  "thiserror",
  "toml",
  "tracing",

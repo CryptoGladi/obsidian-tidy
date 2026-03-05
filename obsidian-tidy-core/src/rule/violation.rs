@@ -1,8 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::ops::{Bound, Range, RangeBounds};
 use thiserror::Error;
 use tracing::instrument;
 
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Violation {
     message: String,
     location: Range<usize>,

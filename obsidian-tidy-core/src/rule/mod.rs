@@ -2,6 +2,8 @@
 
 pub mod category;
 pub mod content;
+pub mod rule_fabric;
+pub mod rule_registry;
 pub mod rules;
 pub mod shared_error_rule;
 pub mod smart_pointer;

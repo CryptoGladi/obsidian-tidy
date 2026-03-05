@@ -4,9 +4,10 @@ use crate::{
     Note,
     rule::{Category, Content, Rule, Violation},
 };
+use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub(crate) struct TestRule {
     name: String,
     description: String,
