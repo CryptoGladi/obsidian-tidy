@@ -2,16 +2,11 @@
 
 use obsidian_parser::note::Note as _;
 use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Category, Content, Rule, RuleFabric};
+use obsidian_tidy_core::rule::{Category, Content, Rule, StaticRule};
 use obsidian_tidy_core::{Note, NoteError};
 use serde::Deserialize;
-use std::convert::Infallible;
 use thiserror::Error;
 use tracing::{instrument, trace};
-
-const NAME: &str = "empty-content";
-const DESCRIPTION: &str = "Rule for search notes with empty content";
-const CATEGORY: Category = Category::Content;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
 pub struct EmptyContent;
@@ -25,19 +20,25 @@ pub enum Error {
     Violation(#[from] ViolationError),
 }
 
+impl StaticRule for EmptyContent {
+    const NAME: &'static str = "empty-content";
+    const DESCRIPTION: &'static str = "Rule for search notes with empty content";
+    const CATEGORY: &'static Category = &Category::Content;
+}
+
 impl Rule for EmptyContent {
     type Error = self::Error;
 
     fn name(&self) -> &'static str {
-        self::NAME
+        Self::NAME
     }
 
     fn description(&self) -> &'static str {
-        self::DESCRIPTION
+        Self::DESCRIPTION
     }
 
     fn category(&self) -> Category {
-        self::CATEGORY
+        *Self::CATEGORY
     }
 
     #[instrument(skip(_content))]
@@ -53,31 +54,6 @@ impl Rule for EmptyContent {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct EmptyContentFabric;
-
-impl RuleFabric for EmptyContentFabric {
-    type Rule = EmptyContent;
-    type Data = EmptyContent;
-    type Error = Infallible;
-
-    fn name_rule(&self) -> &str {
-        self::NAME
-    }
-
-    fn description_rule(&self) -> &str {
-        self::DESCRIPTION
-    }
-
-    fn category_rule(&self) -> Category {
-        self::CATEGORY
-    }
-
-    fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
-        Ok(data)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,6 +61,8 @@ mod tests {
         DEFAULT_MOCK_VAULT, DefaultNoteGenerator, MockVaultBuilder, NoteGenerator as Generator,
     };
     use obsidian_parser::note::{NoteDefault, NoteFromReader};
+    use obsidian_tidy_core::rule::RuleFabric;
+    use obsidian_tidy_core::rule::rule_fabric::GetFabricFromStaticRule;
     use tracing_test::traced_test;
 
     #[derive(Default, Debug)]
@@ -104,6 +82,15 @@ mod tests {
 
             self.default_generator.generate(file)
         }
+    }
+
+    #[test]
+    fn fabric() {
+        let fabric = EmptyContent::fabric();
+
+        assert_eq!(fabric.name_rule(), EmptyContent::NAME);
+        assert_eq!(fabric.description_rule(), EmptyContent::DESCRIPTION);
+        assert_eq!(fabric.category_rule(), *EmptyContent::CATEGORY);
     }
 
     #[test]

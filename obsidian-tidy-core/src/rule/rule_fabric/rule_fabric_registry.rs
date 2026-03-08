@@ -46,6 +46,14 @@ impl RuleFabricRegistry {
     pub fn names(&self) -> impl Iterator<Item = &String> {
         self.0.keys()
     }
+
+    pub fn fabrices(&self) -> impl Iterator<Item = &Box<dyn ErasedRuleFabric>> {
+        self.0.values()
+    }
+
+    pub fn contains(&self, name: &str) -> bool {
+        self.0.contains_key(name)
+    }
 }
 
 impl<S> std::ops::Index<S> for RuleFabricRegistry
@@ -296,7 +304,32 @@ mod tests {
         assert!(!collision);
 
         let names: Vec<_> = registry.names().collect();
-        assert_eq!(names.as_slice(), ["test-rule"])
+        assert_eq!(names.as_slice(), ["test-rule"]);
+    }
+
+    #[test]
+    fn fabrices() {
+        let mut registry = RuleFabricRegistry::new();
+        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        registry.add_unique(Box::new(fabric.clone()));
+
+        let fabrices = registry.fabrices();
+        let data: Vec<_> = fabrices
+            .map(|fabric| (fabric.name_rule(), fabric.description_rule()))
+            .collect();
+
+        assert_eq!(data.len(), 1);
+        assert_eq!(data[0], (fabric.name_rule(), fabric.description_rule()))
+    }
+
+    #[test]
+    fn contains() {
+        let mut registry = RuleFabricRegistry::new();
+        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        registry.add_unique(Box::new(fabric));
+
+        assert!(registry.contains("test-rule"));
+        assert!(!registry.contains("other-rule"));
     }
 
     #[test]

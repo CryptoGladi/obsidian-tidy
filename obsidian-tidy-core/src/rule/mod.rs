@@ -42,6 +42,12 @@ pub trait Rule: Send + Sync {
     fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error>;
 }
 
+pub trait StaticRule {
+    const NAME: &'static str;
+    const DESCRIPTION: &'static str;
+    const CATEGORY: &'static Category;
+}
+
 impl<E> Debug for dyn Rule<Error = E>
 where
     E: std::error::Error,
