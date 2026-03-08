@@ -2,12 +2,18 @@
 
 use obsidian_parser::note::Note as _;
 use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Category, Content, Rule};
+use obsidian_tidy_core::rule::{Category, Content, Rule, RuleFabric};
 use obsidian_tidy_core::{Note, NoteError};
+use serde::Deserialize;
+use std::convert::Infallible;
 use thiserror::Error;
 use tracing::{instrument, trace};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+const NAME: &str = "empty-content";
+const DESCRIPTION: &str = "Rule for search notes with empty content";
+const CATEGORY: Category = Category::Content;
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
 pub struct EmptyContent;
 
 #[derive(Debug, Error)]
@@ -23,15 +29,15 @@ impl Rule for EmptyContent {
     type Error = self::Error;
 
     fn name(&self) -> &'static str {
-        "empty-content"
+        self::NAME
     }
 
     fn description(&self) -> &'static str {
-        "Rule for search notes with empty content"
+        self::DESCRIPTION
     }
 
     fn category(&self) -> Category {
-        Category::Content
+        self::CATEGORY
     }
 
     #[instrument(skip(_content))]
@@ -44,6 +50,31 @@ impl Rule for EmptyContent {
         }
 
         Ok(Vec::new())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EmptyContentFabric;
+
+impl RuleFabric for EmptyContentFabric {
+    type Rule = EmptyContent;
+    type Data = EmptyContent;
+    type Error = Infallible;
+
+    fn name_rule(&self) -> &str {
+        self::NAME
+    }
+
+    fn description_rule(&self) -> &str {
+        self::DESCRIPTION
+    }
+
+    fn category_rule(&self) -> Category {
+        self::CATEGORY
+    }
+
+    fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
+        Ok(data)
     }
 }
 

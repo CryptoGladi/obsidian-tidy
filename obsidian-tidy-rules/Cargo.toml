@@ -11,6 +11,7 @@ obsidian-tidy-core.workspace = true
 obsidian-parser.workspace = true
 tracing.workspace = true
 thiserror.workspace = true
+serde.workspace = true
 
 [dev-dependencies]
 tracing-test.workspace = true

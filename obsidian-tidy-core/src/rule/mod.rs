@@ -3,7 +3,6 @@
 pub mod category;
 pub mod content;
 pub mod rule_fabric;
-pub mod rule_registry;
 pub mod rules;
 pub mod shared_error_rule;
 pub mod smart_pointer;
@@ -15,6 +14,7 @@ use std::{fmt::Debug, sync::Arc};
 
 pub use category::Category;
 pub use content::Content;
+pub use rule_fabric::{ErasedRuleFabric, RuleFabric, RuleFabricRegistry};
 pub use rules::Rules;
 pub use rules::serde::{InnerRules, RulesSeed};
 pub use shared_error_rule::SharedErrorRule;

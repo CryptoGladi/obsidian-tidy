@@ -2,7 +2,7 @@
 
 use crate::{
     Note,
-    rule::{Category, Content, Rule, Violation},
+    rule::{Category, Content, Rule, RuleFabric, Violation},
 };
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
@@ -48,6 +48,53 @@ impl Rule for TestRule {
 
     fn check(&self, _content: &Content, _note: &Note) -> Result<Vec<Violation>, Self::Error> {
         Ok(self.check_result.clone())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct TestRuleFabric {
+    name: String,
+    description: String,
+    category: Category,
+}
+
+impl TestRuleFabric {
+    pub(crate) fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        category: Category,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            description: description.into(),
+            category,
+        }
+    }
+}
+
+impl RuleFabric for TestRuleFabric {
+    type Rule = TestRule;
+    type Data = TestRule;
+    type Error = Infallible;
+
+    fn name_rule(&self) -> &str {
+        &self.name
+    }
+
+    fn description_rule(&self) -> &str {
+        &self.description
+    }
+
+    fn category_rule(&self) -> Category {
+        self.category
+    }
+
+    fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
+        debug_assert_eq!(data.name(), self.name_rule());
+        debug_assert_eq!(data.description(), self.description_rule());
+        debug_assert_eq!(data.category(), self.category_rule());
+
+        Ok(data)
     }
 }
 
