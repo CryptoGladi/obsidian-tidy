@@ -3,7 +3,7 @@ use crate::rule::Category;
 use std::{collections::HashMap, fmt::Debug};
 
 #[derive(Default)]
-pub struct RuleFabricRegistry(HashMap<String, Box<dyn ErasedRuleFabric>>);
+pub struct RuleFabricRegistry(HashMap<String, Box<dyn ErasedRuleFabric + Send + Sync>>);
 
 impl RuleFabricRegistry {
     #[inline]
@@ -27,11 +27,14 @@ impl RuleFabricRegistry {
     }
 
     #[must_use = "To check for factory collisions for rules"]
-    pub fn add(&mut self, fabric: Box<dyn ErasedRuleFabric>) -> Option<Box<dyn ErasedRuleFabric>> {
+    pub fn add(
+        &mut self,
+        fabric: Box<dyn ErasedRuleFabric + Send + Sync>,
+    ) -> Option<Box<dyn ErasedRuleFabric + Send + Sync>> {
         self.0.insert(fabric.name_rule().to_string(), fabric)
     }
 
-    pub fn add_unique(&mut self, fabric: Box<dyn ErasedRuleFabric>) {
+    pub fn add_unique(&mut self, fabric: Box<dyn ErasedRuleFabric + Send + Sync>) {
         let name = fabric.name_rule().to_string();
 
         if let Some(prev) = self.0.insert(name.clone(), fabric) {
@@ -39,7 +42,7 @@ impl RuleFabricRegistry {
         }
     }
 
-    pub fn get(&self, name: &str) -> Option<&Box<dyn ErasedRuleFabric>> {
+    pub fn get(&self, name: &str) -> Option<&Box<dyn ErasedRuleFabric + Send + Sync>> {
         self.0.get(name)
     }
 
@@ -47,7 +50,7 @@ impl RuleFabricRegistry {
         self.0.keys()
     }
 
-    pub fn fabrices(&self) -> impl Iterator<Item = &Box<dyn ErasedRuleFabric>> {
+    pub fn fabrices(&self) -> impl Iterator<Item = &Box<dyn ErasedRuleFabric + Send + Sync>> {
         self.0.values()
     }
 
@@ -60,7 +63,7 @@ impl<S> std::ops::Index<S> for RuleFabricRegistry
 where
     S: AsRef<str>,
 {
-    type Output = Box<dyn ErasedRuleFabric>;
+    type Output = Box<dyn ErasedRuleFabric + Send + Sync>;
 
     fn index(&self, name: S) -> &Self::Output {
         self.get(name.as_ref()).expect("Fabric not found")

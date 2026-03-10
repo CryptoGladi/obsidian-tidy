@@ -39,12 +39,14 @@ pub trait ErasedRuleFabric {
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<SharedErrorRule, Box<dyn std::error::Error>>;
+
+    fn create_default_rule(&self) -> SharedErrorRule;
 }
 
 impl<R> ErasedRuleFabric for R
 where
     R: RuleFabric,
-    R::Rule: Send + Sync + 'static,
+    R::Rule: Send + Sync + Default + 'static,
     <R::Rule as Rule>::Error: Send + Sync,
     R::Error: Send + Sync + 'static,
 {
@@ -68,6 +70,11 @@ where
         let rule = self.create_rule(data)?;
 
         Ok(SharedErrorRule::new(rule))
+    }
+
+    fn create_default_rule(&self) -> SharedErrorRule {
+        let rule = R::create_default_rule();
+        SharedErrorRule::new(rule)
     }
 }
 
@@ -172,7 +179,7 @@ mod tests {
             }
         }
 
-        let rule = DefaultRuleFabric::create_default_rule();
+        let rule = <DefaultRuleFabric as RuleFabric>::create_default_rule();
 
         assert_eq!(rule, DefaultRule::default());
     }

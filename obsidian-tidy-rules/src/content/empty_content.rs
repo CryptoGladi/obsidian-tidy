@@ -1,10 +1,12 @@
 //! Rule for search notes with empty content
 
 use obsidian_parser::note::Note as _;
+use obsidian_tidy_core::rule::rule_fabric::GetFabricFromStaticRule;
 use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Category, Content, Rule, StaticRule};
+use obsidian_tidy_core::rule::{Category, Content, Rule, RuleFabric, StaticRule};
 use obsidian_tidy_core::{Note, NoteError};
 use serde::Deserialize;
+use std::convert::Infallible;
 use thiserror::Error;
 use tracing::{instrument, trace};
 
@@ -52,6 +54,11 @@ impl Rule for EmptyContent {
 
         Ok(Vec::new())
     }
+}
+
+pub fn fabric()
+-> impl RuleFabric<Rule = EmptyContent, Data = EmptyContent, Error = Infallible> + Send + Sync {
+    EmptyContent::fabric()
 }
 
 #[cfg(test)]

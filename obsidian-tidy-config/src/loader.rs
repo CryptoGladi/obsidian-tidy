@@ -2,6 +2,7 @@
 
 use super::Config;
 use super::Error;
+use obsidian_tidy_core::rule::RuleFabricRegistry;
 use obsidian_tidy_core::rule::{RulesSeed, SharedErrorRule};
 use obsidian_tidy_rules::ALL_RULES;
 use serde::de::DeserializeSeed;
@@ -11,7 +12,7 @@ use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
-    available_rules: &'a Vec<SharedErrorRule>,
+    available_rules: &'a RuleFabricRegistry,
 }
 
 impl Default for ConfigLoader<'_> {
@@ -53,12 +54,12 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
 
 impl<'a> ConfigLoader<'a> {
     #[must_use]
-    pub const fn new(available_rules: &'a Vec<SharedErrorRule>) -> Self {
+    pub const fn new(available_rules: &'a RuleFabricRegistry) -> Self {
         Self { available_rules }
     }
 
     #[must_use]
-    pub const fn available_rules(mut self, available_rules: &'a Vec<SharedErrorRule>) -> Self {
+    pub const fn available_rules(mut self, available_rules: &'a RuleFabricRegistry) -> Self {
         self.available_rules = available_rules;
         self
     }

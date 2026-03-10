@@ -8,9 +8,8 @@ use tracing::{instrument, trace};
 
 static ALL: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
     let rules = ALL_RULES
-        .clone()
-        .into_iter()
-        .map(|rule| ToggleableRule::new(rule, true))
+        .fabrices()
+        .map(|fabric| ToggleableRule::new(fabric.create_default_rule(), true))
         .collect();
 
     Rules::new(rules).unwrap()
@@ -18,9 +17,8 @@ static ALL: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
 
 static EMPTY: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
     let rules = ALL_RULES
-        .clone()
-        .into_iter()
-        .map(|rule| ToggleableRule::new(rule, false))
+        .fabrices()
+        .map(|fabric| ToggleableRule::new(fabric.create_default_rule(), false))
         .collect();
 
     Rules::new(rules).unwrap()

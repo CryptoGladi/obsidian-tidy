@@ -15,6 +15,17 @@ pub(crate) struct TestRule {
     check_result: Vec<Violation>,
 }
 
+impl Default for TestRule {
+    fn default() -> Self {
+        Self {
+            name: "test-rule".to_string(),
+            description: "A test rule".to_string(),
+            category: Category::Content,
+            check_result: Vec::new(),
+        }
+    }
+}
+
 impl TestRule {
     pub fn new(
         name: impl Into<String>,
