@@ -5,8 +5,8 @@
 pub mod directories;
 pub mod rule;
 
-#[cfg(test)]
-pub(crate) mod test_utils;
+#[cfg_attr(not(test), warn(unused))]
+pub mod test_utils;
 
 pub type Vault = obsidian_parser::vault::Vault<Note>;
 

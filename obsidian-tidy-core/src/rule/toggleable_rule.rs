@@ -1,7 +1,4 @@
-use crate::{
-    Note,
-    rule::{Category, Content, Rule, Violation},
-};
+use crate::rule::{Rule, RuleRunner};
 use std::ops::Deref;
 
 #[derive(Debug, Clone)]
@@ -51,35 +48,22 @@ where
     }
 }
 
-/// Impl [`Rule`] for `ToggleableRule`
-impl<R> Rule for ToggleableRule<R>
+impl<R> RuleRunner for ToggleableRule<R>
 where
     R: Rule,
 {
     type Error = R::Error;
 
-    #[inline]
-    fn name(&self) -> &str {
-        self.deref().name()
-    }
-
-    #[inline]
-    fn description(&self) -> &str {
-        self.deref().description()
-    }
-
-    #[inline]
-    fn category(&self) -> Category {
-        self.deref().category()
-    }
-
-    /// If lint is enabled, then run check
-    fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
-        if self.is_enabled() {
-            return self.deref().check(content, note);
+    fn check(
+        &self,
+        content: &super::Content,
+        note: &crate::Note,
+    ) -> Result<Vec<super::Violation>, Self::Error> {
+        if self.is_disabled() {
+            return Ok(Vec::new());
         }
 
-        Ok(Vec::new())
+        R::check(self, content, note)
     }
 }
 
@@ -97,15 +81,14 @@ impl<L> Eq for ToggleableRule<L> where L: Rule + PartialEq {}
 #[cfg(test)]
 mod tests {
     use crate::Note;
-    use crate::rule::{Category, Content, Rule, ToggleableRule, Violation};
+    use crate::rule::{Category, Content, RuleRunner, ToggleableRule, Violation};
     use crate::test_utils::TestRule;
-    use std::sync::Arc;
     use tracing_test::traced_test;
 
     #[test]
     #[traced_test]
     fn new() {
-        let rule = Arc::new(TestRule::new("TestRule", "", Category::Content, []));
+        let rule = TestRule::new("TestRule", "", Category::Content, []);
         let rule_enabled = ToggleableRule::new(rule.clone(), true);
         let rule_disabled = ToggleableRule::new(rule, false);
 

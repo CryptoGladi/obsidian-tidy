@@ -1,16 +1,16 @@
-use crate::rule::{Category, Rule, RuleFabric, StaticRule};
+use crate::rule::{Category, Rule, RuleConstMetadata, RuleFabric, RuleRunner};
 use serde::Deserialize;
 use std::{convert::Infallible, marker::PhantomData};
 
-pub trait GetFabricFromStaticRule {
+pub trait GetFabricFromRuleConstMetadata {
     type Rule: Rule + for<'de> Deserialize<'de>;
-    type StaticRule: StaticRule;
+    type RuleConstMetadata: RuleConstMetadata;
 
     fn fabric() -> impl RuleFabric<Rule = Self::Rule, Data = Self::Rule, Error = Infallible> {
         struct FabricFromRule<R: Rule + for<'de> Deserialize<'de>> {
             name_rule: &'static str,
             description_rule: &'static str,
-            category: &'static Category,
+            category: Category,
             phantom: PhantomData<R>,
         }
 
@@ -31,7 +31,7 @@ pub trait GetFabricFromStaticRule {
             }
 
             fn category_rule(&self) -> Category {
-                *self.category
+                self.category
             }
 
             fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
@@ -40,9 +40,9 @@ pub trait GetFabricFromStaticRule {
         }
 
         let fabric = FabricFromRule {
-            name_rule: Self::StaticRule::NAME,
-            description_rule: Self::StaticRule::DESCRIPTION,
-            category: Self::StaticRule::CATEGORY,
+            name_rule: Self::RuleConstMetadata::NAME,
+            description_rule: Self::RuleConstMetadata::DESCRIPTION,
+            category: Self::RuleConstMetadata::CATEGORY,
             phantom: PhantomData,
         };
 
@@ -50,41 +50,30 @@ pub trait GetFabricFromStaticRule {
     }
 }
 
-impl<R> GetFabricFromStaticRule for R
+impl<R> GetFabricFromRuleConstMetadata for R
 where
-    R: Rule + StaticRule + for<'de> Deserialize<'de>,
+    R: RuleRunner + RuleConstMetadata + for<'de> Deserialize<'de>,
 {
     type Rule = R;
-    type StaticRule = R;
+    type RuleConstMetadata = R;
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rule::{RuleMetadata, RuleRunner};
 
     #[derive(Deserialize, Default)]
     struct TestRule;
 
-    impl StaticRule for TestRule {
+    impl RuleConstMetadata for TestRule {
         const NAME: &'static str = "test-rule";
         const DESCRIPTION: &'static str = "It is test rule";
-        const CATEGORY: &'static Category = &Category::Heading;
+        const CATEGORY: Category = Category::Heading;
     }
 
-    impl Rule for TestRule {
+    impl RuleRunner for TestRule {
         type Error = Infallible;
-
-        fn name(&self) -> &str {
-            Self::NAME
-        }
-
-        fn description(&self) -> &str {
-            Self::DESCRIPTION
-        }
-
-        fn category(&self) -> Category {
-            *Self::CATEGORY
-        }
 
         fn check(
             &self,

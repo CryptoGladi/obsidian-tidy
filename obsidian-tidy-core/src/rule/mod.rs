@@ -2,33 +2,31 @@
 
 pub mod category;
 pub mod content;
+pub mod erased_rule;
 pub mod rule_fabric;
-pub mod rules;
-pub mod shared_error_rule;
-pub mod smart_pointer;
+//pub mod rules;
 pub mod toggleable_rule;
 pub mod violation;
 
 use crate::Note;
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 pub use category::Category;
 pub use content::Content;
+pub use erased_rule::ErasedRule;
 pub use rule_fabric::{ErasedRuleFabric, RuleFabric, RuleFabricRegistry};
-pub use rules::Rules;
-pub use rules::serde::{InnerRules, RulesSeed};
-pub use shared_error_rule::SharedErrorRule;
+//pub use rules::Rules;
+//pub use rules::serde::{InnerRules, RulesSeed};
 pub use toggleable_rule::ToggleableRule;
 pub use violation::Violation;
 
-/// Dyn for [`Rule`]
-pub type DynRule<E> = Arc<dyn Rule<Error = E>>;
+pub trait RuleConstMetadata: Send + Sync {
+    const NAME: &'static str;
+    const DESCRIPTION: &'static str;
+    const CATEGORY: Category;
+}
 
-/// Trait for rule
-pub trait Rule: Send + Sync {
-    /// Error while work rule
-    type Error: std::error::Error;
-
+pub trait RuleMetadata: Send + Sync {
     /// **Unique** rule name
     fn name(&self) -> &str;
 
@@ -37,16 +35,37 @@ pub trait Rule: Send + Sync {
 
     /// Category rule
     fn category(&self) -> Category;
+}
+
+impl<RCM> RuleMetadata for RCM
+where
+    RCM: RuleConstMetadata,
+{
+    fn name(&self) -> &str {
+        Self::NAME
+    }
+
+    fn description(&self) -> &str {
+        Self::DESCRIPTION
+    }
+
+    fn category(&self) -> Category {
+        Self::CATEGORY
+    }
+}
+
+pub trait RuleRunner: Send + Sync {
+    /// Error while work rule
+    type Error: std::error::Error;
 
     /// Run check by this rule
     fn check(&self, content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error>;
 }
 
-pub trait StaticRule {
-    const NAME: &'static str;
-    const DESCRIPTION: &'static str;
-    const CATEGORY: &'static Category;
-}
+/// Trait for rule
+pub trait Rule: RuleRunner + RuleMetadata + Send + Sync {}
+
+impl<R> Rule for R where R: RuleRunner + RuleMetadata {}
 
 impl<E> Debug for dyn Rule<Error = E>
 where

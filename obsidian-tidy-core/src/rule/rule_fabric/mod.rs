@@ -1,10 +1,12 @@
-pub mod get_fabric_from_static_rule;
+pub mod erased_rule_fabric;
+pub mod get_fabric_from_rule_const_metadata;
 pub mod rule_fabric_registry;
 
-pub use get_fabric_from_static_rule::GetFabricFromStaticRule;
+pub use erased_rule_fabric::ErasedRuleFabric;
+pub use get_fabric_from_rule_const_metadata::GetFabricFromRuleConstMetadata;
 pub use rule_fabric_registry::RuleFabricRegistry;
 
-use crate::rule::{Category, Rule, SharedErrorRule};
+use crate::rule::Category;
 use serde::Deserialize;
 
 pub trait RuleFabric {
@@ -28,89 +30,14 @@ pub trait RuleFabric {
     }
 }
 
-pub trait ErasedRuleFabric {
-    fn name_rule(&self) -> &str;
-
-    fn description_rule(&self) -> &str;
-
-    fn category_rule(&self) -> Category;
-
-    fn create_rule(
-        &self,
-        deserializer: &mut dyn erased_serde::Deserializer,
-    ) -> Result<SharedErrorRule, Box<dyn std::error::Error>>;
-
-    fn create_default_rule(&self) -> SharedErrorRule;
-}
-
-impl<R> ErasedRuleFabric for R
-where
-    R: RuleFabric,
-    R::Rule: Send + Sync + Default + 'static,
-    <R::Rule as Rule>::Error: Send + Sync,
-    R::Error: Send + Sync + 'static,
-{
-    fn name_rule(&self) -> &str {
-        R::name_rule(&self)
-    }
-
-    fn description_rule(&self) -> &str {
-        R::description_rule(&self)
-    }
-
-    fn category_rule(&self) -> Category {
-        R::category_rule(&self)
-    }
-
-    fn create_rule(
-        &self,
-        deserializer: &mut dyn erased_serde::Deserializer,
-    ) -> Result<SharedErrorRule, Box<dyn std::error::Error>> {
-        let data: R::Data = erased_serde::deserialize(deserializer).map_err(Box::new)?;
-        let rule = self.create_rule(data)?;
-
-        Ok(SharedErrorRule::new(rule))
-    }
-
-    fn create_default_rule(&self) -> SharedErrorRule {
-        let rule = R::create_default_rule();
-        SharedErrorRule::new(rule)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        rule::{Category, Rule},
-        test_utils::TestRule,
+        rule::{Category, RuleMetadata, RuleRunner},
+        test_utils::{TestRule, TestRuleFabric},
     };
     use std::convert::Infallible;
-
-    #[derive(Debug, Default)]
-    struct TestRuleFabric;
-
-    impl RuleFabric for TestRuleFabric {
-        type Rule = TestRule;
-        type Error = Infallible;
-        type Data = TestRule;
-
-        fn name_rule(&self) -> &str {
-            "test-rule"
-        }
-
-        fn description_rule(&self) -> &str {
-            "test description"
-        }
-
-        fn category_rule(&self) -> Category {
-            Category::Heading
-        }
-
-        fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
-            Ok(data)
-        }
-    }
 
     #[test]
     fn create_default_rule() {
@@ -131,20 +58,22 @@ mod tests {
             }
         }
 
-        impl Rule for DefaultRule {
-            type Error = Infallible;
-
+        impl RuleMetadata for DefaultRule {
             fn name(&self) -> &str {
-                "default-rule"
+                &self.name
             }
 
             fn description(&self) -> &str {
-                "Default rule"
+                &self.description
             }
 
             fn category(&self) -> Category {
-                Category::Content
+                self.category
             }
+        }
+
+        impl RuleRunner for DefaultRule {
+            type Error = Infallible;
 
             fn check(
                 &self,
@@ -193,7 +122,7 @@ mod tests {
         let test_rule = TestRule::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY, []);
         let json = serde_json::to_string_pretty(&test_rule).unwrap();
 
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFabric::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY);
         let data = serde_json::from_str(&json).unwrap();
         let deserialized_rule = RuleFabric::create_rule(&fabric, data).unwrap();
 
@@ -201,46 +130,5 @@ mod tests {
         assert_eq!(test_rule.name(), deserialized_rule.name());
         assert_eq!(test_rule.description(), deserialized_rule.description());
         assert_eq!(test_rule.category(), deserialized_rule.category());
-    }
-
-    #[test]
-    fn test_rule_erased() {
-        const TEST_NAME: &str = "Test name";
-        const TEST_DESCRIPTION: &str = "test description";
-        const TEST_CATEGORY: Category = Category::Heading;
-
-        let test_rule = TestRule::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY, []);
-        let json = serde_json::to_string_pretty(&test_rule).unwrap();
-
-        let mut deserializer = serde_json::Deserializer::from_str(&json);
-        let mut erased_deserializer = <dyn erased_serde::Deserializer>::erase(&mut deserializer);
-        let fabric: Box<dyn ErasedRuleFabric> = Box::new(TestRuleFabric);
-
-        let deserialized_rule = fabric
-            .create_rule(&mut erased_deserializer)
-            .expect("Failed to create rule from fabric");
-
-        assert_eq!(test_rule.name(), deserialized_rule.name());
-        assert_eq!(test_rule.description(), deserialized_rule.description());
-        assert_eq!(test_rule.category(), deserialized_rule.category());
-    }
-
-    #[test]
-    fn test_erased_deserialization_error() {
-        let invalid_json = r#"{
-        "name": "Broken Rule",
-        "invalid_field": "should cause error"
-    }"#;
-
-        let mut deserializer = serde_json::Deserializer::from_str(invalid_json);
-        let mut erased_deserializer = <dyn erased_serde::Deserializer>::erase(&mut deserializer);
-        let fabric: Box<dyn ErasedRuleFabric> = Box::new(TestRuleFabric);
-
-        let result = fabric.create_rule(&mut erased_deserializer);
-        assert!(result.is_err(), "Should fail with invalid JSON");
-
-        if let Err(e) = result {
-            println!("Expected error: {}", e);
-        }
     }
 }

@@ -1,5 +1,4 @@
-use super::ErasedRuleFabric;
-use crate::rule::Category;
+use crate::rule::{Category, rule_fabric::erased_rule_fabric::ErasedRuleFabric};
 use std::{collections::HashMap, fmt::Debug};
 
 #[derive(Default)]
