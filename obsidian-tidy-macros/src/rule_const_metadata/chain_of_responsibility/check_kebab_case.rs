@@ -13,7 +13,7 @@ where
 
 impl<S> CheckKebabCase<S>
 where
-    S: AsRef<str>,
+    S: IsKebabCase,
 {
     pub fn new(error_message: impl Into<String>) -> Self {
         Self {
@@ -25,7 +25,7 @@ where
 
 impl<S> Default for CheckKebabCase<S>
 where
-    S: AsRef<str>,
+    S: IsKebabCase,
 {
     fn default() -> Self {
         Self {

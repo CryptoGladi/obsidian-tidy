@@ -46,7 +46,7 @@ where
     fn handle(&self, data: &Self::Data, span: Span) -> syn::Result<()> {
         let str = data.as_ref();
 
-        if str.len() > self.max_len {
+        if str.chars().count() > self.max_len {
             return Err(Error::new(span, self.error_message.clone()));
         }
 
@@ -80,6 +80,14 @@ mod tests {
         let long_string: String = std::iter::repeat('A').take(100).collect();
 
         handler.handle(&long_string, Span::call_site()).unwrap();
+    }
+
+    #[test]
+    fn check_unicode() {
+        let mut handler = CheckLenString::default();
+        handler.max_len = 5;
+
+        handler.handle(&"こんにちは", Span::call_site()).unwrap();
     }
 
     #[test]
