@@ -3,7 +3,7 @@
 use obsidian_parser::note::Note as _;
 use obsidian_tidy_core::rule::rule_fabric::GetFabricFromRuleConstMetadata;
 use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Category, Content, RuleFabric, RuleRunner};
+use obsidian_tidy_core::rule::{Content, RuleFabric, RuleRunner};
 use obsidian_tidy_core::{Note, NoteError};
 use obsidian_tidy_macros::RuleConstMetadata;
 use serde::Deserialize;

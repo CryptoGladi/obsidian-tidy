@@ -1,3 +1,5 @@
+//! Chain of Responsibility pattern for validating string inputs.
+
 pub mod check_empty_string;
 pub mod check_kebab_case;
 pub mod check_len_string;
@@ -17,7 +19,7 @@ pub trait Handler {
     fn handle(&self, data: &Self::Data, span: Span) -> syn::Result<()>;
 
     fn set_next(&mut self, next: Box<dyn Handler<Data = Self::Data>>);
-    fn next(&self) -> Option<&Box<dyn Handler<Data = Self::Data>>>;
+    fn next(&self) -> Option<&dyn Handler<Data = Self::Data>>;
 }
 
 pub fn run_chain<D>(handler: &dyn Handler<Data = D>, data: &D, span: Span) -> syn::Result<()> {
@@ -29,7 +31,7 @@ pub fn run_chain<D>(handler: &dyn Handler<Data = D>, data: &D, span: Span) -> sy
             errors.push(error);
         }
 
-        current = h.next().map(|b| b.as_ref());
+        current = h.next();
     }
 
     if !errors.is_empty() {

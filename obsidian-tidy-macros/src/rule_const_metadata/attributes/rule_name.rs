@@ -1,7 +1,19 @@
+//! Type for the `name` field of `#[rule_metadata]`.
+//!
+//! [`RuleName`] is a newtype around `String` that enforces validation rules:
+//! - Must not be empty (even after trimming)
+//! - Must contain only ASCII characters
+//! - Must be in kebab-case (e.g., `"my-rule-name"`)
+//! - Must not exceed 30 characters in length
+//!
+//! Validation is performed using a chain of responsibility (see [`crate::rule_const_metadata::chain_of_responsibility`]).
+//! Compile-time errors are generated if any rule is violated.
+
 use crate::rule_const_metadata::chain_of_responsibility::{
     CheckEmptyString, CheckKebabCase, CheckLenString, CheckOnlyAscii, handlers::Handlers, run_chain,
 };
 use proc_macro2::{Span, TokenStream};
+
 use quote::TokenStreamExt;
 use std::ops::Deref;
 use syn::Error;

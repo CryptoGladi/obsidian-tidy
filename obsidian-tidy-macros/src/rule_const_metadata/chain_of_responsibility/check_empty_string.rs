@@ -2,6 +2,7 @@ use super::Handler;
 use proc_macro2::Span;
 use syn::Error;
 
+/// Handler that checks if a string is empty (or only whitespace).
 pub struct CheckEmptyString<S>
 where
     S: AsRef<str>,
@@ -50,8 +51,8 @@ where
         Ok(())
     }
 
-    fn next(&self) -> Option<&Box<dyn Handler<Data = Self::Data>>> {
-        self.next.as_ref()
+    fn next(&self) -> Option<&dyn Handler<Data = Self::Data>> {
+        self.next.as_deref()
     }
 
     fn set_next(&mut self, next: Box<dyn Handler<Data = Self::Data>>) {

@@ -1,3 +1,13 @@
+//! Type for the `description` field of `#[rule_metadata]`.
+//!
+//! [`RuleDescription`] is a newtype around `String` that enforces validation rules:
+//! - Must not be empty (even after trimming)
+//! - Must contain only ASCII characters
+//! - Must not exceed 65 characters in length
+//!
+//! Validation is performed using a chain of responsibility (see [`crate::rule_const_metadata::chain_of_responsibility`]).
+//! Compile-time errors are generated if any rule is violated.
+
 use crate::rule_const_metadata::chain_of_responsibility::{
     CheckEmptyString, CheckLenString, CheckOnlyAscii, handlers::Handlers, run_chain,
 };

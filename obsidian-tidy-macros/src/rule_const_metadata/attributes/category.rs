@@ -1,4 +1,9 @@
-use obsidian_tidy_core::rule::Category as CoreCategory;
+//! Wrapper for the `Category` enum from `obsidian_tidy_core`.
+//!
+//! This module provides a newtype [`Category`]
+
+pub use obsidian_tidy_core::rule::Category as CoreCategory;
+
 use quote::{TokenStreamExt, quote};
 use std::ops::Deref;
 
@@ -41,6 +46,6 @@ impl quote::ToTokens for Category {
             CoreCategory::Other => quote! { Other },
         };
 
-        tokens.append_all(quote! { Category::#variant });
+        tokens.append_all(quote! { obsidian_tidy_core::rule::Category::#variant });
     }
 }

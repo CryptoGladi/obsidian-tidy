@@ -3,6 +3,7 @@ use crate::rule_const_metadata::kebab_case::IsKebabCase;
 use proc_macro2::Span;
 use syn::Error;
 
+/// Handler that checks if a string is in kebab-case
 pub struct CheckKebabCase<S>
 where
     S: IsKebabCase,
@@ -49,8 +50,8 @@ where
         Ok(())
     }
 
-    fn next(&self) -> Option<&Box<dyn Handler<Data = Self::Data>>> {
-        self.next.as_ref()
+    fn next(&self) -> Option<&dyn Handler<Data = Self::Data>> {
+        self.next.as_deref()
     }
 
     fn set_next(&mut self, next: Box<dyn Handler<Data = Self::Data>>) {

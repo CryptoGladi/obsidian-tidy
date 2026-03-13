@@ -2,6 +2,7 @@ use super::Handler;
 use proc_macro2::Span;
 use syn::Error;
 
+/// Handler that checks if a string's length (in characters) does not exceed a maximum.
 pub struct CheckLenString<S>
 where
     S: AsRef<str>,
@@ -19,19 +20,15 @@ where
         Self {
             error_message: error_message.into(),
             max_len,
-            ..Default::default()
+            next: None,
         }
     }
-}
 
-impl<S> Default for CheckLenString<S>
-where
-    S: AsRef<str>,
-{
-    fn default() -> Self {
+    #[allow(unused, reason = "This function is needed for unit tests")]
+    pub fn with_default_message(max_len: usize) -> Self {
         Self {
-            error_message: "It is string is very long".to_string(),
-            max_len: 30,
+            error_message: "This string has too many characters".to_string(),
+            max_len,
             next: None,
         }
     }
@@ -46,6 +43,7 @@ where
     fn handle(&self, data: &Self::Data, span: Span) -> syn::Result<()> {
         let str = data.as_ref();
 
+        // Don't use str.len()
         if str.chars().count() > self.max_len {
             return Err(Error::new(span, self.error_message.clone()));
         }
@@ -53,8 +51,8 @@ where
         Ok(())
     }
 
-    fn next(&self) -> Option<&Box<dyn Handler<Data = Self::Data>>> {
-        self.next.as_ref()
+    fn next(&self) -> Option<&dyn Handler<Data = Self::Data>> {
+        self.next.as_deref()
     }
 
     fn set_next(&mut self, next: Box<dyn Handler<Data = Self::Data>>) {
@@ -69,14 +67,14 @@ mod tests {
     #[test]
 
     fn empty_string() {
-        let handler = CheckLenString::default();
+        let handler = CheckLenString::with_default_message(30);
         handler.handle(&"", Span::call_site()).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn very_long_string() {
-        let handler = CheckLenString::default();
+        let handler = CheckLenString::with_default_message(30);
         let long_string: String = std::iter::repeat('A').take(100).collect();
 
         handler.handle(&long_string, Span::call_site()).unwrap();
@@ -84,8 +82,7 @@ mod tests {
 
     #[test]
     fn check_unicode() {
-        let mut handler = CheckLenString::default();
-        handler.max_len = 5;
+        let handler = CheckLenString::with_default_message(5);
 
         handler.handle(&"こんにちは", Span::call_site()).unwrap();
     }
