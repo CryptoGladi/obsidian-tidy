@@ -1,0 +1,17 @@
+[package]
+name = "obsidian-tidy-macros"
+version = "0.0.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+obsidian-tidy-core.workspace = true
+heck = "0.5"
+proc-macro2 = "1"
+quote = "1"
+syn = "2"
+
+[lints]
+workspace = true

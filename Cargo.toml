@@ -17,6 +17,7 @@ members = [
   "obsidian-tidy-logging",
   "obsidian-tidy-cli",
   "obsidian-tidy-config",
+  "obsidian-tidy-macros",
 ]
 
 [workspace.dependencies]
@@ -25,6 +26,7 @@ obsidian-tidy-core = { path = "./obsidian-tidy-core" }
 obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
 obsidian-tidy-config = { path = "./obsidian-tidy-config" }
 obsidian-tidy-cli = { path = "./obsidian-tidy-cli" }
+obsidian-tidy-macros = { path = "./obsidian-tidy-macros" }
 tracing = "0.1"
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
 serde = { version = "1", features = ["derive"] }

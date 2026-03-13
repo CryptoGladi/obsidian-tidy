@@ -1,16 +1,22 @@
 //! Rule for search notes with empty content
 
 use obsidian_parser::note::Note as _;
-use obsidian_tidy_core::rule::rule_fabric::GetFabricFromStaticRule;
+use obsidian_tidy_core::rule::rule_fabric::GetFabricFromRuleConstMetadata;
 use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Category, Content, Rule, RuleFabric, StaticRule};
+use obsidian_tidy_core::rule::{Category, Content, RuleFabric, RuleRunner};
 use obsidian_tidy_core::{Note, NoteError};
+use obsidian_tidy_macros::RuleConstMetadata;
 use serde::Deserialize;
 use std::convert::Infallible;
 use thiserror::Error;
 use tracing::{instrument, trace};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, RuleConstMetadata)]
+#[rule_metadata(
+     name = "empty-content",
+     description = "Rule for search notes with empty content",
+     category = Category::Content
+ )]
 pub struct EmptyContent;
 
 #[derive(Debug, Error)]
@@ -22,26 +28,8 @@ pub enum Error {
     Violation(#[from] ViolationError),
 }
 
-impl StaticRule for EmptyContent {
-    const NAME: &'static str = "empty-content";
-    const DESCRIPTION: &'static str = "Rule for search notes with empty content";
-    const CATEGORY: &'static Category = &Category::Content;
-}
-
-impl Rule for EmptyContent {
+impl RuleRunner for EmptyContent {
     type Error = self::Error;
-
-    fn name(&self) -> &'static str {
-        Self::NAME
-    }
-
-    fn description(&self) -> &'static str {
-        Self::DESCRIPTION
-    }
-
-    fn category(&self) -> Category {
-        *Self::CATEGORY
-    }
 
     #[instrument(skip(_content))]
     fn check(&self, _content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
@@ -68,8 +56,7 @@ mod tests {
         DEFAULT_MOCK_VAULT, DefaultNoteGenerator, MockVaultBuilder, NoteGenerator as Generator,
     };
     use obsidian_parser::note::{NoteDefault, NoteFromReader};
-    use obsidian_tidy_core::rule::RuleFabric;
-    use obsidian_tidy_core::rule::rule_fabric::GetFabricFromStaticRule;
+    use obsidian_tidy_core::rule::{RuleConstMetadata, RuleFabric};
     use tracing_test::traced_test;
 
     #[derive(Default, Debug)]
@@ -97,7 +84,7 @@ mod tests {
 
         assert_eq!(fabric.name_rule(), EmptyContent::NAME);
         assert_eq!(fabric.description_rule(), EmptyContent::DESCRIPTION);
-        assert_eq!(fabric.category_rule(), *EmptyContent::CATEGORY);
+        assert_eq!(fabric.category_rule(), EmptyContent::CATEGORY);
     }
 
     #[test]

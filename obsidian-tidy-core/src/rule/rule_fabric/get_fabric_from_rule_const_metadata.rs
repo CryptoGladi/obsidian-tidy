@@ -39,14 +39,12 @@ pub trait GetFabricFromRuleConstMetadata {
             }
         }
 
-        let fabric = FabricFromRule {
+        FabricFromRule {
             name_rule: Self::RuleConstMetadata::NAME,
             description_rule: Self::RuleConstMetadata::DESCRIPTION,
             category: Self::RuleConstMetadata::CATEGORY,
             phantom: PhantomData,
-        };
-
-        fabric
+        }
     }
 }
 

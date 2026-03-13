@@ -7,10 +7,7 @@ pub mod content;
 #[cfg(test)]
 pub(crate) mod test_utils;
 
-use obsidian_tidy_core::{
-    rule::{RuleFabricRegistry, SharedErrorRule},
-    rule_fabric_registry,
-};
+use obsidian_tidy_core::{rule::RuleFabricRegistry, rule_fabric_registry};
 use std::sync::LazyLock;
 
 pub static ALL_RULES: LazyLock<RuleFabricRegistry> =
