@@ -55,9 +55,9 @@ use proc_macro::TokenStream;
 ///
 /// The `#[rule_metadata(...)]` attribute accepts three **required** fields:
 ///
-/// - `name`: A string literal in **kebab-case** (e.g., `"no-empty-links"`).  
+/// - `name`: A string literal in **kebab-case** (e.g., `"no-empty-links"`).
 ///   Must be non-empty, ASCII-only, and at most 30 characters long.
-/// - `description`: A string literal describing the rule.  
+/// - `description`: A string literal describing the rule.
 ///   Must be non-empty, ASCII-only, and at most 65 characters long.
 /// - `category`: One of the variants of [`obsidian_tidy_core::rule::Category`]:
 ///   `Content`, `Heading`, `Spacing`, `Yaml`, or `Other`.

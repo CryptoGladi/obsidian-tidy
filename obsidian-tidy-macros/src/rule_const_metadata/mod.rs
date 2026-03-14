@@ -37,3 +37,48 @@ pub fn rule_const_metadata_impl(input: &DeriveInput) -> syn::Result<TokenStream>
 
     Ok(result)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use syn::parse_quote;
+
+    #[test]
+    fn valid() {
+        let input: DeriveInput = parse_quote! {
+            #[rule_metadata(
+                name = "test-rule",
+                description = "A test rule",
+                category = Category::Other
+            )]
+            struct TestRule;
+        };
+
+        let result = rule_const_metadata_impl(&input).unwrap();
+        let expected = quote! {
+            impl obsidian_tidy_core::rule::RuleConstMetadata for TestRule {
+                const NAME: &'static str = "test-rule";
+                const DESCRIPTION: &'static str = "A test rule";
+                const CATEGORY: obsidian_tidy_core::rule::Category = obsidian_tidy_core::rule::Category::Other;
+            }
+        };
+
+        assert_eq!(result.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn not_rule_metadata() {
+        let input: DeriveInput = parse_quote! {
+            struct TestRule;
+        };
+
+        let result = rule_const_metadata_impl(&input).unwrap_err();
+        assert!(
+            result
+                .to_string()
+                .contains("Attribute #[rule_metadata(...)] is required")
+        );
+    }
+
+    // There is no point in doing more testing, since the other components have already been tested
+}

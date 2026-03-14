@@ -18,6 +18,8 @@ use quote::TokenStreamExt;
 use std::ops::Deref;
 use syn::Error;
 
+const MAX_LEN: usize = 30;
+
 pub struct RuleName(String);
 
 impl RuleName {
@@ -27,13 +29,19 @@ impl RuleName {
 
         const ASCII_MSG: &str = "Rule name must contain only ASCII characters";
         const KEBAB_MSG: &str = "Rule name must be in kebab-case";
-        const LONG_MSG: &str = "Rule name is very long";
+
+        #[allow(clippy::bytes_count_to_len, reason = "To support Unicode strings")]
+        let long_msg = format!(
+            "Rule name is very long\nThe maximum number of characters for a rule name is {}, and you have {}",
+            MAX_LEN,
+            str.bytes().count()
+        );
 
         let handler = Handlers::new()
             .add(CheckEmptyString::new(EMPTY_MSG))
             .add(CheckOnlyAscii::new(ASCII_MSG))
             .add(CheckKebabCase::new(KEBAB_MSG))
-            .add(CheckLenString::new(LONG_MSG, 30))
+            .add(CheckLenString::new(long_msg, MAX_LEN))
             .build_chain()
             .ok_or(Error::new(span, "No handlers configured"))?;
 

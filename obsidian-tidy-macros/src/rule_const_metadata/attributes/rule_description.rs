@@ -16,18 +16,26 @@ use quote::TokenStreamExt;
 use std::ops::Deref;
 use syn::Error;
 
+const MAX_LEN: usize = 65;
+
 pub struct RuleDescription(String);
 
 impl RuleDescription {
     pub fn new(str: String, span: Span) -> syn::Result<Self> {
         const EMPTY_MSG: &str = "Rule description cannot be empty string. Provide a non-empty value like name = \"My rule description\"";
         const ASCII_MSG: &str = "Rule description must contain only ASCII characters";
-        const LONG_MSG: &str = "Rule description is very long";
+
+        #[allow(clippy::bytes_count_to_len, reason = "To support Unicode strings")]
+        let long_msg = format!(
+            "Rule description is very long\nThe maximum number of characters for a rule name is {}, and you have {}",
+            MAX_LEN,
+            str.bytes().count()
+        );
 
         let handler = Handlers::new()
             .add(CheckEmptyString::new(EMPTY_MSG))
             .add(CheckOnlyAscii::new(ASCII_MSG))
-            .add(CheckLenString::new(LONG_MSG, 65))
+            .add(CheckLenString::new(long_msg, MAX_LEN))
             .build_chain()
             .ok_or(Error::new(span, "No handlers configured"))?;
 
