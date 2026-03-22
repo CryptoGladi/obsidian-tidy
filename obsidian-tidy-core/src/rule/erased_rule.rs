@@ -1,7 +1,8 @@
 use crate::{
     Note,
-    rule::{Content, Rule, RuleMetadata, Violation},
+    rule::{Content, Rule, RuleMetadata, RuleRunner, Violation},
 };
+use std::fmt::Debug;
 
 /// Type erasing for [`Rule`]
 ///
@@ -24,7 +25,7 @@ use crate::{
 /// let test_rule = TestRule::default();
 /// let erased_rule: Box<dyn ErasedRule> = Box::new(test_rule);
 /// ```
-pub trait ErasedRule: RuleMetadata {
+pub trait ErasedRuleRunner {
     fn check(
         &self,
         content: &Content,
@@ -32,9 +33,9 @@ pub trait ErasedRule: RuleMetadata {
     ) -> Result<Vec<Violation>, Box<dyn std::error::Error>>;
 }
 
-impl<R> ErasedRule for R
+impl<R> ErasedRuleRunner for R
 where
-    R: Rule,
+    R: RuleRunner,
     R::Error: 'static,
 {
     fn check(
@@ -49,6 +50,12 @@ where
         Ok(result)
     }
 }
+
+pub trait ErasedRule: ErasedRuleRunner + RuleMetadata {}
+
+impl<R> ErasedRule for R where R: ErasedRuleRunner + RuleMetadata {}
+
+impl Rule for Box<dyn ErasedRule> {}
 
 #[cfg(test)]
 mod tests {
@@ -68,7 +75,7 @@ mod tests {
     #[test]
     fn check() {
         let test_rule = TestRule::default();
-        let erased_rule: Box<dyn ErasedRule> = Box::new(test_rule);
+        let erased_rule: Box<dyn ErasedRuleRunner> = Box::new(test_rule);
 
         erased_rule
             .check(&Content::default(), &Note::default())
@@ -78,7 +85,7 @@ mod tests {
     #[test]
     fn check_with_error() {
         let error_rule = ErrorRule;
-        let result = error_rule.check(&Content::default(), &Note::default());
+        let result = ErasedRuleRunner::check(&error_rule, &Content::default(), &Note::default());
 
         assert!(result.is_err());
     }

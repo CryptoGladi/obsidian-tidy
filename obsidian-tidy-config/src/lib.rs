@@ -6,7 +6,7 @@ pub mod loader;
 pub mod saver;
 pub mod template;
 
-use obsidian_tidy_core::rule::{Rules, SharedErrorRule};
+use obsidian_tidy_core::rule::{Rules, SharedErrorRules};
 use serde::Serialize;
 use thiserror::Error;
 

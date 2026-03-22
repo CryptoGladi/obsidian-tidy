@@ -4,7 +4,7 @@ pub mod category;
 pub mod content;
 pub mod erased_rule;
 pub mod rule_fabric;
-//pub mod rules;
+pub mod rules;
 pub mod toggleable_rule;
 pub mod violation;
 
@@ -13,9 +13,9 @@ use std::fmt::Debug;
 
 pub use category::Category;
 pub use content::Content;
-pub use erased_rule::ErasedRule;
+pub use erased_rule::ErasedRuleRunner;
 pub use rule_fabric::{ErasedRuleFabric, RuleFabric, RuleFabricRegistry};
-//pub use rules::Rules;
+pub use rules::Rules;
 //pub use rules::serde::{InnerRules, RulesSeed};
 pub use toggleable_rule::ToggleableRule;
 pub use violation::Violation;

@@ -6,12 +6,12 @@ pub mod check_len_string;
 pub mod check_only_ascii;
 pub mod handlers;
 
-use proc_macro2::Span;
-
 pub use check_empty_string::CheckEmptyString;
 pub use check_kebab_case::CheckKebabCase;
 pub use check_len_string::CheckLenString;
 pub use check_only_ascii::CheckOnlyAscii;
+
+use proc_macro2::Span;
 
 pub trait Handler {
     type Data;

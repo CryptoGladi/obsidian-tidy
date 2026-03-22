@@ -1,4 +1,4 @@
-use crate::rule::{Category, ErasedRule, RuleFabric};
+use crate::rule::{Category, ErasedRuleRunner, RuleFabric};
 
 pub trait ErasedRuleFabric {
     fn name_rule(&self) -> &str;
@@ -10,9 +10,9 @@ pub trait ErasedRuleFabric {
     fn create_rule(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
-    ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>>;
+    ) -> Result<Box<dyn ErasedRuleRunner>, Box<dyn std::error::Error>>;
 
-    fn create_default_rule(&self) -> Box<dyn ErasedRule>;
+    fn create_default_rule(&self) -> Box<dyn ErasedRuleRunner>;
 }
 
 impl<R> ErasedRuleFabric for R
@@ -36,14 +36,14 @@ where
     fn create_rule(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
-    ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>> {
+    ) -> Result<Box<dyn ErasedRuleRunner>, Box<dyn std::error::Error>> {
         let data: R::Data = erased_serde::deserialize(deserializer).map_err(Box::new)?;
         let rule = self.create_rule(data)?;
 
         Ok(Box::new(rule))
     }
 
-    fn create_default_rule(&self) -> Box<dyn ErasedRule> {
+    fn create_default_rule(&self) -> Box<dyn ErasedRuleRunner> {
         let rule = R::create_default_rule();
         Box::new(rule)
     }
