@@ -1,10 +1,10 @@
-use crate::rule::{Rule, RuleRunner};
+use crate::rule::{ErasedRuleRunner, Rule, RuleMetadata, RuleRunner};
 use std::ops::Deref;
 
 #[derive(Debug, Clone)]
 pub struct ToggleableRule<R>
 where
-    R: Rule,
+    R: RuleMetadata,
 {
     rule: R,
     enabled: bool,
@@ -12,7 +12,7 @@ where
 
 impl<R> ToggleableRule<R>
 where
-    R: Rule,
+    R: RuleMetadata,
 {
     pub const fn new(rule: R, enabled: bool) -> Self {
         Self { rule, enabled }
@@ -35,11 +35,15 @@ where
     pub const fn disable(&mut self) {
         self.enabled = false;
     }
+
+    pub fn into_rule(self) -> R {
+        self.rule
+    }
 }
 
 impl<R> Deref for ToggleableRule<R>
 where
-    R: Rule,
+    R: RuleMetadata,
 {
     type Target = R;
 
@@ -50,7 +54,7 @@ where
 
 impl<R> RuleRunner for ToggleableRule<R>
 where
-    R: Rule,
+    R: RuleRunner + RuleMetadata,
 {
     type Error = R::Error;
 

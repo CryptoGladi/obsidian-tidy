@@ -1,8 +1,8 @@
 use crate::{
     Note,
-    rule::{Content, Rule, RuleMetadata, RuleRunner, Violation},
+    rule::{Category, Content, Rule, RuleMetadata, RuleRunner, Violation},
 };
-use std::fmt::Debug;
+use std::{convert::Infallible, fmt::Debug};
 
 /// Type erasing for [`Rule`]
 ///
@@ -55,7 +55,32 @@ pub trait ErasedRule: ErasedRuleRunner + RuleMetadata {}
 
 impl<R> ErasedRule for R where R: ErasedRuleRunner + RuleMetadata {}
 
-impl Rule for Box<dyn ErasedRule> {}
+impl RuleMetadata for Box<dyn ErasedRule> {
+    fn name(&self) -> &str {
+        self.as_ref().name()
+    }
+
+    fn description(&self) -> &str {
+        self.as_ref().description()
+    }
+
+    fn category(&self) -> Category {
+        self.as_ref().category()
+    }
+}
+
+pub trait GetErasedRule {
+    fn into_erased(self) -> Box<dyn ErasedRule>;
+}
+
+impl<R> GetErasedRule for R
+where
+    R: Rule + 'static,
+{
+    fn into_erased(self) -> Box<dyn ErasedRule> {
+        Box::new(self) as Box<dyn ErasedRule>
+    }
+}
 
 #[cfg(test)]
 mod tests {
