@@ -13,7 +13,7 @@ use std::fmt::Debug;
 
 pub use category::Category;
 pub use content::Content;
-pub use erased_rule::ErasedRuleRunner;
+pub use erased_rule::{ErasedRule, ErasedRuleRunner, GetErasedRule};
 pub use rule_fabric::{ErasedRuleFabric, RuleFabric, RuleFabricRegistry};
 pub use rules::Rules;
 //pub use rules::serde::{InnerRules, RulesSeed};

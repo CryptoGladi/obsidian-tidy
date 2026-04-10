@@ -1,8 +1,9 @@
+use std::fmt::Debug;
+
 use crate::{
     Note,
     rule::{Category, Content, Rule, RuleMetadata, RuleRunner, Violation},
 };
-use std::{convert::Infallible, fmt::Debug};
 
 /// Type erasing for [`Rule`]
 ///
@@ -79,6 +80,25 @@ where
 {
     fn into_erased(self) -> Box<dyn ErasedRule> {
         Box::new(self) as Box<dyn ErasedRule>
+    }
+}
+
+impl<R> From<R> for Box<dyn ErasedRule>
+where
+    R: GetErasedRule,
+{
+    fn from(value: R) -> Self {
+        value.into_erased()
+    }
+}
+
+impl Debug for dyn ErasedRule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ErasedRule")
+            .field("name", &self.name())
+            .field("description", &self.description())
+            .field("category", &self.category())
+            .finish_non_exhaustive()
     }
 }
 

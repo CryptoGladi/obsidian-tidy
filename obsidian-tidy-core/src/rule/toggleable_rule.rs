@@ -1,4 +1,4 @@
-use crate::rule::{ErasedRuleRunner, Rule, RuleMetadata, RuleRunner};
+use crate::rule::{ErasedRuleRunner, Rule, RuleMetadata, RuleRunner, erased_rule::ErasedRule};
 use std::ops::Deref;
 
 #[derive(Debug, Clone)]
@@ -38,6 +38,24 @@ where
 
     pub fn into_rule(self) -> R {
         self.rule
+    }
+
+    pub fn into_erased(self) -> ToggleableRule<Box<dyn ErasedRule>>
+    where
+        R: ErasedRule + 'static,
+    {
+        let is_enabled = self.is_enabled();
+
+        ToggleableRule::new(Box::new(self.rule) as Box<dyn ErasedRule>, is_enabled)
+    }
+}
+
+impl<R> From<ToggleableRule<R>> for ToggleableRule<Box<dyn ErasedRule>>
+where
+    R: ErasedRule + 'static,
+{
+    fn from(value: ToggleableRule<R>) -> Self {
+        value.into_erased()
     }
 }
 
