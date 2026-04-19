@@ -63,6 +63,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
     #[test]
     fn empty_string() {
@@ -70,20 +71,32 @@ mod tests {
         handler.handle(&"", Span::call_site()).unwrap();
     }
 
-    #[test]
-    #[should_panic]
-    fn non_ascii_string() {
-        let handler = CheckOnlyAscii::default();
-        handler
-            .handle(&"Саша против Кати", Span::call_site())
-            .unwrap();
+    fn ascii_strategy() -> impl Strategy<Value = String> {
+        proptest::string::string_regex("[a-z][A-Z]*").unwrap()
     }
 
-    #[test]
-    fn ascii_string() {
-        let handler = CheckOnlyAscii::default();
-        handler.handle(&"data", Span::call_site()).unwrap();
+    fn non_ascii_strategy() -> impl Strategy<Value = String> {
+        proptest::string::string_regex("[а-я][А-Я]*").unwrap()
     }
+
+    proptest! {
+            #[test]
+            fn ascii_string(s in ascii_strategy()) {
+                let handler = CheckOnlyAscii::default();
+                handler.handle(&s, Span::call_site()).unwrap();
+            }
+
+            #[test]
+            fn non_ascii_string(s in non_ascii_strategy()) {
+                let handler = CheckOnlyAscii::default();
+                let result = handler.handle(&s, Span::call_site());
+
+    prop_assert!(
+                    result.is_err(),
+                    "Non-ASCII string {:?} should fail, but passed", s
+                );
+            }
+        }
 
     #[test]
     fn custom_error_message() {

@@ -62,6 +62,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rule_const_metadata::kebab_case::kebab_strategy;
+    use proptest::prelude::*;
 
     #[test]
     #[should_panic]
@@ -72,12 +74,6 @@ mod tests {
     }
 
     #[test]
-    fn kebab_case() {
-        let handler = CheckKebabCase::default();
-        handler.handle(&"super-data", Span::call_site()).unwrap();
-    }
-
-    #[test]
     fn custom_error_message() {
         const ERROR_MESSAGE: &'static str = "My error message";
 
@@ -85,5 +81,14 @@ mod tests {
         let error = handler.handle(&"SD_ds", Span::call_site()).err().unwrap();
 
         assert_eq!(error.to_string(), ERROR_MESSAGE)
+    }
+
+    proptest! {
+        #[test]
+        fn kebab_case(s in kebab_strategy())
+        {
+            let handler = CheckKebabCase::default();
+            handler.handle(&s, Span::call_site()).unwrap();
+        }
     }
 }

@@ -8,10 +8,12 @@ proc-macro = true
 
 [dependencies]
 obsidian-tidy-core.workspace = true
-heck = "0.5"
 proc-macro2 = "1"
 quote = "1"
 syn = "2"
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

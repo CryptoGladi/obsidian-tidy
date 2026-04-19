@@ -257,6 +257,27 @@ impl Rules {
         self.len() == 0
     }
 
+    /// Returns an iterator over all rules with their names.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use obsidian_tidy_core::rule::{Category, Rules};
+    /// use obsidian_tidy_core::rule::ToggleableRule;
+    /// use obsidian_tidy_core::test_utils::TestRule;
+    ///
+    /// let mut rules = Rules::new();
+    /// let rule = TestRule::new("iter-with-name", "Named rule", Category::Heading, []);
+    /// rules.add(ToggleableRule::new(rule, true).into_erased());
+    ///
+    /// for (name, rule) in rules.iter() {
+    ///     assert_eq!(name, rule.name());
+    /// }
+    /// ```
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &Value)> {
+        self.0.iter()
+    }
+
     /// Returns an iterator over the names of all rules in the collection.
     ///
     /// # Example

@@ -1,6 +1,8 @@
-use heck::ToKebabCase;
-
 /// Extension trait for checking if a string is in kebab-case format.
+
+#[cfg(test)]
+use proptest::prelude::*;
+
 pub trait IsKebabCase {
     fn is_kebab_case(&self) -> bool;
 }
@@ -12,21 +14,39 @@ where
     fn is_kebab_case(&self) -> bool {
         let value = self.as_ref();
 
-        value.to_kebab_case() == value
+        if value.starts_with('-') || value.ends_with('-') || value.contains("--") {
+            return false;
+        }
+
+        value
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
     }
+}
+
+#[cfg(test)]
+pub fn kebab_strategy() -> impl Strategy<Value = String> {
+    let valid_char = proptest::char::range('a', 'z').prop_union(proptest::char::range('0', '9'));
+
+    let segment = proptest::collection::vec(valid_char, 1..10)
+        .prop_map(|chars| chars.into_iter().collect::<String>());
+
+    proptest::collection::vec(segment, 1..5).prop_map(|segments| segments.join("-"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn kebab_case() {
-        assert!("hello-world".is_kebab_case());
-        assert!("hello-world-123".is_kebab_case());
-        assert!("a".is_kebab_case());
-        assert!("hello-world-test".is_kebab_case());
+    proptest! {
+        #[test]
+        fn kebab_case(s in kebab_strategy()) {
+            prop_assert!(s.is_kebab_case());
+        }
+    }
 
+    #[test]
+    fn invalid_kebab_case() {
         assert!(!"Hello-world".is_kebab_case());
         assert!(!"hello-World".is_kebab_case());
         assert!(!"hello_world".is_kebab_case());
@@ -35,5 +55,6 @@ mod tests {
         assert!(!"hello--world".is_kebab_case());
         assert!(!"hello world".is_kebab_case());
         assert!(!"hello@world".is_kebab_case());
+        assert!(!"русский-язык".is_kebab_case());
     }
 }
