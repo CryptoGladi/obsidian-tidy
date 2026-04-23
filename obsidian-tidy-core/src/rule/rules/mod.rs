@@ -1,4 +1,4 @@
-// pub mod serde;
+//pub mod serde;
 
 use super::ToggleableRule;
 use crate::rule::erased_rule::ErasedRule;

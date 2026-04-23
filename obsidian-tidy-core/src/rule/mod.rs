@@ -39,7 +39,7 @@ pub trait RuleMetadata: Send + Sync {
 
 impl<RCM> RuleMetadata for RCM
 where
-    RCM: RuleConstMetadata,
+    RCM: RuleConstMetadata + ?Sized,
 {
     fn name(&self) -> &str {
         Self::NAME

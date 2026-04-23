@@ -1,4 +1,4 @@
-use crate::rule::{Category, ErasedRuleRunner, RuleFabric};
+use crate::rule::{Category, ErasedRule, RuleFabric};
 
 pub trait ErasedRuleFabric {
     fn name_rule(&self) -> &str;
@@ -10,9 +10,9 @@ pub trait ErasedRuleFabric {
     fn create_rule(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
-    ) -> Result<Box<dyn ErasedRuleRunner>, Box<dyn std::error::Error>>;
+    ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>>;
 
-    fn create_default_rule(&self) -> Box<dyn ErasedRuleRunner>;
+    fn create_default_rule(&self) -> Box<dyn ErasedRule>;
 }
 
 impl<R> ErasedRuleFabric for R
@@ -36,14 +36,14 @@ where
     fn create_rule(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
-    ) -> Result<Box<dyn ErasedRuleRunner>, Box<dyn std::error::Error>> {
+    ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>> {
         let data: R::Data = erased_serde::deserialize(deserializer).map_err(Box::new)?;
         let rule = self.create_rule(data)?;
 
         Ok(Box::new(rule))
     }
 
-    fn create_default_rule(&self) -> Box<dyn ErasedRuleRunner> {
+    fn create_default_rule(&self) -> Box<dyn ErasedRule> {
         let rule = R::create_default_rule();
         Box::new(rule)
     }
@@ -78,10 +78,9 @@ mod tests {
             .create_rule(&mut erased_deserializer)
             .expect("Failed to create rule from fabric");
 
-        // TODO
-        //assert_eq!(test_rule.name(), deserialized_rule.name());
-        //assert_eq!(test_rule.description(), deserialized_rule.description());
-        //assert_eq!(test_rule.category(), deserialized_rule.category());
+        assert_eq!(test_rule.name(), deserialized_rule.name());
+        assert_eq!(test_rule.description(), deserialized_rule.description());
+        assert_eq!(test_rule.category(), deserialized_rule.category());
     }
 
     #[test]
