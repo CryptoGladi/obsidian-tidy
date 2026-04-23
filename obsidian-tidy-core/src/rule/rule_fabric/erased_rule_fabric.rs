@@ -1,4 +1,5 @@
 use crate::rule::{Category, ErasedRule, RuleFabric};
+use serde::Serialize;
 
 pub trait ErasedRuleFabric {
     fn name_rule(&self) -> &str;
@@ -18,7 +19,7 @@ pub trait ErasedRuleFabric {
 impl<R> ErasedRuleFabric for R
 where
     R: RuleFabric,
-    <R as RuleFabric>::Rule: Default + 'static,
+    <R as RuleFabric>::Rule: Default + Serialize + 'static,
     <R as RuleFabric>::Error: 'static,
 {
     fn name_rule(&self) -> &str {

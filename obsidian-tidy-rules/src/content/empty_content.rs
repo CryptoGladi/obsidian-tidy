@@ -6,12 +6,12 @@ use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
 use obsidian_tidy_core::rule::{Content, RuleFabric, RuleRunner};
 use obsidian_tidy_core::{Note, NoteError};
 use obsidian_tidy_macros::RuleConstMetadata;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
 use thiserror::Error;
 use tracing::{instrument, trace};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, RuleConstMetadata)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize, RuleConstMetadata)]
 #[rule_metadata(
      name = "empty-content",
      description = "Rule for search notes with empty content",

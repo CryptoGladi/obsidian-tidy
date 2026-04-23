@@ -1,9 +1,10 @@
-use std::fmt::Debug;
-
 use crate::{
     Note,
     rule::{Category, Content, Rule, RuleMetadata, RuleRunner, Violation},
 };
+use erased_serde::Serialize as ErasedSerialize;
+use serde::Serialize;
+use std::fmt::Debug;
 
 /// Type erasing for [`Rule`]
 ///
@@ -52,9 +53,9 @@ where
     }
 }
 
-pub trait ErasedRule: ErasedRuleRunner + RuleMetadata {}
+pub trait ErasedRule: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
-impl<R> ErasedRule for R where R: ErasedRuleRunner + RuleMetadata {}
+impl<R> ErasedRule for R where R: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
 impl RuleMetadata for Box<dyn ErasedRule> {
     fn name(&self) -> &str {
@@ -76,7 +77,7 @@ pub trait GetErasedRule {
 
 impl<R> GetErasedRule for R
 where
-    R: Rule + 'static,
+    R: Rule + Serialize + 'static,
 {
     fn into_erased(self) -> Box<dyn ErasedRule> {
         Box::new(self) as Box<dyn ErasedRule>
@@ -99,6 +100,15 @@ impl Debug for dyn ErasedRule {
             .field("description", &self.description())
             .field("category", &self.category())
             .finish_non_exhaustive()
+    }
+}
+
+impl Serialize for Box<dyn ErasedRule> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        erased_serde::serialize(self.as_ref(), serializer)
     }
 }
 
