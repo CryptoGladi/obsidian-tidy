@@ -8,7 +8,7 @@ use tracing::{instrument, trace};
 
 static ALL: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
     let rules = ALL_RULES
-        .fabrices()
+        .fabrics()
         .map(|fabric| ToggleableRule::new(fabric.create_default_rule(), true))
         .collect();
 
@@ -17,7 +17,7 @@ static ALL: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
 
 static EMPTY: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
     let rules = ALL_RULES
-        .fabrices()
+        .fabrics()
         .map(|fabric| ToggleableRule::new(fabric.create_default_rule(), false))
         .collect();
 

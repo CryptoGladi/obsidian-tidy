@@ -149,6 +149,7 @@ impl Rules {
     /// let rules = Rules::with_capacity(100);
     /// assert!(rules.is_empty());
     /// ```
+    #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self(HashMap::with_capacity(capacity))
     }
@@ -428,6 +429,10 @@ where
     type Output = Value;
 
     fn index(&self, index: T) -> &Self::Output {
+        #[expect(
+            clippy::expect_used,
+            reason = "The possibility of panic is indicated in the documentation"
+        )]
         self.get(index).expect("Not found rule by name")
     }
 }
@@ -458,6 +463,10 @@ where
     T: AsRef<str>,
 {
     fn index_mut(&mut self, index: T) -> &mut Self::Output {
+        #[expect(
+            clippy::expect_used,
+            reason = "The possibility of panic is indicated in the documentation"
+        )]
         self.get_mut(index).expect("Not found rule by name")
     }
 }

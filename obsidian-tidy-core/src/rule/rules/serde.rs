@@ -78,7 +78,7 @@
 //! - **Zero intermediate buffering**: streams directly into the factory via `erased-serde`.
 //! - **Key optimization**: uses `&'de str` for map keys to avoid string allocations.
 //! - **Capacity hinting**: pre-allocates `Rules` using `MapAccess::size_hint()`.
-//! - **Format agnostic**: works with JSON, YAML, TOML, MessagePack, or any `serde`-compatible format.
+//! - **Format agnostic**: works with `JSON`, `YAML`, `TOML`, `MessagePack`, or any `serde`-compatible format.
 
 use super::Rules;
 use crate::rule::{ErasedRule, ErasedRuleFabric, RuleFabricRegistry, ToggleableRule};
@@ -165,6 +165,10 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
             self.fabric.name_rule()
         );
 
+        const ENABLE_FIELD: &str = "enable";
+        const CONFIG_FIELD: &str = "config";
+        const FIELDS: &[&str] = &[ENABLE_FIELD, CONFIG_FIELD];
+
         struct WrapperVisitor<'a> {
             fabric: &'a dyn ErasedRuleFabric,
         }
@@ -173,7 +177,7 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
             type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                f.write_str("a map with fields 'enable' and 'config'")
+                write!(f, "a map with fields: `{FIELDS:?}`")
             }
 
             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
@@ -185,15 +189,15 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
 
                 while let Some(key) = map.next_key::<&'de str>()? {
                     match key {
-                        "enable" => {
+                        ENABLE_FIELD => {
                             if enable.is_some() {
-                                return Err(M::Error::duplicate_field("enable"));
+                                return Err(M::Error::duplicate_field(ENABLE_FIELD));
                             }
                             enable = Some(map.next_value()?);
                         }
-                        "config" => {
+                        CONFIG_FIELD => {
                             if config.is_some() {
-                                return Err(M::Error::duplicate_field("config"));
+                                return Err(M::Error::duplicate_field(CONFIG_FIELD));
                             }
 
                             config = Some(map.next_value_seed(ErasedRuleSeed {
@@ -201,13 +205,13 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
                             })?);
                         }
                         other => {
-                            return Err(M::Error::unknown_field(other, &["enable", "config"]));
+                            return Err(M::Error::unknown_field(other, FIELDS));
                         }
                     }
                 }
 
-                let enable = enable.ok_or_else(|| M::Error::missing_field("enable"))?;
-                let config = config.ok_or_else(|| M::Error::missing_field("config"))?;
+                let enable = enable.ok_or_else(|| M::Error::missing_field(ENABLE_FIELD))?;
+                let config = config.ok_or_else(|| M::Error::missing_field(CONFIG_FIELD))?;
 
                 Ok(ToggleableRule::new(config, enable))
             }
@@ -251,7 +255,7 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
             registry: &'a RuleFabricRegistry,
         }
 
-        impl<'de, 'a> Visitor<'de> for RulesVisitor<'a> {
+        impl<'de> Visitor<'de> for RulesVisitor<'_> {
             type Value = Rules;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -269,16 +273,14 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
                 while let Some(rule_name) = map.next_key::<&'de str>()? {
                     let fabric = self
                         .registry
-                        .get(&rule_name)
+                        .get(rule_name)
                         .ok_or(M::Error::custom(format!(
                             "Unknown rule '{}'. Available: {:?}",
                             rule_name,
                             self.registry.names().collect::<Vec<_>>()
                         )))?;
 
-                    let rule = map.next_value_seed(ErasedToggleableRuleSeed {
-                        fabric: fabric.as_ref(),
-                    })?;
+                    let rule = map.next_value_seed(ErasedToggleableRuleSeed { fabric })?;
 
                     if let Some(duplicate_rule) = rules.add(rule) {
                         return Err(M::Error::custom(format!(
@@ -293,7 +295,7 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
         }
 
         let visitor = RulesVisitor {
-            registry: &self.registry,
+            registry: self.registry,
         };
 
         deserializer.deserialize_map(visitor)
@@ -304,7 +306,8 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
 mod tests {
     use super::*;
     use crate::{
-        rule::{Category, rule_fabric::erased_rule_fabric::IntoErasedRuleFabric},
+        rule::Category,
+        rule_fabric_registry,
         test_utils::{TestRule, TestRuleFabric},
     };
     use tracing_test::traced_test;
@@ -330,10 +333,8 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize() {
-        let mut registry = RuleFabricRegistry::new();
-        registry.add_unique(
-            TestRuleFabric::new("test-rule", "Test rule", Category::Heading).into_erased(),
-        );
+        let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
+        let registry = rule_fabric_registry![fabric];
 
         let test_string = r#"{"test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#;
 
@@ -398,9 +399,7 @@ mod tests {
     #[traced_test]
     fn deserialize_missing_enable() {
         let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
-
-        let mut registry = RuleFabricRegistry::new();
-        registry.add_unique(fabric.into_erased());
+        let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
         let json = r#"{"test-rule":{"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#;
@@ -415,8 +414,8 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_missing_config() {
-        let mut registry = RuleFabricRegistry::new();
-        registry.add_unique(Box::new(TestRuleFabric::default()));
+        let fabric = TestRuleFabric::default();
+        let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
         let json = r#"{"test-rule":{"enable":true}}"#;
@@ -431,8 +430,8 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_duplicate_fields() {
-        let mut registry = RuleFabricRegistry::new();
-        registry.add_unique(Box::new(TestRuleFabric::default()));
+        let fabric = TestRuleFabric::default();
+        let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
         let json = r#"{"test-rule":{"enable":true,"enable":false,"config":{}}}"#;
@@ -448,9 +447,7 @@ mod tests {
     #[traced_test]
     fn deserialize_unknown_wrapper_field() {
         let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
-
-        let mut registry = RuleFabricRegistry::new();
-        registry.add_unique(fabric.into_erased());
+        let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
         let json = r#"{"test-rule":{"enable":true,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]},"timeout":50"#;
@@ -466,9 +463,7 @@ mod tests {
     #[traced_test]
     fn deserialize_duplicate_rule() {
         let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
-
-        let mut registry = RuleFabricRegistry::new();
-        registry.add_unique(fabric.into_erased());
+        let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
         let json = r#"{"test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}},
