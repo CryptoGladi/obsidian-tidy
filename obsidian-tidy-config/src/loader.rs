@@ -3,12 +3,12 @@
 use super::Config;
 use super::Error;
 use obsidian_tidy_core::rule::RuleFabricRegistry;
-use obsidian_tidy_core::rule::{RulesSeed, SharedErrorRule};
+use obsidian_tidy_core::rule::RulesSeed;
 use obsidian_tidy_rules::ALL_RULES;
 use serde::de::DeserializeSeed;
 use serde::{Deserialize, Deserializer};
 use std::io::Read;
-use tracing::{debug, instrument};
+use tracing::instrument;
 
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
@@ -18,37 +18,6 @@ pub struct ConfigLoader<'a> {
 impl Default for ConfigLoader<'_> {
     fn default() -> Self {
         Self::new(&ALL_RULES)
-    }
-}
-
-#[derive(Debug)]
-struct ConfigSeed<'a> {
-    rule_seed: &'a RulesSeed<'a, SharedErrorRule>,
-}
-
-impl<'a> ConfigSeed<'a> {
-    const fn new(rule_seed: &'a RulesSeed<'a, SharedErrorRule>) -> Self {
-        Self { rule_seed }
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
-    type Value = Config;
-
-    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct InnerConfig {
-            rules: toml::Value,
-        }
-
-        let inner = InnerConfig::deserialize(deserializer)?;
-
-        Ok(Self::Value {
-            rules: self.rule_seed.clone().deserialize(inner.rules).unwrap(),
-        })
     }
 }
 
@@ -67,7 +36,7 @@ impl<'a> ConfigLoader<'a> {
     /// Load config from reader
     #[instrument(skip(reader), err)]
     pub fn load(self, reader: &mut impl Read) -> Result<Config, Error> {
-        debug!("Loading config");
+        tracing::debug!("Loading config");
 
         let mut buffer = String::new();
         reader.read_to_string(&mut buffer)?;
@@ -77,5 +46,36 @@ impl<'a> ConfigLoader<'a> {
 
         let config = ConfigSeed::new(&rule_seed).deserialize(toml)?;
         Ok(config)
+    }
+}
+
+#[derive(Debug)]
+struct ConfigSeed<'a> {
+    rule_seed: &'a RulesSeed<'a>,
+}
+
+impl<'a> ConfigSeed<'a> {
+    const fn new(rule_seed: &'a RulesSeed<'a>) -> Self {
+        Self { rule_seed }
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for ConfigSeed<'_> {
+    type Value = Config;
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct InnerConfig {
+            rules: Rules,
+        }
+
+        let inner = InnerConfig::deserialize(deserializer)?;
+
+        Ok(Self::Value {
+            rules: self.rule_seed.clone().deserialize(inner.rules).unwrap(),
+        })
     }
 }

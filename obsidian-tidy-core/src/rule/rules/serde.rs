@@ -233,6 +233,7 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
 /// let seed = RulesSeed::new(&registry);
 /// let rules = seed.deserialize(&mut serde_json::Deserializer::from_str(json)).unwrap();
 /// ```
+#[derive(Debug)]
 pub struct RulesSeed<'a> {
     registry: &'a RuleFabricRegistry,
 }

@@ -6,7 +6,7 @@ pub mod loader;
 pub mod saver;
 pub mod template;
 
-use obsidian_tidy_core::rule::{Rules, SharedErrorRules};
+use obsidian_tidy_core::rule::Rules;
 use serde::Serialize;
 use thiserror::Error;
 
@@ -15,13 +15,13 @@ pub use saver::ConfigSaver;
 
 #[derive(Debug, Serialize)]
 pub struct Config {
-    rules: Rules<SharedErrorRule>,
+    rules: Rules,
 }
 
 impl Config {
     /// Get all rules
     #[must_use]
-    pub const fn rules(&self) -> &Rules<SharedErrorRule> {
+    pub const fn rules(&self) -> &Rules {
         &self.rules
     }
 }
