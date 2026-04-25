@@ -1,8 +1,6 @@
+use crate::rule::{Category, ErasedRule, RuleFabric};
+use serde::Serialize;
 use std::fmt::Debug;
-
-use crate::rule::{Category, ErasedRule, GetErasedRule, RuleFabric, ToggleableRule};
-use serde::de::{DeserializeOwned, Error};
-use serde::{Deserialize, Serialize};
 
 pub trait ErasedRuleFabric {
     fn name_rule(&self) -> &str;
@@ -24,15 +22,15 @@ where
     <R as RuleFabric>::Error: 'static,
 {
     fn name_rule(&self) -> &str {
-        R::name_rule(&self)
+        R::name_rule(self)
     }
 
     fn description_rule(&self) -> &str {
-        R::description_rule(&self)
+        R::description_rule(self)
     }
 
     fn category_rule(&self) -> Category {
-        R::category_rule(&self)
+        R::category_rule(self)
     }
 
     fn create_rule(

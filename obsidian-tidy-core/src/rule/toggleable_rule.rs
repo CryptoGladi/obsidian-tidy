@@ -40,7 +40,7 @@ where
         self.rule
     }
 
-    pub fn as_rule(&self) -> &R {
+    pub const fn as_rule(&self) -> &R {
         &self.rule
     }
 

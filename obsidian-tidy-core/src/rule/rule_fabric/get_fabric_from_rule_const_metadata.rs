@@ -6,6 +6,7 @@ pub trait GetFabricFromRuleConstMetadata {
     type Rule: Rule + for<'de> Deserialize<'de>;
     type RuleConstMetadata: RuleConstMetadata;
 
+    #[must_use]
     fn fabric() -> impl RuleFabric<Rule = Self::Rule, Data = Self::Rule, Error = Infallible> {
         struct FabricFromRule<R: Rule + for<'de> Deserialize<'de>> {
             name_rule: &'static str,

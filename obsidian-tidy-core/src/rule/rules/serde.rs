@@ -124,7 +124,7 @@ pub struct ErasedRuleSeed<'a> {
     fabric: &'a dyn ErasedRuleFabric,
 }
 
-impl<'de, 'a> DeserializeSeed<'de> for ErasedRuleSeed<'a> {
+impl<'de> DeserializeSeed<'de> for ErasedRuleSeed<'_> {
     type Value = Box<dyn ErasedRule>;
 
     #[instrument(skip_all)]
@@ -152,7 +152,7 @@ pub struct ErasedToggleableRuleSeed<'a> {
     fabric: &'a dyn ErasedRuleFabric,
 }
 
-impl<'de, 'a> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'a> {
+impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
     type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
     #[instrument(skip_all)]
@@ -169,7 +169,7 @@ impl<'de, 'a> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'a> {
             fabric: &'a dyn ErasedRuleFabric,
         }
 
-        impl<'de, 'a> Visitor<'de> for WrapperVisitor<'a> {
+        impl<'de> Visitor<'de> for WrapperVisitor<'_> {
             type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -234,7 +234,8 @@ pub struct RulesSeed<'a> {
 }
 
 impl<'a> RulesSeed<'a> {
-    pub fn new(registry: &'a RuleFabricRegistry) -> Self {
+    #[must_use]
+    pub const fn new(registry: &'a RuleFabricRegistry) -> Self {
         Self { registry }
     }
 }

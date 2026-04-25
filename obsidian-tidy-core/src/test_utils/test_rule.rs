@@ -50,7 +50,7 @@ impl RuleMetadata for TestRule {
     }
 
     fn category(&self) -> Category {
-        self.category.clone()
+        self.category
     }
 }
 

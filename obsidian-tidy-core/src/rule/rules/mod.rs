@@ -134,6 +134,7 @@ impl Rules {
     /// let rules = Rules::new();
     /// assert!(rules.is_empty());
     /// ```
+    #[must_use]
     pub fn new() -> Self {
         Self(HashMap::new())
     }
@@ -247,6 +248,7 @@ impl Rules {
     /// rules.add(ToggleableRule::new(rule, true).into_erased());
     /// assert_eq!(rules.len(), 1);
     /// ```
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -267,6 +269,7 @@ impl Rules {
     /// rules.add(ToggleableRule::new(rule, true).into_erased());
     /// assert!(!rules.is_empty());
     /// ```
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }

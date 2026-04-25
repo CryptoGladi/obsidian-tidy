@@ -6,6 +6,7 @@ pub struct RuleFabricRegistry(HashMap<String, Box<dyn ErasedRuleFabric + Send + 
 
 impl RuleFabricRegistry {
     #[inline]
+    #[must_use]
     pub fn new() -> Self {
         Self(HashMap::new())
     }
@@ -16,11 +17,13 @@ impl RuleFabricRegistry {
     }
 
     #[inline]
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
     #[inline]
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -41,6 +44,7 @@ impl RuleFabricRegistry {
         }
     }
 
+    #[must_use]
     pub fn get(&self, name: &str) -> Option<&Box<dyn ErasedRuleFabric + Send + Sync>> {
         self.0.get(name)
     }
@@ -53,6 +57,7 @@ impl RuleFabricRegistry {
         self.0.values()
     }
 
+    #[must_use]
     pub fn contains(&self, name: &str) -> bool {
         self.0.contains_key(name)
     }
