@@ -91,7 +91,7 @@ type Value = ToggleableRule<Box<dyn ErasedRule>>;
 /// ```
 ///
 /// [`RuleMetadata::name`]: crate::rule::RuleMetadata::name
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Rules(HashMap<String, Value>);
 
 impl IntoIterator for Rules {
@@ -136,6 +136,20 @@ impl Rules {
     /// ```
     pub fn new() -> Self {
         Self(HashMap::new())
+    }
+
+    /// Create a new, empty `Rules` collection, bit with capacity
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use obsidian_tidy_core::rule::Rules;
+    ///
+    /// let rules = Rules::with_capacity(100);
+    /// assert!(rules.is_empty());
+    /// ```
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self(HashMap::with_capacity(capacity))
     }
 
     /// Adds a rule to the collection, keyed by its name.

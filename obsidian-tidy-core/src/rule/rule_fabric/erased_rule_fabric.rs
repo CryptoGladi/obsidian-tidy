@@ -1,5 +1,8 @@
-use crate::rule::{Category, ErasedRule, RuleFabric};
-use serde::Serialize;
+use std::fmt::Debug;
+
+use crate::rule::{Category, ErasedRule, GetErasedRule, RuleFabric, ToggleableRule};
+use serde::de::{DeserializeOwned, Error};
+use serde::{Deserialize, Serialize};
 
 pub trait ErasedRuleFabric {
     fn name_rule(&self) -> &str;
@@ -12,14 +15,12 @@ pub trait ErasedRuleFabric {
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>>;
-
-    fn create_default_rule(&self) -> Box<dyn ErasedRule>;
 }
 
 impl<R> ErasedRuleFabric for R
 where
     R: RuleFabric,
-    <R as RuleFabric>::Rule: Default + Serialize + 'static,
+    <R as RuleFabric>::Rule: Serialize + 'static,
     <R as RuleFabric>::Error: 'static,
 {
     fn name_rule(&self) -> &str {
@@ -43,10 +44,39 @@ where
 
         Ok(Box::new(rule))
     }
+}
 
-    fn create_default_rule(&self) -> Box<dyn ErasedRule> {
-        let rule = R::create_default_rule();
-        Box::new(rule)
+pub trait IntoErasedRuleFabric {
+    fn into_erased(self) -> Box<dyn ErasedRuleFabric + Send + Sync>;
+}
+
+impl<R> IntoErasedRuleFabric for R
+where
+    R: RuleFabric + Send + Sync + 'static,
+    <R as RuleFabric>::Rule: Serialize,
+{
+    fn into_erased(self) -> Box<dyn ErasedRuleFabric + Send + Sync> {
+        Box::new(self)
+    }
+}
+
+impl<R> From<R> for Box<dyn ErasedRuleFabric>
+where
+    R: RuleFabric + Send + Sync + 'static,
+    <R as RuleFabric>::Rule: Serialize,
+{
+    fn from(rule_fabric: R) -> Self {
+        rule_fabric.into_erased()
+    }
+}
+
+impl Debug for dyn ErasedRuleFabric {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ErasedRuleFabric")
+            .field("name_rule", &self.name_rule())
+            .field("description_rule", &self.description_rule())
+            .field("category_rule", &self.category_rule())
+            .finish_non_exhaustive()
     }
 }
 

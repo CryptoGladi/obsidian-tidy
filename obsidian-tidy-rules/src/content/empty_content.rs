@@ -17,6 +17,7 @@ use tracing::{instrument, trace};
      description = "Rule for search notes with empty content",
      category = Category::Content
  )]
+#[serde(deny_unknown_fields)]
 pub struct EmptyContent;
 
 #[derive(Debug, Error)]

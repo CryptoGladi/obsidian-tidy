@@ -21,97 +21,15 @@ pub trait RuleFabric {
     fn category_rule(&self) -> Category;
 
     fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error>;
-
-    fn create_default_rule() -> Self::Rule
-    where
-        Self::Rule: Default,
-    {
-        Self::Rule::default()
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        rule::{Category, RuleMetadata, RuleRunner},
+        rule::{Category, RuleMetadata},
         test_utils::{TestRule, TestRuleFabric},
     };
-    use std::convert::Infallible;
-
-    #[test]
-    fn create_default_rule() {
-        #[derive(Debug, Deserialize, PartialEq, Eq)]
-        struct DefaultRule {
-            name: String,
-            description: String,
-            category: Category,
-        }
-
-        impl Default for DefaultRule {
-            fn default() -> Self {
-                Self {
-                    name: "default-rule".to_string(),
-                    description: "Default rule".to_string(),
-                    category: Category::Content,
-                }
-            }
-        }
-
-        impl RuleMetadata for DefaultRule {
-            fn name(&self) -> &str {
-                &self.name
-            }
-
-            fn description(&self) -> &str {
-                &self.description
-            }
-
-            fn category(&self) -> Category {
-                self.category
-            }
-        }
-
-        impl RuleRunner for DefaultRule {
-            type Error = Infallible;
-
-            fn check(
-                &self,
-                _content: &crate::rule::Content,
-                _note: &crate::Note,
-            ) -> Result<Vec<crate::rule::Violation>, Self::Error> {
-                Ok(Vec::new())
-            }
-        }
-
-        struct DefaultRuleFabric;
-
-        impl RuleFabric for DefaultRuleFabric {
-            type Rule = DefaultRule;
-            type Data = DefaultRule;
-            type Error = Infallible;
-
-            fn name_rule(&self) -> &str {
-                "default-rule"
-            }
-
-            fn description_rule(&self) -> &str {
-                "Default rule"
-            }
-
-            fn category_rule(&self) -> Category {
-                Category::Content
-            }
-
-            fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
-                Ok(data)
-            }
-        }
-
-        let rule = <DefaultRuleFabric as RuleFabric>::create_default_rule();
-
-        assert_eq!(rule, DefaultRule::default());
-    }
 
     #[test]
     fn test_rule_fabric() {

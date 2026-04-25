@@ -16,7 +16,7 @@ pub use content::Content;
 pub use erased_rule::{ErasedRule, ErasedRuleRunner, GetErasedRule};
 pub use rule_fabric::{ErasedRuleFabric, RuleFabric, RuleFabricRegistry};
 pub use rules::Rules;
-//pub use rules::serde::{InnerRules, RulesSeed};
+pub use rules::serde::RulesSeed;
 pub use toggleable_rule::ToggleableRule;
 pub use violation::Violation;
 
