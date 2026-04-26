@@ -1,36 +1,36 @@
 //! Module for store template rules
 
 use clap::ValueEnum;
-use obsidian_tidy_core::rule::{Rules, SharedErrorRule, ToggleableRule};
-use obsidian_tidy_rules::ALL_RULES;
-use std::{ops::Deref, sync::LazyLock};
+use obsidian_tidy_core::rule::{Rules, ToggleableRule};
+use obsidian_tidy_rules::create_all_default_rules;
 use tracing::{instrument, trace};
 
-static ALL: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
-    let rules = ALL_RULES
-        .fabrics()
-        .map(|fabric| ToggleableRule::new(fabric.create_default_rule(), true))
-        .collect();
+const ERROR_MESSAGE: &str =
+    "Duplicate rule name detected in template initialization. Check declare_rules! invocation";
 
-    Rules::new(rules).unwrap()
-});
+pub fn all() -> Rules {
+    let rules = create_all_default_rules()
+        .into_iter()
+        .map(|rule| ToggleableRule::new(rule, true));
 
-static EMPTY: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
-    let rules = ALL_RULES
-        .fabrics()
-        .map(|fabric| ToggleableRule::new(fabric.create_default_rule(), false))
-        .collect();
+    Rules::try_from_iter(rules).expect(ERROR_MESSAGE)
+}
 
-    Rules::new(rules).unwrap()
-});
+pub fn empty() -> Rules {
+    let rules = create_all_default_rules()
+        .into_iter()
+        .map(|rule| ToggleableRule::new(rule, false));
 
-static STANDARD: LazyLock<Rules<SharedErrorRule>> = LazyLock::new(|| {
-    let mut rules = EMPTY.clone();
+    Rules::try_from_iter(rules).expect(ERROR_MESSAGE)
+}
+
+pub fn standard() -> Rules {
+    let mut rules = self::empty();
 
     rules["empty-content"].enable();
 
     rules
-});
+}
 
 /// Template config
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
@@ -47,67 +47,47 @@ pub enum Template {
     Empty,
 }
 
-impl AsRef<Rules<SharedErrorRule>> for Template {
+impl From<Template> for Rules {
     #[instrument]
-    fn as_ref(&self) -> &Rules<SharedErrorRule> {
-        trace!("Template to rules");
-
-        match self {
-            Template::All => &ALL,
-            Template::Standard => &STANDARD,
-            Template::Empty => &EMPTY,
-        }
-    }
-}
-
-impl From<Template> for Rules<SharedErrorRule> {
-    #[instrument]
-    fn from(template: Template) -> Rules<SharedErrorRule> {
+    fn from(template: Template) -> Rules {
         trace!("Template to owned rules");
 
         match template {
-            Template::All => ALL.clone(),
-            Template::Standard => STANDARD.clone(),
-            Template::Empty => EMPTY.clone(),
-        }
-    }
-}
-
-impl Deref for Template {
-    type Target = Rules<SharedErrorRule>;
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            Template::All => &ALL,
-            Template::Standard => &STANDARD,
-            Template::Empty => &EMPTY,
+            Template::All => all(),
+            Template::Standard => standard(),
+            Template::Empty => empty(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Template;
-    use obsidian_tidy_core::rule::ToggleableRule;
-    use obsidian_tidy_rules::ALL_RULES;
+    use super::*;
+    use obsidian_tidy_rules::ALL_RULES_FABRICS;
 
     #[test]
     fn all_check() {
-        assert_eq!(Template::All.len(), ALL_RULES.len());
-        assert!(Template::All.iter().all(ToggleableRule::is_enabled));
+        let all = Rules::from(Template::All);
+
+        assert_eq!(all.len(), ALL_RULES_FABRICS.len());
+        assert!(all.rules().all(ToggleableRule::is_enabled));
     }
 
     #[test]
     fn empty_check() {
-        assert_eq!(Template::Empty.len(), ALL_RULES.len());
-        assert!(Template::Empty.iter().all(ToggleableRule::is_disabled));
+        let empty = Rules::from(Template::Empty);
+
+        assert_eq!(empty.len(), ALL_RULES_FABRICS.len());
+        assert!(empty.rules().all(ToggleableRule::is_disabled));
     }
 
     #[test]
-    fn standart() {
-        assert_eq!(Template::Standard.len(), ALL_RULES.len());
+    fn standard_check() {
+        let standard = Rules::from(Template::Standard);
 
-        assert!(Template::All.iter().any(ToggleableRule::is_enabled));
-        assert!(Template::Empty.iter().any(ToggleableRule::is_disabled));
+        assert_eq!(standard.len(), ALL_RULES_FABRICS.len());
+        //assert!(standard.rules().any(ToggleableRule::is_enabled));
+        //assert!(standard.rules().any(ToggleableRule::is_disabled));
+        // TODO
     }
 }

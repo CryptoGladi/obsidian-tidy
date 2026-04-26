@@ -5,7 +5,7 @@ use crate::command::runner::Runner;
 use obsidian_parser::prelude::Note as _;
 use obsidian_tidy_config::{Config, Error as ConfigError, loader::ConfigLoader};
 use obsidian_tidy_core::rule::{Content, Violation};
-use obsidian_tidy_rules::ALL_RULES;
+use obsidian_tidy_rules::ALL_RULES_FABRICS;
 use rayon::prelude::*;
 use std::{
     fs::OpenOptions,
@@ -35,7 +35,7 @@ fn load_config(path: impl AsRef<Path>) -> Result<Config, ConfigError> {
     let mut file = OpenOptions::new().read(true).open(path)?;
 
     ConfigLoader::default()
-        .available_rules(&ALL_RULES)
+        .available_rules(&ALL_RULES_FABRICS)
         .load(&mut file)
 }
 

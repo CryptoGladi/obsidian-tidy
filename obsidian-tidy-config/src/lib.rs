@@ -1,6 +1,5 @@
 //! Crate for configuration
 
-pub mod builder;
 pub mod error;
 pub mod loader;
 pub mod saver;
@@ -15,13 +14,5 @@ pub use saver::ConfigSaver;
 
 #[derive(Debug, Serialize)]
 pub struct Config {
-    rules: Rules,
-}
-
-impl Config {
-    /// Get all rules
-    #[must_use]
-    pub const fn rules(&self) -> &Rules {
-        &self.rules
-    }
+    pub rules: Rules,
 }

@@ -1,28 +1,18 @@
 //! Module for save Config
 
 use super::{Config, Error};
-use std::{io::Write, path::PathBuf};
+use std::io::Write;
 use tracing::{debug, instrument};
 
 #[derive(Debug, Clone)]
 pub struct ConfigSaver<'a> {
-    path: PathBuf,
     config: &'a Config,
 }
 
 impl<'a> ConfigSaver<'a> {
     #[must_use]
     pub fn new(config: &'a Config) -> Self {
-        Self {
-            path: std::env::current_dir().unwrap_or(PathBuf::from(".")),
-            config,
-        }
-    }
-
-    #[must_use]
-    pub fn path(mut self, path: impl Into<PathBuf>) -> Self {
-        self.path = path.into();
-        self
+        Self { config }
     }
 
     /// Save config to writer
@@ -30,8 +20,9 @@ impl<'a> ConfigSaver<'a> {
     pub fn save(&self, writer: &mut impl Write) -> Result<(), Error> {
         debug!("Save config");
 
-        let toml = toml::to_string(self.config)?;
-        writer.write_all(toml.as_bytes())?;
+        let json = serde_json::to_string_pretty(self.config)?;
+        writer.write_all(json.as_bytes())?;
+        writer.flush()?;
 
         Ok(())
     }

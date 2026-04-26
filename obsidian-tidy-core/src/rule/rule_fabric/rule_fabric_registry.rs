@@ -296,7 +296,9 @@ macro_rules! rule_fabric_registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TestRuleFabric;
+    use crate::{
+        rule::rule_fabric::erased_rule_fabric::IntoErasedRuleFabric, test_utils::TestRuleFabric,
+    };
 
     mod macro_rule_fabric_registry {
         use super::*;
@@ -353,10 +355,10 @@ mod tests {
 
         let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
 
-        let collision = registry.add(Box::new(fabric.clone())).is_some();
+        let collision = registry.add(fabric.clone().into_erased()).is_some();
         assert!(!collision);
 
-        let collision = registry.add(Box::new(fabric)).is_some();
+        let collision = registry.add(fabric.into_erased()).is_some();
         assert!(collision)
     }
 
