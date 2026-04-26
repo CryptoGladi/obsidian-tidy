@@ -4,6 +4,7 @@ use super::Cli;
 use crate::command::runner::Runner;
 use itertools::Itertools;
 use obsidian_tidy_config::template::Template;
+use obsidian_tidy_core::rule::Rules;
 use owo_colors::OwoColorize;
 use std::convert::Infallible;
 use tracing::{debug, instrument};
@@ -26,9 +27,10 @@ impl Runner for RunnerListRules {
     fn run(&self, args: &Cli) -> Result<(), Self::Error> {
         debug!("Run command `list-rules`");
 
-        let rules_by_category = self
-            .from_template
-            .iter()
+        let rules = Rules::from(self.from_template);
+
+        let rules_by_category = rules
+            .rules()
             .sorted_by_key(|rule| rule.category())
             .chunk_by(|rule| rule.category());
 

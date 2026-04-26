@@ -2,9 +2,8 @@
 
 use super::Cli;
 use crate::command::runner::Runner;
-use obsidian_tidy_config::ConfigSaver;
 use obsidian_tidy_config::template::Template;
-use obsidian_tidy_config::{builder::ConfigBuilder, error::Error as ConfigError};
+use obsidian_tidy_config::{Config, ConfigSaver};
 use std::fs::OpenOptions;
 use std::path::PathBuf;
 use thiserror::Error;
@@ -16,7 +15,7 @@ pub enum Error {
     IO(#[from] std::io::Error),
 
     #[error("Config problem: {0}")]
-    Config(#[from] ConfigError),
+    Config(#[from] obsidian_tidy_config::Error),
 
     #[error("Config file already exists")]
     AlreadyExists(PathBuf),
@@ -54,16 +53,16 @@ impl Runner for RunnerInit {
             }
         }
 
-        let config = ConfigBuilder::default().rules(self.template.into()).build();
+        let config = Config {
+            rules: self.template.into(),
+        };
 
         let mut file = OpenOptions::new()
             .create_new(true)
             .write(true)
             .open(&config_path)?;
 
-        ConfigSaver::new(&config)
-            .path(&config_path)
-            .save(&mut file)?;
+        ConfigSaver::new(&config).save(&mut file)?;
 
         Ok(())
     }

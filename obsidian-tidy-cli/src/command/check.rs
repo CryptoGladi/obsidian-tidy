@@ -34,9 +34,7 @@ impl RunnerCheck {
 fn load_config(path: impl AsRef<Path>) -> Result<Config, ConfigError> {
     let mut file = OpenOptions::new().read(true).open(path)?;
 
-    ConfigLoader::default()
-        .available_rules(&ALL_RULES_FABRICS)
-        .load(&mut file)
+    ConfigLoader::new(&ALL_RULES_FABRICS).load(&mut file)
 }
 
 #[derive(Debug)]
@@ -73,8 +71,8 @@ impl Runner for RunnerCheck {
             .par_iter()
             .flat_map(|note| {
                 config
+                    .rules
                     .rules()
-                    .iter()
                     .filter_map(|rule| match rule.check(&content, note) {
                         Ok(violations) => Some(violations),
                         Err(e) => {
@@ -83,7 +81,10 @@ impl Runner for RunnerCheck {
                         }
                     })
                     .flatten()
-                    .map(|violation| Diagnostic::from_violation(&violation, note.path().unwrap()))
+                    .map(|violation| {
+                        #[allow(clippy::expect_used, reason = "Update obsidian-parser TODO")]
+                        Diagnostic::from_violation(&violation, note.path().expect("sa"))
+                    })
                     .collect::<Vec<_>>()
             })
             .collect();

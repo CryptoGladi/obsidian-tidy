@@ -45,6 +45,7 @@ impl RuleRunner for EmptyContent {
     }
 }
 
+#[must_use]
 pub fn fabric()
 -> impl RuleFabric<Rule = EmptyContent, Data = EmptyContent, Error = Infallible> + Send + Sync {
     EmptyContent::fabric()

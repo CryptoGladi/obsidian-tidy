@@ -257,8 +257,9 @@ impl Eq for RuleFabricRegistry {}
 /// # Examples
 ///
 /// ```
-/// use obsidian_tidy_core::rule::{Category, rule_fabric_registry};
+/// use obsidian_tidy_core::rule::Category;
 /// use obsidian_tidy_core::test_utils::TestRuleFabric;
+/// use obsidian_tidy_core::rule_fabric_registry;
 ///
 /// // Empty registry
 /// let empty = rule_fabric_registry![];
@@ -266,7 +267,7 @@ impl Eq for RuleFabricRegistry {}
 ///
 /// // Single factory
 /// let f1 = TestRuleFabric::new("rule-a", "", Category::Heading);
-/// let single = rule_fabric_registry![f1];
+/// let single = rule_fabric_registry![f1.clone()];
 /// assert_eq!(single.len(), 1);
 ///
 /// // Multiple factories

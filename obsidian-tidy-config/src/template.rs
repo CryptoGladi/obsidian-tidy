@@ -8,6 +8,12 @@ use tracing::{instrument, trace};
 const ERROR_MESSAGE: &str =
     "Duplicate rule name detected in template initialization. Check declare_rules! invocation";
 
+#[must_use]
+#[allow(
+    clippy::expect_used,
+    clippy::missing_panics_doc,
+    reason = "There is a check in unit tests"
+)]
 pub fn all() -> Rules {
     let rules = create_all_default_rules()
         .into_iter()
@@ -16,6 +22,12 @@ pub fn all() -> Rules {
     Rules::try_from_iter(rules).expect(ERROR_MESSAGE)
 }
 
+#[must_use]
+#[allow(
+    clippy::expect_used,
+    clippy::missing_panics_doc,
+    reason = "There is a check in unit tests"
+)]
 pub fn empty() -> Rules {
     let rules = create_all_default_rules()
         .into_iter()
@@ -24,6 +36,7 @@ pub fn empty() -> Rules {
     Rules::try_from_iter(rules).expect(ERROR_MESSAGE)
 }
 
+#[must_use]
 pub fn standard() -> Rules {
     let mut rules = self::empty();
 

@@ -13,6 +13,7 @@ pub use error::Error;
 pub use saver::ConfigSaver;
 
 #[derive(Debug, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     pub rules: Rules,
 }

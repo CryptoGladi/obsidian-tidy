@@ -3,8 +3,8 @@
 use super::Config;
 use obsidian_tidy_core::rule::RuleFabricRegistry;
 use obsidian_tidy_core::rule::RulesSeed;
-use serde::Deserializer;
 use serde::de::{DeserializeSeed, Error, MapAccess, Visitor};
+use serde::{Deserialize, Deserializer};
 use std::io::Read;
 use tracing::instrument;
 
@@ -30,9 +30,6 @@ impl<'a> ConfigLoader<'a> {
     pub fn load(self, reader: &mut impl Read) -> Result<Config, crate::Error> {
         tracing::debug!("Loading config");
 
-        let mut buffer = String::new();
-        reader.read_to_string(&mut buffer)?;
-
         let mut json = serde_json::Deserializer::from_reader(reader);
 
         let rule_seed = RulesSeed::new(self.available_rules);
@@ -56,52 +53,74 @@ impl<'a> ConfigSeed<'a> {
 impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
     type Value = Config;
 
+    #[instrument(skip_all, err)]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
     {
-        const RULES_FIELD: &str = "rules";
-        const FIELDS: &[&str] = &[RULES_FIELD];
+        #[derive(Deserialize, Debug)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        #[serde(deny_unknown_fields)]
+        enum Field {
+            Rules,
+        }
+
+        impl Field {
+            pub const fn as_str(&self) -> &'static str {
+                match self {
+                    Field::Rules => "rules",
+                }
+            }
+        }
+
+        impl std::fmt::Display for Field {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str(self.as_str())
+            }
+        }
+
+        const FIELDS: &[&str] = &[Field::Rules.as_str()];
+
         struct ConfigVisitor<'a> {
             rule_seed: RulesSeed<'a>,
         }
 
-        impl<'de, 'a> Visitor<'de> for ConfigVisitor<'a> {
+        impl<'de> Visitor<'de> for ConfigVisitor<'_> {
             type Value = Config;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "struct Config with fields: {FIELDS:?}")
+                write!(f, "struct Config with fields: `{}`", FIELDS.join("`, `"))
             }
 
             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
             where
                 M: MapAccess<'de>,
             {
+                tracing::trace!("Run visit_map");
                 let mut rules = None;
 
-                while let Some(key) = map.next_key::<&'de str>()? {
+                while let Some(key) = map.next_key::<Field>()? {
+                    tracing::trace!("Found key: `{key}`");
+
                     match key {
-                        RULES_FIELD => {
+                        Field::Rules => {
                             if rules.is_some() {
-                                return Err(M::Error::duplicate_field(RULES_FIELD));
+                                return Err(M::Error::duplicate_field(Field::Rules.as_str()));
                             }
 
                             rules = Some(map.next_value_seed(self.rule_seed.clone())?);
                         }
-                        other => {
-                            return Err(M::Error::unknown_field(other, FIELDS));
-                        }
                     }
                 }
 
-                let rules = rules.ok_or_else(|| M::Error::missing_field(RULES_FIELD))?;
+                let rules = rules.ok_or_else(|| M::Error::missing_field(Field::Rules.as_str()))?;
                 Ok(Config { rules })
             }
         }
 
         deserializer.deserialize_struct(
             "Config",
-            &FIELDS,
+            FIELDS,
             ConfigVisitor {
                 rule_seed: self.rule_seed,
             },
@@ -118,8 +137,7 @@ mod tests {
         rule_fabric_registry,
         test_utils::{TestRule, TestRuleFabric},
     };
-    use std::io::{Seek, SeekFrom, Write};
-    use tempfile::{NamedTempFile, tempfile};
+    use std::io::Cursor;
     use tracing_test::traced_test;
 
     #[test]
@@ -133,19 +151,14 @@ mod tests {
 
         let config = Config { rules };
 
-        let mut tempfile = tempfile().unwrap();
-        ConfigSaver::new(&config).save(&mut tempfile).unwrap();
+        let mut buffer = Vec::new();
+        ConfigSaver::new(&config).save(&mut buffer).unwrap();
 
-        //println!("Path: {}", tempfile.path().display());
-        tempfile.flush().unwrap();
-        tempfile.seek(SeekFrom::Start(0)).unwrap();
-
-        //println!("Path: {}", tempfile.path().display());
+        println!("DATA: {}", String::from_utf8(buffer.clone()).unwrap());
         let fabric = TestRuleFabric::default();
         let registry = rule_fabric_registry![fabric];
 
         let loader = ConfigLoader::new(&registry);
-        //println!("Path: {}", tempfile.path().display());
-        loader.load(&mut tempfile).unwrap();
+        loader.load(&mut Cursor::new(buffer)).unwrap();
     }
 }

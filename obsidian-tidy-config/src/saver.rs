@@ -11,7 +11,7 @@ pub struct ConfigSaver<'a> {
 
 impl<'a> ConfigSaver<'a> {
     #[must_use]
-    pub fn new(config: &'a Config) -> Self {
+    pub const fn new(config: &'a Config) -> Self {
         Self { config }
     }
 
@@ -22,7 +22,6 @@ impl<'a> ConfigSaver<'a> {
 
         let json = serde_json::to_string_pretty(self.config)?;
         writer.write_all(json.as_bytes())?;
-        writer.flush()?;
 
         Ok(())
     }

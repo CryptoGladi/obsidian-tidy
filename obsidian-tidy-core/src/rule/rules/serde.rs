@@ -80,10 +80,12 @@
 //! - **Capacity hinting**: pre-allocates `Rules` using `MapAccess::size_hint()`.
 //! - **Format agnostic**: works with `JSON`, `YAML`, `TOML`, `MessagePack`, or any `serde`-compatible format.
 
+use std::borrow::Cow;
+
 use super::Rules;
 use crate::rule::{ErasedRule, ErasedRuleFabric, RuleFabricRegistry, ToggleableRule};
 use serde::{
-    Deserializer, Serialize, Serializer,
+    Deserialize, Deserializer, Serialize, Serializer,
     de::{DeserializeSeed, Error, Visitor},
     ser::SerializeMap,
 };
@@ -165,9 +167,29 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
             self.fabric.name_rule()
         );
 
-        const ENABLE_FIELD: &str = "enable";
-        const CONFIG_FIELD: &str = "config";
-        const FIELDS: &[&str] = &[ENABLE_FIELD, CONFIG_FIELD];
+        #[derive(Deserialize, Debug)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Enable,
+            Config,
+        }
+
+        impl Field {
+            pub const fn as_str(&self) -> &'static str {
+                match self {
+                    Field::Enable => "enable",
+                    Field::Config => "config",
+                }
+            }
+        }
+
+        impl std::fmt::Display for Field {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str(self.as_str())
+            }
+        }
+
+        const FIELDS: &[&str] = &[Field::Enable.as_str(), Field::Config.as_str()];
 
         struct WrapperVisitor<'a> {
             fabric: &'a dyn ErasedRuleFabric,
@@ -177,7 +199,7 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
             type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "a map with fields: `{FIELDS:?}`")
+                write!(f, "map with fields: `{}`", FIELDS.join("`, `"))
             }
 
             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
@@ -187,31 +209,32 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
                 let mut enable = None;
                 let mut config = None;
 
-                while let Some(key) = map.next_key::<&'de str>()? {
+                while let Some(key) = map.next_key::<Field>()? {
+                    tracing::trace!("parse key: `{key}`");
+
                     match key {
-                        ENABLE_FIELD => {
+                        Field::Enable => {
                             if enable.is_some() {
-                                return Err(M::Error::duplicate_field(ENABLE_FIELD));
+                                return Err(M::Error::duplicate_field(Field::Enable.as_str()));
                             }
                             enable = Some(map.next_value()?);
                         }
-                        CONFIG_FIELD => {
+                        Field::Config => {
                             if config.is_some() {
-                                return Err(M::Error::duplicate_field(CONFIG_FIELD));
+                                return Err(M::Error::duplicate_field(Field::Config.as_str()));
                             }
 
                             config = Some(map.next_value_seed(ErasedRuleSeed {
                                 fabric: self.fabric,
                             })?);
                         }
-                        other => {
-                            return Err(M::Error::unknown_field(other, FIELDS));
-                        }
                     }
                 }
 
-                let enable = enable.ok_or_else(|| M::Error::missing_field(ENABLE_FIELD))?;
-                let config = config.ok_or_else(|| M::Error::missing_field(CONFIG_FIELD))?;
+                let enable =
+                    enable.ok_or_else(|| M::Error::missing_field(Field::Enable.as_str()))?;
+                let config =
+                    config.ok_or_else(|| M::Error::missing_field(Field::Config.as_str()))?;
 
                 Ok(ToggleableRule::new(config, enable))
             }
@@ -271,10 +294,10 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
             {
                 let mut rules = Rules::with_capacity(map.size_hint().unwrap_or(0));
 
-                while let Some(rule_name) = map.next_key::<&'de str>()? {
+                while let Some(rule_name) = map.next_key::<Cow<'de, str>>()? {
                     let fabric = self
                         .registry
-                        .get(rule_name)
+                        .get(rule_name.as_ref())
                         .ok_or(M::Error::custom(format!(
                             "Unknown rule '{}'. Available: {:?}",
                             rule_name,
