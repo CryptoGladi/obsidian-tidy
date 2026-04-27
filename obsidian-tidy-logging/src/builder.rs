@@ -4,7 +4,7 @@ use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
 use tracing_subscriber::filter::LevelFilter;
 
-/// Builder for [`Logger`]
+/// Builder for [`crate::Logger`]
 pub struct LoggerBuilder {
     /// Filter
     pub(crate) filter: LevelFilter,

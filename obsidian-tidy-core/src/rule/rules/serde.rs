@@ -89,6 +89,7 @@ use serde::{
     de::{DeserializeSeed, Error, Visitor},
     ser::SerializeMap,
 };
+use strum::{IntoStaticStr, VariantNames};
 use tracing::instrument;
 
 impl Serialize for Rules {
@@ -167,29 +168,13 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
             self.fabric.name_rule()
         );
 
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, IntoStaticStr, VariantNames, strum::Display)]
         #[serde(field_identifier, rename_all = "lowercase")]
+        #[strum(serialize_all = "lowercase")]
         enum Field {
             Enable,
             Config,
         }
-
-        impl Field {
-            pub const fn as_str(&self) -> &'static str {
-                match self {
-                    Field::Enable => "enable",
-                    Field::Config => "config",
-                }
-            }
-        }
-
-        impl std::fmt::Display for Field {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.write_str(self.as_str())
-            }
-        }
-
-        const FIELDS: &[&str] = &[Field::Enable.as_str(), Field::Config.as_str()];
 
         struct WrapperVisitor<'a> {
             fabric: &'a dyn ErasedRuleFabric,
@@ -199,7 +184,7 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
             type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "map with fields: `{}`", FIELDS.join("`, `"))
+                write!(f, "map with fields: `{}`", Field::VARIANTS.join("`, `"))
             }
 
             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
@@ -215,13 +200,13 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
                     match key {
                         Field::Enable => {
                             if enable.is_some() {
-                                return Err(M::Error::duplicate_field(Field::Enable.as_str()));
+                                return Err(M::Error::duplicate_field(Field::Enable.into()));
                             }
                             enable = Some(map.next_value()?);
                         }
                         Field::Config => {
                             if config.is_some() {
-                                return Err(M::Error::duplicate_field(Field::Config.as_str()));
+                                return Err(M::Error::duplicate_field(Field::Config.into()));
                             }
 
                             config = Some(map.next_value_seed(ErasedRuleSeed {
@@ -231,10 +216,8 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
                     }
                 }
 
-                let enable =
-                    enable.ok_or_else(|| M::Error::missing_field(Field::Enable.as_str()))?;
-                let config =
-                    config.ok_or_else(|| M::Error::missing_field(Field::Config.as_str()))?;
+                let enable = enable.ok_or_else(|| M::Error::missing_field(Field::Enable.into()))?;
+                let config = config.ok_or_else(|| M::Error::missing_field(Field::Config.into()))?;
 
                 Ok(ToggleableRule::new(config, enable))
             }

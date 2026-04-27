@@ -6,6 +6,7 @@ use obsidian_tidy_core::rule::RulesSeed;
 use serde::de::{DeserializeSeed, Error, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer};
 use std::io::Read;
+use strum::{IntoStaticStr, VariantNames};
 use tracing::instrument;
 
 #[derive(Debug)]
@@ -58,28 +59,12 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
     where
         D: Deserializer<'de>,
     {
-        #[derive(Deserialize, Debug)]
+        #[derive(Deserialize, IntoStaticStr, VariantNames, strum::Display)]
         #[serde(field_identifier, rename_all = "lowercase")]
-        #[serde(deny_unknown_fields)]
+        #[strum(serialize_all = "lowercase")]
         enum Field {
             Rules,
         }
-
-        impl Field {
-            pub const fn as_str(&self) -> &'static str {
-                match self {
-                    Field::Rules => "rules",
-                }
-            }
-        }
-
-        impl std::fmt::Display for Field {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.write_str(self.as_str())
-            }
-        }
-
-        const FIELDS: &[&str] = &[Field::Rules.as_str()];
 
         struct ConfigVisitor<'a> {
             rule_seed: RulesSeed<'a>,
@@ -89,7 +74,11 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
             type Value = Config;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, "struct Config with fields: `{}`", FIELDS.join("`, `"))
+                write!(
+                    f,
+                    "struct Config with fields: `{}`",
+                    Field::VARIANTS.join("`, `")
+                )
             }
 
             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
@@ -105,7 +94,7 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
                     match key {
                         Field::Rules => {
                             if rules.is_some() {
-                                return Err(M::Error::duplicate_field(Field::Rules.as_str()));
+                                return Err(M::Error::duplicate_field(Field::Rules.into()));
                             }
 
                             rules = Some(map.next_value_seed(self.rule_seed.clone())?);
@@ -113,14 +102,14 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
                     }
                 }
 
-                let rules = rules.ok_or_else(|| M::Error::missing_field(Field::Rules.as_str()))?;
+                let rules = rules.ok_or_else(|| M::Error::missing_field(Field::Rules.into()))?;
                 Ok(Config { rules })
             }
         }
 
         deserializer.deserialize_struct(
             "Config",
-            FIELDS,
+            Field::VARIANTS,
             ConfigVisitor {
                 rule_seed: self.rule_seed,
             },
