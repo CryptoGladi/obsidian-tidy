@@ -341,6 +341,34 @@ impl Rules {
         self.0.values()
     }
 
+    /// Mutable version [`Rules::rules`]
+    pub fn rules_mut(&mut self) -> impl Iterator<Item = &mut Value> {
+        self.0.values_mut()
+    }
+
+    /// Checks for the contains of rules in Rules by name
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use obsidian_tidy_core::rule::{Category, Rules};
+    /// use obsidian_tidy_core::rule::ToggleableRule;
+    /// use obsidian_tidy_core::test_utils::TestRule;
+    ///
+    /// let mut rules = Rules::new();
+    /// let rule1 = TestRule::new("iter-a", "A", Category::Heading, []);
+    /// let rule2 = TestRule::new("iter-b", "B", Category::Other, []);
+    /// rules.add(ToggleableRule::new(rule1, true).into_erased());
+    /// rules.add(ToggleableRule::new(rule2, false).into_erased());
+    ///
+    /// assert!(rules.contains("iter-a"));
+    /// assert!(rules.contains("iter-b"));
+    /// assert!(!rules.contains("iter-c"));
+    /// ```
+    pub fn contains(&self, name: &str) -> bool {
+        self.get(name).is_some()
+    }
+
     /// Creates a `Rules` collection from an iterator of rules.
     ///
     /// Returns `Err(Value)` if a duplicate rule name is encountered,

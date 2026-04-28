@@ -3,6 +3,7 @@
 use clap::ValueEnum;
 use obsidian_tidy_core::rule::{Rules, ToggleableRule};
 use obsidian_tidy_rules::create_all_default_rules;
+use std::sync::OnceLock;
 use tracing::{instrument, trace};
 
 const ERROR_MESSAGE: &str =
@@ -36,13 +37,84 @@ pub fn empty() -> Rules {
     Rules::try_from_iter(rules).expect(ERROR_MESSAGE)
 }
 
+/// Internal helper: checks if a rule with given name is registered.
+///
+/// Used by `standard_rules!` macro for invariant verification.
+/// Not part of public API — do not call directly.
+#[doc(hidden)]
+pub fn _is_rule_registered(name: &str) -> bool {
+    static REGISTRY: OnceLock<Rules> = OnceLock::new();
+    let registry = REGISTRY.get_or_init(|| empty());
+
+    registry.contains(name)
+}
+
+/// Macro to define the standard template rules with automatic test generation.
+///
+/// # Usage
+/// ```
+/// use obsidian_tidy_core::rule::Rules;
+/// use obsidian_tidy_config::standard_rules;
+///
+///
+/// pub fn standard() -> Rules {
+///     standard_rules! {
+///         "empty-content",
+///         "trailing-spaces"
+///     }
+/// }
+/// ```
+///
+/// # What it generates
+/// - `const ENABLED_RULES`: slice with rule names for iteration
+/// - Runtime loop: enables each listed rule in the `rules` variable
+#[macro_export]
+macro_rules! standard_rules {
+    ($($rule_name:literal),+ $(,)?) => {
+        const ENABLED_RULES: &[&str] = &[$($rule_name),+];
+
+        if cfg!(debug_assertions) {
+            for name in ENABLED_RULES {
+                assert!(
+                    $crate::template::_is_rule_registered(name),
+                    "Standard template invariant broken: rule '{}' is not registered. \
+                     Run `cargo test` to catch this at compile-time.",
+                    name
+                );
+            }
+        }
+
+        let mut rules = $crate::template::empty();
+        for rule_name in ENABLED_RULES {
+            rules
+                .get_mut(rule_name)
+                .unwrap_or_else(|| panic!("Rule '{rule_name}' must exist in standard template"))
+                .enable();
+        }
+
+        rules
+    };
+
+    () => {
+        $crate::template::empty()
+    };
+}
+
+/// Returns the standard template configuration.
+///
+/// Enables a curated subset of rules recommended for most users.
+///
+/// # Panics
+///
+/// Panics if any rule listed in `ENABLED_RULES` is not registered.
+/// This should never happen in a correctly built binary;
+/// integrity is verified by unit tests.
 #[must_use]
+#[allow(clippy::panic, reason = "There is a check in unit tests and docs")]
 pub fn standard() -> Rules {
-    let mut rules = self::empty();
-
-    rules["empty-content"].enable();
-
-    rules
+    standard_rules! {
+        "empty-content"
+    }
 }
 
 /// Template config

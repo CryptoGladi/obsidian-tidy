@@ -20,12 +20,6 @@ impl<'a> ConfigLoader<'a> {
         Self { available_rules }
     }
 
-    #[must_use]
-    pub const fn available_rules(mut self, available_rules: &'a RuleFabricRegistry) -> Self {
-        self.available_rules = available_rules;
-        self
-    }
-
     /// Load config from reader
     #[instrument(skip(reader), err)]
     pub fn load(self, reader: &mut impl Read) -> Result<Config, crate::Error> {
@@ -97,7 +91,7 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
                                 return Err(M::Error::duplicate_field(Field::Rules.into()));
                             }
 
-                            rules = Some(map.next_value_seed(self.rule_seed.clone())?);
+                            rules = Some(map.next_value_seed(self.rule_seed)?);
                         }
                     }
                 }
@@ -143,7 +137,7 @@ mod tests {
         let mut buffer = Vec::new();
         ConfigSaver::new(&config).save(&mut buffer).unwrap();
 
-        println!("DATA: {}", String::from_utf8(buffer.clone()).unwrap());
+        tracing::debug!("DATA: {}", String::from_utf8(buffer.clone()).unwrap());
         let fabric = TestRuleFabric::default();
         let registry = rule_fabric_registry![fabric];
 

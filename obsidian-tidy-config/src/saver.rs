@@ -4,7 +4,7 @@ use super::{Config, Error};
 use std::io::Write;
 use tracing::{debug, instrument};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ConfigSaver<'a> {
     config: &'a Config,
 }
