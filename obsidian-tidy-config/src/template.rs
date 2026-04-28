@@ -44,7 +44,7 @@ pub fn empty() -> Rules {
 #[doc(hidden)]
 pub fn _is_rule_registered(name: &str) -> bool {
     static REGISTRY: OnceLock<Rules> = OnceLock::new();
-    let registry = REGISTRY.get_or_init(|| empty());
+    let registry = REGISTRY.get_or_init(self::empty);
 
     registry.contains(name)
 }
@@ -74,6 +74,7 @@ macro_rules! standard_rules {
         const ENABLED_RULES: &[&str] = &[$($rule_name),+];
 
         if cfg!(debug_assertions) {
+            #[expect(clippy::used_underscore_items)]
             for name in ENABLED_RULES {
                 assert!(
                     $crate::template::_is_rule_registered(name),

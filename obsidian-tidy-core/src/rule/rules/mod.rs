@@ -365,6 +365,7 @@ impl Rules {
     /// assert!(rules.contains("iter-b"));
     /// assert!(!rules.contains("iter-c"));
     /// ```
+    #[must_use]
     pub fn contains(&self, name: &str) -> bool {
         self.get(name).is_some()
     }
