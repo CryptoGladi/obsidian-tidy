@@ -61,7 +61,7 @@ impl Runner for RunnerCheck {
     #[instrument]
     #[allow(unused)]
     fn run(&self, args: &Cli) -> Result<(), Self::Error> {
-        debug!("Run command `check`");
+        debug!("run command `check`");
 
         let config = load_config(args.config())?;
         let content = Content::new(&args.path);

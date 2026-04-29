@@ -23,7 +23,7 @@ impl<'a> ConfigLoader<'a> {
     /// Load config from reader
     #[instrument(skip(reader), err)]
     pub fn load(self, reader: &mut impl Read) -> Result<Config, crate::Error> {
-        tracing::debug!("Loading config");
+        tracing::debug!("loading config");
 
         let mut json = serde_json::Deserializer::from_reader(reader);
 
@@ -79,11 +79,11 @@ impl<'de> DeserializeSeed<'de> for ConfigSeed<'de> {
             where
                 M: MapAccess<'de>,
             {
-                tracing::trace!("Run visit_map");
+                tracing::trace!("run visit_map");
                 let mut rules = None;
 
                 while let Some(key) = map.next_key::<Field>()? {
-                    tracing::trace!("Found key: `{key}`");
+                    tracing::trace!("found key: `{key}`");
 
                     match key {
                         Field::Rules => {
@@ -129,7 +129,7 @@ mod tests {
         let mut rules = Rules::new();
         if let Some(prev) = rules.add(ToggleableRule::new(TestRule::default().into_erased(), true))
         {
-            panic!("Found duplicate: {:?}", prev);
+            panic!("found duplicate: {:?}", prev);
         }
 
         let config = Config { rules };

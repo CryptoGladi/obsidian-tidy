@@ -18,7 +18,7 @@ impl<'a> ConfigSaver<'a> {
     /// Save config to writer
     #[instrument(skip(writer), err)]
     pub fn save(&self, writer: &mut impl Write) -> Result<(), Error> {
-        debug!("Save config");
+        debug!("save config");
 
         let json = serde_json::to_string_pretty(self.config)?;
         writer.write_all(json.as_bytes())?;

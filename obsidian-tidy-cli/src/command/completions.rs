@@ -22,7 +22,7 @@ impl Runner for RunnerCompletions {
 
     #[instrument]
     fn run(&self, args: &Cli) -> Result<(), Self::Error> {
-        debug!("Run completions command");
+        debug!("run completions command");
 
         clap_complete::generate(
             self.shell,

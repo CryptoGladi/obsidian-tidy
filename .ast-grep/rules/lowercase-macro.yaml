@@ -1,0 +1,21 @@
+id: lowercase-string-in-macros
+language: Rust
+severity: warning
+message: "The line in the macro starts with a capital letter. Lowercase is recommended"
+
+rule:
+  any:
+    - pattern: $MACRO!("$MSG")
+    - pattern: $MACRO!("$MSG", $ARGS)
+constraints:
+  MACRO:
+    regex: "^(panic|log|info|debug|warn|error|trace|tracing::\\w+|log::\\w+)$"
+  MSG:
+    regex: "^[A-ZА-ЯЁ]"
+transform:
+  MSG_LOWER:
+    convert:
+      toCase: lowerCase
+      source: $MSG
+fix:
+  template: $MACRO!("$MSG_LOWER")

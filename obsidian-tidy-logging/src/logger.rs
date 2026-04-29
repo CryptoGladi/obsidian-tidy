@@ -56,6 +56,6 @@ impl LoggerBuilder {
 
 impl Drop for Logger {
     fn drop(&mut self) {
-        debug!("Done work");
+        debug!("done work");
     }
 }

@@ -34,7 +34,7 @@ impl RuleRunner for EmptyContent {
 
     #[instrument(skip(_content))]
     fn check(&self, _content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
-        trace!("Run check `EmptyContent`");
+        trace!("run check `emptycontent`");
 
         if note.count_words_from_content()? == 0 {
             let violation = Violation::new("Note is empty", 1..=1)?;

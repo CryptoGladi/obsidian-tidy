@@ -127,7 +127,7 @@ mod tests {
         assert!(result.is_err(), "Should fail with invalid JSON");
 
         if let Err(e) = result {
-            println!("Expected error: {}", e);
+            println!("Expected error: {e}");
         }
     }
 }

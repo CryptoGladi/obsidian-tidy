@@ -41,7 +41,7 @@ impl Runner for RunnerInit {
 
     #[instrument]
     fn run(&self, args: &Cli) -> Result<(), Self::Error> {
-        debug!("Run command `init`");
+        debug!("run command `init`");
 
         let config_path = args.config();
 

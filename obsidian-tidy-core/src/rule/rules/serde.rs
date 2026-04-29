@@ -327,7 +327,7 @@ mod tests {
 
         let mut rules = Rules::new();
         if let Some(duplicate) = rules.add(rule.into_erased()) {
-            panic!("Found duplicate: {:?}", duplicate);
+            panic!("found duplicate: {:?}", duplicate);
         }
 
         let result = serde_json::to_string(&rules).unwrap();

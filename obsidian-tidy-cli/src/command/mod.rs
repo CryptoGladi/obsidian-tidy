@@ -54,7 +54,7 @@ impl Command {
     /// Just run unwrap and don't worry about it.
     #[instrument(skip(args))]
     pub fn execute(self, args: &Cli) -> Result<(), Arc<dyn std::error::Error + Send + Sync>> {
-        debug!("Execute command");
+        debug!("execute command");
 
         let runner: SharedRunner = match self {
             Command::Check => RunnerCheck::new().into(),

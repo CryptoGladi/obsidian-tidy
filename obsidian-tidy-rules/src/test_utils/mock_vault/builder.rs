@@ -93,7 +93,7 @@ where
     where
         G::Error: From<std::io::Error>,
     {
-        debug!("Build mock vault");
+        debug!("build mock vault");
 
         let temp_dir = TempDir::new().unwrap();
         let root = temp_dir.path();

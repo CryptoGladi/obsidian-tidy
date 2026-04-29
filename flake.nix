@@ -116,7 +116,10 @@
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
             rust
+
             pkgs.taplo
+            pkgs.ast-grep
+            pkgs.just
           ];
 
           shellHook = ''

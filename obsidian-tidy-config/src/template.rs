@@ -136,7 +136,7 @@ pub enum Template {
 impl From<Template> for Rules {
     #[instrument]
     fn from(template: Template) -> Rules {
-        trace!("Template to owned rules");
+        trace!("template to owned rules");
 
         match template {
             Template::All => all(),

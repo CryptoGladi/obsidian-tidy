@@ -25,7 +25,7 @@ impl Runner for RunnerListRules {
 
     #[instrument]
     fn run(&self, args: &Cli) -> Result<(), Self::Error> {
-        debug!("Run command `list-rules`");
+        debug!("run command `list-rules`");
 
         let rules = Rules::from(self.from_template);
 
