@@ -676,6 +676,7 @@ dependencies = [
 name = "obsidian-tidy-cli"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "clap",
  "clap_complete",
  "itertools",

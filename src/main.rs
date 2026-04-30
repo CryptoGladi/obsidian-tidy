@@ -23,7 +23,7 @@ fn main() -> color_eyre::Result<()> {
     let _logger = init_logger(&args.logger);
 
     let command = args.command;
-    command.execute(&args)?;
+    command.execute(&args).unwrap();
 
     Ok(())
 }

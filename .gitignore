@@ -2,4 +2,4 @@ target/
 .direnv/
 /result
 
-.obsidian-tidy.toml
+.obsidian-tidy.json
