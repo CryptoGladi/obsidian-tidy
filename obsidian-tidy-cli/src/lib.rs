@@ -1,6 +1,7 @@
 //! Module for CLI interface
 
 pub mod command;
+pub mod config;
 pub mod logger_config;
 
 use clap::ValueHint;
@@ -61,12 +62,4 @@ pub struct Cli {
     /// Subcommand to execute
     #[command(subcommand, next_help_heading = "Commands")]
     pub command: Command,
-}
-
-impl Cli {
-    /// Return path to config
-    #[must_use]
-    pub fn config(&self) -> PathBuf {
-        self.path.join(".obsidian-tidy.json")
-    }
 }

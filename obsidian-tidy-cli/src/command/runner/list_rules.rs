@@ -6,17 +6,17 @@ use obsidian_tidy_config::template::Template;
 
 #[derive(Debug)]
 pub struct ListRules {
-    from_template: Template,
+    template: Template,
 }
 
 impl ListRules {
-    pub const fn new(from_template: Template) -> Self {
-        Self { from_template }
+    pub const fn new(template: Template) -> Self {
+        Self { template }
     }
 }
 
 impl Runnable for ListRules {
-    fn run(self, _cli: &Cli) -> anyhow::Result<()> {
+    fn run(self, _cli: &Cli) -> miette::Result<()> {
         todo!()
     }
 }

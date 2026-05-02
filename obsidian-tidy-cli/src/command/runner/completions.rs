@@ -20,7 +20,7 @@ impl Completions {
 
 impl Runnable for Completions {
     #[instrument(skip_all, fields(shell = ?self.shell), level = "info", err)]
-    fn run(self, _cli: &Cli) -> anyhow::Result<()> {
+    fn run(self, _cli: &Cli) -> miette::Result<()> {
         generate(
             self.shell,
             &mut Cli::command(),

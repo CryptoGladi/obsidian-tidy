@@ -26,7 +26,7 @@ pub enum Command {
     ListRules {
         /// Get rules from template
         #[arg(long, value_enum, default_value_t = Template::All)]
-        from_template: Template,
+        template: Template,
     },
 
     /// Generate shell completions
@@ -38,7 +38,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn execute(self, cli: &Cli) -> anyhow::Result<()> {
+    pub fn execute(self, cli: &Cli) -> miette::Result<()> {
         let command_runner = RunnerCommand::from(self);
         command_runner.run(cli)
     }

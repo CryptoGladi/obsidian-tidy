@@ -16,14 +16,12 @@ fn init_logger(logger_config: &LoggerConfig) -> Option<Logger> {
     None
 }
 
-fn main() -> color_eyre::Result<()> {
-    color_eyre::install()?;
-
+fn main() -> miette::Result<()> {
     let args = Cli::parse();
     let _logger = init_logger(&args.logger);
 
     let command = args.command;
-    command.execute(&args).unwrap();
+    command.execute(&args)?;
 
     Ok(())
 }

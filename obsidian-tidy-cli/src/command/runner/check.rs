@@ -1,5 +1,7 @@
 //! Run check to vault
 
+use miette::Context;
+
 use super::Runnable;
 use crate::Cli;
 
@@ -7,7 +9,11 @@ use crate::Cli;
 pub struct Check;
 
 impl Runnable for Check {
-    fn run(self, _cli: &Cli) -> anyhow::Result<()> {
-        todo!()
+    fn run(self, cli: &Cli) -> miette::Result<()> {
+        let config = cli.config().context("invalid configuration")?;
+
+        println!("{:?}", config);
+
+        Ok(())
     }
 }

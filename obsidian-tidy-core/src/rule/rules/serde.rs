@@ -281,11 +281,7 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
                     let fabric = self
                         .registry
                         .get(rule_name.as_ref())
-                        .ok_or(M::Error::custom(format!(
-                            "Unknown rule '{}'. Available: {:?}",
-                            rule_name,
-                            self.registry.names().collect::<Vec<_>>()
-                        )))?;
+                        .ok_or(M::Error::custom(format!("Unknown rule '{rule_name}'")))?;
 
                     let rule = map.next_value_seed(ErasedToggleableRuleSeed { fabric })?;
 

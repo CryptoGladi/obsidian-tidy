@@ -6,6 +6,7 @@ pub mod saver;
 pub mod template;
 
 pub use error::Error;
+pub use loader::ConfigLoader;
 pub use saver::ConfigSaver;
 
 use obsidian_tidy_core::rule::Rules;
