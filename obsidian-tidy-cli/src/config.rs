@@ -1,12 +1,12 @@
 use super::Cli;
 use miette::{Context, Diagnostic, IntoDiagnostic, NamedSource, SourceOffset, SourceSpan};
-use obsidian_tidy_config::ConfigLoader;
+use obsidian_tidy_config::{Config, ConfigLoader};
 use obsidian_tidy_rules::ALL_RULES_FABRICS;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("malformed JSON")]
+#[error("Malformed JSON")]
 pub struct SerdeError {
     cause: serde_json::Error,
 
@@ -38,17 +38,17 @@ impl SerdeError {
 }
 
 impl Cli {
+    #[must_use]
     pub fn config_path(&self) -> PathBuf {
         self.path.join(".obsidian-tidy.json")
     }
 
-    #[must_use]
-    pub fn config(&self) -> miette::Result<obsidian_tidy_config::Config> {
+    pub fn config(&self) -> miette::Result<Config> {
         let path = self.config_path();
 
         let data = std::fs::read_to_string(&path)
             .into_diagnostic()
-            .context(format!("failed to read file: `{}`", path.display()))?;
+            .with_context(|| format!("Failed to read file: `{}`", path.display()))?;
 
         let config = ConfigLoader::new(&ALL_RULES_FABRICS)
             .load(&mut data.as_bytes())

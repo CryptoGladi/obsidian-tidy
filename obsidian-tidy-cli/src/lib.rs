@@ -14,6 +14,7 @@ pub use logger_config::{LogLevel, LoggerConfig};
 /// Returns the current working directory
 fn current_dir() -> PathBuf {
     std::env::current_dir().unwrap_or_else(|e| {
+        // When previously initialized, tracing is not initialized
         eprintln!("Warning: failed to get current directory: {e}");
 
         PathBuf::from(".")
@@ -24,7 +25,7 @@ fn existing_dir(s: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(s);
 
     if !path.exists() {
-        Err(format!("Directory '{}' does not exist", s))
+        Err(format!("Directory '{s}' does not exist"))
     } else if !path.is_dir() {
         Err(format!("'{}' is not a directory", path.display()))
     } else {

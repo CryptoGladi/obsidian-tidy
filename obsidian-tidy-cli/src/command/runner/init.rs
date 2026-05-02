@@ -29,20 +29,26 @@ impl Runnable for Init {
             rules: self.template.into(),
         };
 
-        let mut file = if self.force {
-            OpenOptions::new().write(true).truncate(true).open(&path)
+        let mut options = OpenOptions::new();
+        options.write(true);
+
+        if self.force {
+            options.truncate(true);
         } else {
-            OpenOptions::new().write(true).create_new(true).open(&path)
+            options.create_new(true);
         }
-        .into_diagnostic()
-        .context(format!("open file in path: `{}`", path.display()))?;
+
+        let mut file = options
+            .open(&path)
+            .into_diagnostic()
+            .with_context(|| format!("Problem with file in: `{}`", path.display()))?;
 
         ConfigSaver::new(&config)
             .save(&mut file)
             .into_diagnostic()
-            .context("serialize json")?;
+            .context("Failed to serialize configuration to JSON")?;
 
-        println!("✨ Config created at {}", path.display());
+        tracing::info!("✨ Config created at {}", path.display());
         Ok(())
     }
 }

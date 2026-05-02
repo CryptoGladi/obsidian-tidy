@@ -33,9 +33,9 @@ impl From<Command> for RunnerCommand {
         match value {
             Command::Check => Self::Check(check::Check),
             Command::Init { force, template } => Self::Init(init::Init::new(force, template)),
-            Command::ListRules {
-                template: from_template,
-            } => Self::ListRules(list_rules::ListRules::new(from_template)),
+            Command::ListRules { template } => {
+                Self::ListRules(list_rules::ListRules::new(template))
+            }
             Command::Completions { shell } => {
                 Self::Completions(completions::Completions::new(shell))
             }

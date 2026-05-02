@@ -22,7 +22,7 @@ impl<'a> ConfigLoader<'a> {
 
     /// Load config from reader
     #[instrument(skip(reader), err)]
-    pub fn load(self, reader: &mut impl Read) -> Result<Config, serde_json::Error> {
+    pub fn load(self, reader: impl Read) -> Result<Config, serde_json::Error> {
         let mut json = serde_json::Deserializer::from_reader(reader);
 
         let rule_seed = RulesSeed::new(self.available_rules);

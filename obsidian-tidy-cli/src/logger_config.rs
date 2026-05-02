@@ -51,15 +51,8 @@ impl From<LogLevel> for tracing::Level {
 /// ```
 impl From<LogLevel> for tracing_subscriber::filter::LevelFilter {
     fn from(level: LogLevel) -> Self {
-        use tracing_subscriber::filter::LevelFilter;
-
-        match level {
-            LogLevel::Error => LevelFilter::ERROR,
-            LogLevel::Warn => LevelFilter::WARN,
-            LogLevel::Info => LevelFilter::INFO,
-            LogLevel::Debug => LevelFilter::DEBUG,
-            LogLevel::Trace => LevelFilter::TRACE,
-        }
+        let tracing_level: tracing::Level = level.into();
+        tracing_level.into()
     }
 }
 
