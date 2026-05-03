@@ -10,9 +10,9 @@ pub struct Check;
 
 impl Runnable for Check {
     fn run(self, cli: &Cli) -> miette::Result<()> {
-        let config = cli.config().context("Invalid configuration")?;
+        let _config = cli.config().context("Invalid configuration")?;
 
-        println!("{:?}", config);
+        //println!("{:?}", config);
 
         Ok(())
     }

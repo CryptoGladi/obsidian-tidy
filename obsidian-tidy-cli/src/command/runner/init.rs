@@ -21,7 +21,7 @@ impl Init {
 }
 
 impl Runnable for Init {
-    #[instrument(skip(args), level = "info", err)]
+    #[instrument(skip(args), level = "debug", err)]
     fn run(self, args: &Cli) -> miette::Result<()> {
         let path = args.config_path();
 

@@ -81,8 +81,8 @@ impl Directories {
     ///
     /// #[cfg(target_os = "linux")]
     /// assert_eq!(
-    ///     directories.config_dir(),
-    ///     "/home/gladi/.config/obsidian-tidy/logs"
+    ///     directories.logs_dir().to_string_lossy(),
+    ///     "/home/gladi/.local/share/obsidian-tidy/logs"
     /// );
     /// ```
     #[must_use]

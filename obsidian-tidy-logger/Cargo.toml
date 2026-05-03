@@ -1,0 +1,22 @@
+[package]
+name = "obsidian-tidy-logger"
+version = "0.0.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+tracing.workspace = true
+tracing-subscriber.workspace = true
+obsidian-tidy-core.workspace = true
+thiserror.workspace = true
+derive_more.workspace = true
+tracing-appender = "0.2"
+
+[dev-dependencies]
+tempfile.workspace = true
+serial_test.workspace = true
+gag.workspace = true
+tokio.workspace = true
+futures.workspace = true

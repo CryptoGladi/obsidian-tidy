@@ -14,19 +14,21 @@ categories = ["parser-implementations", "data-structures"]
 members = [
   "obsidian-tidy-core",
   "obsidian-tidy-rules",
-  "obsidian-tidy-logging",
+  "obsidian-tidy-logger",
   "obsidian-tidy-cli",
   "obsidian-tidy-config",
   "obsidian-tidy-macros",
 ]
 
 [workspace.dependencies]
-obsidian-tidy-logging = { path = "./obsidian-tidy-logging" }
+obsidian-tidy-logger = { path = "./obsidian-tidy-logger" }
 obsidian-tidy-core = { path = "./obsidian-tidy-core" }
 obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
 obsidian-tidy-config = { path = "./obsidian-tidy-config" }
 obsidian-tidy-cli = { path = "./obsidian-tidy-cli" }
 obsidian-tidy-macros = { path = "./obsidian-tidy-macros" }
+tokio = { version = "1.52", features = ["macros", "rt-multi-thread"] }
+futures = "0.3"
 tracing = "0.1"
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
 serde = { version = "1", features = ["derive"] }
@@ -43,6 +45,8 @@ tempfile = "3.25"
 strum = { version = "0.28", features = ["derive"] }
 derive_more = { version = "2", features = ["is_variant"] }
 miette = { version = "7.6", features = ["fancy"] }
+serial_test = "3.4"
+gag = "1"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -64,7 +68,7 @@ missing_const_for_fn = "warn"
 workspace = true
 
 [dependencies]
-obsidian-tidy-logging.workspace = true
+obsidian-tidy-logger.workspace = true
 obsidian-tidy-core.workspace = true
 obsidian-tidy-cli.workspace = true
 tracing.workspace = true
