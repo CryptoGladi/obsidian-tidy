@@ -141,8 +141,17 @@ impl LoggerBuilder {
             .with_filter(self.file_filter)
     }
 
-    /// Internal helper: create [`tracing_appender::non_blocking`]
-    fn create_file_writer(&self) -> Result<(NonBlocking, WorkerGuard), Error> {
+    /// Internal helper: build the non-blocking file output components.
+    ///
+    /// Creates a [`RollingFileAppender`] configured with the builder's settings,
+    /// wraps it in a non-blocking layer, and returns both the writer and the
+    /// [`WorkerGuard`] that must be kept alive to ensure logs are flushed.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok((NonBlocking, WorkerGuard))` on success
+    /// - `Err([Error::Appender])` if file appender initialization fails
+    fn build_file_output(&self) -> Result<(NonBlocking, WorkerGuard), Error> {
         let mut builder = RollingBuilder::new()
             .filename_suffix(&self.filename_suffix)
             .filename_prefix(&self.filename_prefix);
@@ -189,7 +198,7 @@ impl LoggerBuilder {
         let registry = tracing_subscriber::registry();
 
         let (writer, guard) = if self.file {
-            let (writer, guard) = self.create_file_writer()?;
+            let (writer, guard) = self.build_file_output()?;
 
             (BoxMakeWriter::new(writer), Some(guard))
         } else {

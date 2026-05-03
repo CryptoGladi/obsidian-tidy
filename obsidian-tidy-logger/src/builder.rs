@@ -9,6 +9,14 @@ use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
 use tracing_subscriber::filter::LevelFilter;
 
+// On Unix, create a 'latest.log' symlink to the current log file.
+// On Windows, symlinks typically require administrator privileges, so this feature is disabled.
+#[cfg(unix)]
+const DEFAULT_LATEST_SYMLINK: Option<&str> = Some("latest.log");
+
+#[cfg(not(unix))]
+const DEFAULT_LATEST_SYMLINK: Option<&str> = None;
+
 /// Builder for configuring and initializing a [`Logger`].
 ///
 /// # Example
@@ -87,14 +95,7 @@ impl Default for LoggerBuilder {
             filename_prefix: String::from(""),
             filename_suffix: String::from("log"),
             max_log_files: 10,
-
-            // For creating symlink in Windows typically requiring
-            // administrator privileges
-            latest_symlink: if cfg!(unix) {
-                Some(String::from("latest.log"))
-            } else {
-                None
-            },
+            latest_symlink: DEFAULT_LATEST_SYMLINK.map(str::to_string),
         }
     }
 }
