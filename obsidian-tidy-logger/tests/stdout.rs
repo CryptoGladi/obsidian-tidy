@@ -2,7 +2,6 @@ use gag::BufferRedirect;
 use obsidian_tidy_logger::LoggerBuilder;
 use serial_test::serial;
 use std::io::Read;
-use tracing::level_filters::LevelFilter;
 
 #[test]
 #[serial]
@@ -16,7 +15,8 @@ fn console_layer_respects_filter() {
     let guard = LoggerBuilder::default()
         .stdout(true)
         .file(false)
-        .console_filter(LevelFilter::WARN)
+        .console_filter("warn")
+        .expect("parse console filter")
         .build()
         .expect("build failed")
         .init()

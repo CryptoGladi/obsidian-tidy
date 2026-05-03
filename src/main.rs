@@ -5,8 +5,12 @@ use obsidian_tidy_logger::{LoggerBuilder, WorkerGuard};
 fn init_logger(logger_config: &LoggerConfig) -> miette::Result<Option<WorkerGuard>> {
     if logger_config.enable_logger {
         let guard = LoggerBuilder::default()
-            .console_filter(logger_config.log_level.into())
-            .file_filter(logger_config.log_level.into())
+            .console_filter("info")
+            .into_diagnostic()
+            .context("Parse console filter")?
+            .file_filter("debug")
+            .into_diagnostic()
+            .context("Parse file filter")?
             .stdout(logger_config.enable_logger_stdout)
             .file(logger_config.enable_logger_file)
             .path(logger_config.path_log.clone())

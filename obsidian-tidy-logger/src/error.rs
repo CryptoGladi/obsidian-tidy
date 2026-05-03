@@ -45,11 +45,7 @@ pub enum Error {
     #[error("Error while initializing logging: {0}")]
     Init(#[from] tracing::subscriber::SetGlobalDefaultError),
 
-    /// Invalid filename prefix: must not contain path separators
-    #[error("Invalid filename prefix `{0}`: must not contain path separators")]
-    InvalidFilenamePrefix(String),
-
-    /// Invalid filename suffix: must not contain path separators
-    #[error("Invalid filename suffix: `{0}`: must not contain path separators")]
-    InvalidFilenameSuffix(String),
+    /// Indicates that a string could not be parsed as a filtering directive
+    #[error("String could not be parsed as a filtering directive")]
+    Parse(#[from] tracing_subscriber::filter::ParseError),
 }

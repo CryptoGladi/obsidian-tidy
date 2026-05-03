@@ -7,15 +7,18 @@
 use crate::Error;
 use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
-use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::filter::{Builder as EnvFilterBuilder, EnvFilter};
 
 // On Unix, create a 'latest.log' symlink to the current log file.
 // On Windows, symlinks typically require administrator privileges, so this feature is disabled.
 #[cfg(unix)]
-const DEFAULT_LATEST_SYMLINK: Option<&str> = Some("latest.log");
+pub const DEFAULT_LATEST_SYMLINK: Option<&str> = Some("latest.log");
 
 #[cfg(not(unix))]
-const DEFAULT_LATEST_SYMLINK: Option<&str> = None;
+pub const DEFAULT_LATEST_SYMLINK: Option<&str> = None;
+
+pub const DEFAULT_CONSOLE_FILTER: &str = "info";
+pub const DEFAULT_FILE_FILTER: &str = "debug";
 
 /// Builder for configuring and initializing a [`Logger`].
 ///
@@ -23,15 +26,15 @@ const DEFAULT_LATEST_SYMLINK: Option<&str> = None;
 ///
 /// ```no_run
 /// use obsidian_tidy_logger::LoggerBuilder;
-/// use tracing_subscriber::filter::LevelFilter;
 ///
 /// let _guard = LoggerBuilder::default()
 ///     .stdout(true)
 ///     .file(true)
-///     .console_filter(LevelFilter::INFO)
-///     .file_filter(LevelFilter::TRACE)
+///     .console_filter("info")
+///     .expect("parse console filter")
+///     .file_filter("trace")
+///     .expect("parse file filter")
 ///     .filename_prefix("my-app")
-///     .expect("filename prefix is invalid")
 ///     .max_log_files(14)
 ///     .build()
 ///     .expect("Failed to build logger")
@@ -43,10 +46,10 @@ const DEFAULT_LATEST_SYMLINK: Option<&str> = None;
 #[derive(Debug, Clone)]
 pub struct LoggerBuilder {
     /// Log level filter for console output.
-    pub(crate) console_filter: LevelFilter,
+    pub(crate) console_filter: EnvFilter,
 
     /// Log level filter for file output.
-    pub(crate) file_filter: LevelFilter,
+    pub(crate) file_filter: EnvFilter,
 
     /// Whether to enable console (stdout) output.
     pub(crate) stdout: bool,
@@ -74,10 +77,10 @@ impl Default for LoggerBuilder {
     ///
     /// | Setting | Default |
     /// |---------|---------|
-    /// | `console_filter` | [`LevelFilter::INFO`] |
-    /// | `file_filter` | [`LevelFilter::DEBUG`] |
+    /// | `console_filter` | [`DEFAULT_CONSOLE_FILTER`] |
+    /// | `file_filter` | [`DEFAULT_FILE_FILTER`] |
     /// | `stdout` | `true` |
-    /// | `file` | `true` |
+    /// | `file` | `false` |
     /// | `path` | [`obsidian_tidy_core::directories::directories`] |
     /// | `filename_prefix` | `""` |
     /// | `filename_suffix` | `"log"` |
@@ -88,10 +91,10 @@ impl Default for LoggerBuilder {
 
         Self {
             path: logs_dir,
-            console_filter: LevelFilter::INFO,
-            file_filter: LevelFilter::DEBUG,
+            console_filter: EnvFilter::from(DEFAULT_CONSOLE_FILTER),
+            file_filter: EnvFilter::from(DEFAULT_FILE_FILTER),
             stdout: true,
-            file: true,
+            file: false,
             filename_prefix: String::from(""),
             filename_suffix: String::from("log"),
             max_log_files: 10,
@@ -158,6 +161,8 @@ impl LoggerBuilder {
     ///
     /// Events below this level will not be printed to stdout.
     ///
+    /// Syntax in [`tracing_subscriber::filter::EnvFilter`]
+    ///
     /// # Example
     ///
     /// ```
@@ -165,18 +170,20 @@ impl LoggerBuilder {
     /// use tracing_subscriber::filter::LevelFilter;
     ///
     /// let builder = LoggerBuilder::default()
-    ///     .console_filter(LevelFilter::WARN); // Only warnings and errors on console
+    ///     .console_filter("warn") // Only warnings and errors on console
+    ///     .expect("parse console filter");
     /// ```
-    #[must_use]
-    pub const fn console_filter(mut self, console_filter: LevelFilter) -> Self {
-        self.console_filter = console_filter;
-        self
+    pub fn console_filter(mut self, console_filter: impl AsRef<str>) -> Result<Self, Error> {
+        self.console_filter = EnvFilterBuilder::default().parse(console_filter)?;
+        Ok(self)
     }
 
     /// Set the log level filter for file output.
     ///
     /// Events below this level will not be written to log files.
     ///
+    /// Syntax in [`tracing_subscriber::filter::EnvFilter`]
+    ///
     /// # Example
     ///
     /// ```
@@ -184,12 +191,12 @@ impl LoggerBuilder {
     /// use tracing_subscriber::filter::LevelFilter;
     ///
     /// let builder = LoggerBuilder::default()
-    ///     .file_filter(LevelFilter::TRACE); // Full verbosity in files
+    ///     .file_filter("trace") // Full verbosity in files
+    ///     .expect("parse console filter");
     /// ```
-    #[must_use]
-    pub const fn file_filter(mut self, file_filter: LevelFilter) -> Self {
-        self.file_filter = file_filter;
-        self
+    pub fn file_filter(mut self, file_filter: impl AsRef<str>) -> Result<Self, Error> {
+        self.file_filter = EnvFilterBuilder::default().parse(file_filter)?;
+        Ok(self)
     }
 
     /// Set the prefix for log filenames.
@@ -204,15 +211,9 @@ impl LoggerBuilder {
     ///
     /// let builder = LoggerBuilder::default().filename_prefix("my-cli-tool");
     /// ```
-    pub fn filename_prefix(mut self, filename_prefix: impl Into<String>) -> Result<Self, Error> {
-        let f = filename_prefix.into();
-
-        if f.contains('/') || f.contains('\\') {
-            return Err(Error::InvalidFilenamePrefix(f));
-        }
-
-        self.filename_prefix = f;
-        Ok(self)
+    pub fn filename_prefix(mut self, filename_prefix: impl Into<String>) -> Self {
+        self.filename_prefix = filename_prefix.into();
+        self
     }
 
     /// Set the suffix/extension for log filenames.
@@ -226,15 +227,9 @@ impl LoggerBuilder {
     ///
     /// let builder = LoggerBuilder::default().filename_suffix("ndjson");
     /// ```
-    pub fn filename_suffix(mut self, filename_suffix: impl Into<String>) -> Result<Self, Error> {
-        let f = filename_suffix.into();
-
-        if f.contains('/') || f.contains('\\') {
-            return Err(Error::InvalidFilenameSuffix(f));
-        }
-
-        self.filename_suffix = f;
-        Ok(self)
+    pub fn filename_suffix(mut self, filename_suffix: impl Into<String>) -> Self {
+        self.filename_suffix = filename_suffix.into();
+        self
     }
 
     /// Set the maximum number of rotated log files to retain.
@@ -275,19 +270,19 @@ mod tests {
         let builder = LoggerBuilder::default()
             .stdout(false)
             .file(true)
-            .console_filter(LevelFilter::WARN)
-            .file_filter(LevelFilter::TRACE)
+            .console_filter("info")
+            .expect("parse console filter")
+            .file_filter("trace")
+            .expect("parse file filter")
             .filename_prefix("test")
-            .unwrap()
             .filename_suffix("txt")
-            .unwrap()
             .max_log_files(5)
             .latest_symlink(Some(String::from("last")));
 
         assert!(!builder.stdout);
         assert!(builder.file);
-        assert_eq!(builder.console_filter, LevelFilter::WARN);
-        assert_eq!(builder.file_filter, LevelFilter::TRACE);
+        assert_eq!(builder.console_filter.to_string(), "info");
+        assert_eq!(builder.file_filter.to_string(), "trace");
         assert_eq!(builder.filename_prefix, "test");
         assert_eq!(builder.filename_suffix, "txt");
         assert_eq!(builder.max_log_files, 5);
@@ -295,28 +290,27 @@ mod tests {
     }
 
     #[test]
-    fn filename_prefix_path_separators() {
-        let error = LoggerBuilder::default()
-            .filename_prefix("dsvfs/dsc")
-            .unwrap_err();
-        assert!(error.is_invalid_filename_prefix());
-
-        let error = LoggerBuilder::default()
-            .filename_prefix("dsvfs\\dsc")
-            .unwrap_err();
-        assert!(error.is_invalid_filename_prefix());
+    fn invalid_console_filter() {
+        assert!(
+            LoggerBuilder::default()
+                .console_filter("=ds")
+                .unwrap_err()
+                .is_parse()
+        )
     }
 
     #[test]
-    fn filename_suffix_path_separators() {
-        let error = LoggerBuilder::default()
-            .filename_suffix("dsvfs/dsc")
-            .unwrap_err();
-        assert!(error.is_invalid_filename_suffix());
+    fn invalid_file_filter() {
+        assert!(
+            LoggerBuilder::default()
+                .file_filter("=ds")
+                .unwrap_err()
+                .is_parse()
+        )
+    }
 
-        let error = LoggerBuilder::default()
-            .filename_suffix("dsvfs\\dsc")
-            .unwrap_err();
-        assert!(error.is_invalid_filename_suffix());
+    #[test]
+    fn impl_default() {
+        let _ = LoggerBuilder::default().build().unwrap();
     }
 }

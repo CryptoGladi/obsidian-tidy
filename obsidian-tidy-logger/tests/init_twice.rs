@@ -1,6 +1,5 @@
 use obsidian_tidy_logger::LoggerBuilder;
 use serial_test::serial;
-use tracing::level_filters::LevelFilter;
 
 #[test]
 #[serial]
@@ -8,7 +7,8 @@ fn init_twice_global() {
     let builder = LoggerBuilder::default()
         .stdout(true)
         .file(false)
-        .console_filter(LevelFilter::WARN);
+        .console_filter("warn")
+        .expect("parse console filter");
 
     let _guard1 = builder
         .clone()

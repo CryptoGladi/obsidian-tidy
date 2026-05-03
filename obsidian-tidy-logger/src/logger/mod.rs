@@ -117,7 +117,7 @@ impl LoggerBuilder {
             .with_level(true)
             .with_span_events(FmtSpan::NONE)
             .with_writer(std::io::stdout)
-            .with_filter(self.console_filter)
+            .with_filter(self.console_filter.clone())
     }
 
     /// Internal helper: create the file output layer.
@@ -138,7 +138,7 @@ impl LoggerBuilder {
             .with_target(true)
             .with_line_number(true)
             .with_file(true)
-            .with_filter(self.file_filter)
+            .with_filter(self.file_filter.clone())
     }
 
     /// Internal helper: build the non-blocking file output components.
@@ -266,9 +266,7 @@ mod tests {
             .path(temp_dir.path())
             .file(true)
             .filename_prefix("test-app")
-            .unwrap()
             .filename_suffix("log")
-            .unwrap()
             .build()
             .expect("build should succeed with valid path");
 

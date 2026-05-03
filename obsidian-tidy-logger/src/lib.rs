@@ -20,14 +20,13 @@
 //!
 //! ```no_run
 //! use obsidian_tidy_logger::LoggerBuilder;
-//! use tracing_subscriber::filter::LevelFilter;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Initialize logging: console shows INFO+, file shows DEBUG+
 //!     let _guard = LoggerBuilder::default()
-//!         .console_filter(LevelFilter::INFO)
-//!         .file_filter(LevelFilter::DEBUG)
-//!         .filename_prefix("obsidian-tidy")?
+//!         .console_filter("info")?
+//!         .file_filter("debug")?
+//!         .filename_prefix("obsidian-tidy")
 //!         .max_log_files(7)
 //!         .build()?
 //!         .init()?; // _guard must live until program exit
@@ -47,12 +46,12 @@
 //!
 //! ```
 //! use obsidian_tidy_logger::LoggerBuilder;
-//! use tracing_subscriber::filter::LevelFilter;
 //!
 //! // #[test]
 //! fn test_my_feature() {
 //!     let (subscriber, _guard) = LoggerBuilder::default()
-//!         .console_filter(LevelFilter::OFF) // silence console in tests
+//!         .console_filter("off") // silence console in tests
+//!         .expect("parse console filter")
 //!         .file(false)                      // skip file I/O
 //!         .build()
 //!         .unwrap()
