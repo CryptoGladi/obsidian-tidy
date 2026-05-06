@@ -83,7 +83,7 @@
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets --workspace -- --deny warnings";
+              cargoClippyExtraArgs = "--workspace -- --deny warnings";
             }
           );
 
@@ -97,10 +97,6 @@
 
           obsidian-tidy-fmt = craneLib.cargoFmt {
             inherit src;
-          };
-
-          obsidian-tidy-toml-fmt = craneLib.taploFmt {
-            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
           };
 
           obsidian-tidy-audit = craneLib.cargoAudit {

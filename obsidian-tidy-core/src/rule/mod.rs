@@ -84,37 +84,3 @@ where
             .finish()
     }
 }
-
-impl<E> PartialEq for dyn Rule<Error = E>
-where
-    E: std::error::Error,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.name() == other.name()
-    }
-}
-
-impl<E> Eq for dyn Rule<Error = E> where E: std::error::Error {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test_utils::TestRule;
-    use tracing_test::traced_test;
-
-    #[test]
-    #[traced_test]
-    fn partial_eq() {
-        let rule1 = TestRule::new("rule1", "", Category::Heading, []);
-        let rule1_same = TestRule::new("rule1", "", Category::Heading, []);
-
-        let rule2 = TestRule::new("rule2", "", Category::Heading, []);
-        let rule2_same = TestRule::new("rule2", "", Category::Heading, []);
-
-        assert_eq!(rule1, rule1_same);
-        assert_eq!(rule2, rule2_same);
-
-        assert_ne!(rule1, rule2);
-        assert_ne!(rule1_same, rule2_same);
-    }
-}

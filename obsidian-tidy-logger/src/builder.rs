@@ -95,7 +95,7 @@ impl Default for LoggerBuilder {
             file_filter: EnvFilter::from(DEFAULT_FILE_FILTER),
             stdout: true,
             file: false,
-            filename_prefix: String::from(""),
+            filename_prefix: String::new(),
             filename_suffix: String::from("log"),
             max_log_files: 10,
             latest_symlink: DEFAULT_LATEST_SYMLINK.map(str::to_string),
@@ -211,6 +211,7 @@ impl LoggerBuilder {
     ///
     /// let builder = LoggerBuilder::default().filename_prefix("my-cli-tool");
     /// ```
+    #[must_use]
     pub fn filename_prefix(mut self, filename_prefix: impl Into<String>) -> Self {
         self.filename_prefix = filename_prefix.into();
         self
@@ -227,6 +228,7 @@ impl LoggerBuilder {
     ///
     /// let builder = LoggerBuilder::default().filename_suffix("ndjson");
     /// ```
+    #[must_use]
     pub fn filename_suffix(mut self, filename_suffix: impl Into<String>) -> Self {
         self.filename_suffix = filename_suffix.into();
         self

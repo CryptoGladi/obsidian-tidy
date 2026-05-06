@@ -1,7 +1,0 @@
----
-source: obsidian-tidy-config/tests/integration.rs
-expression: loaded_config
----
-{
-  "rules": {}
-}

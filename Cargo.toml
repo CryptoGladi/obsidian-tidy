@@ -54,6 +54,7 @@ unsafe_code = "forbid"
 
 [workspace.lints.rustdoc]
 broken_intra_doc_links = "deny"
+private_intra_doc_links = "allow"
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }

@@ -3,8 +3,8 @@
 use super::Runnable;
 use crate::Cli;
 use miette::{Context, IntoDiagnostic};
+use obsidian_tidy_config::Config;
 use obsidian_tidy_config::template::Template;
-use obsidian_tidy_config::{Config, ConfigSaver};
 use std::fs::OpenOptions;
 use tracing::instrument;
 
@@ -25,9 +25,7 @@ impl Runnable for Init {
     fn run(self, args: &Cli) -> miette::Result<()> {
         let path = args.config_path();
 
-        let config = Config {
-            rules: self.template.into(),
-        };
+        let config = Config::new(self.template);
 
         let mut options = OpenOptions::new();
         options.write(true);
@@ -43,7 +41,8 @@ impl Runnable for Init {
             .into_diagnostic()
             .with_context(|| format!("Problem with file in: `{}`", path.display()))?;
 
-        ConfigSaver::new(&config)
+        Config::saver(&config)
+            .pretty(true)
             .save(&mut file)
             .into_diagnostic()
             .context("Failed to serialize configuration to JSON")?;

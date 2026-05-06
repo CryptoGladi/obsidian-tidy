@@ -27,7 +27,7 @@ use std::ops::Deref;
 /// assert!(toggleable.is_disabled());
 /// ```
 ///
-/// ## Conditional execution via RuleRunner
+/// ## Conditional execution via `RuleRunner`
 ///
 /// ```
 /// use obsidian_tidy_core::rule::{Category, Content, RuleRunner, ToggleableRule, Violation};
@@ -247,7 +247,7 @@ where
     ///
     /// - [`ToggleableRule::as_rule`]
     #[must_use]
-    pub fn as_rule_mut(&mut self) -> &mut R {
+    pub const fn as_rule_mut(&mut self) -> &mut R {
         &mut self.rule
     }
 
@@ -336,7 +336,14 @@ where
     R: Rule + PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.enabled == other.enabled && self.rule == other.rule
+        let Self { enabled, rule } = self;
+
+        let Self {
+            enabled: other_enabled,
+            rule: other_rule,
+        } = other;
+
+        enabled == other_enabled && rule == other_rule
     }
 }
 

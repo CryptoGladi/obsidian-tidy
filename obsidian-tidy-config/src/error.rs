@@ -1,9 +1,15 @@
-//! Errors for Config
+//! Error types for configuration operations.
+//!
+//! This module defines the [`Error`] enum, which consolidates all fallible
+//! outcomes from loading, saving, or validating configuration.
+//!
+//! [`Error`]: crate::Error
 
 use derive_more::IsVariant;
 use thiserror::Error;
 
 #[derive(Debug, Error, IsVariant)]
+#[non_exhaustive]
 pub enum Error {
     #[error("IO error: `{0}`")]
     IO(#[from] std::io::Error),

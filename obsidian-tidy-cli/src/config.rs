@@ -1,6 +1,6 @@
 use super::Cli;
 use miette::{Context, Diagnostic, IntoDiagnostic, NamedSource, SourceOffset, SourceSpan};
-use obsidian_tidy_config::{Config, ConfigLoader};
+use obsidian_tidy_config::{Config, Error as ConfigError};
 use obsidian_tidy_rules::ALL_RULES_FABRICS;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
@@ -50,9 +50,15 @@ impl Cli {
             .into_diagnostic()
             .with_context(|| format!("Failed to read file: `{}`", path.display()))?;
 
-        let config = ConfigLoader::new(&ALL_RULES_FABRICS)
+        let config = Config::loader(&ALL_RULES_FABRICS)
             .load(&mut data.as_bytes())
-            .map_err(|cause| SerdeError::from_serde_error(data, path, cause))?;
+            .map_err(|cause| {
+                let ConfigError::Json(cause) = cause else {
+                    unreachable!("expected Json error, got: {:?}", cause);
+                };
+
+                SerdeError::from_serde_error(data, path, cause)
+            })?;
 
         Ok(config)
     }

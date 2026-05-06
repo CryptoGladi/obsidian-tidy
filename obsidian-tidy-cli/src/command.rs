@@ -18,7 +18,7 @@ pub enum Command {
         force: bool,
 
         /// How template use?
-        #[arg(long, value_enum, default_value_t = Template::Standard)]
+        #[arg(long, value_enum, default_value_t = Template::default())]
         template: Template,
     },
 

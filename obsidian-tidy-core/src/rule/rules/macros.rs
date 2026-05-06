@@ -4,13 +4,13 @@
 /// # Behavior
 ///
 /// - **Empty invocation**: Returns a new empty `Rules` via [`Rules::new`].
-/// - **With rules**: Creates a new collection and adds each rule via [`Rules::add`].  
-///   If `add` returns `Some(prev)` (indicating a duplicate name), the macro panics with:  
+/// - **With rules**: Creates a new collection and adds each rule via [`Rules::add`].
+///   If `add` returns `Some(prev)` (indicating a duplicate name), the macro panics with:
 ///   `"Rule with name '{}' already exists"`.
 ///
 /// # Uniqueness Requirement
 ///
-/// Each rule must have a unique name as defined by [`RuleMeta:name`](crate::rule::RuleMetadata::name).  
+/// Each rule must have a unique name as defined by [`RuleMeta:name`](crate::rule::RuleMetadata::name).
 /// This macro enforces uniqueness at runtime via panic. For fallible construction that
 /// returns a [`Result`] instead of panicking, use [`try_rules!`].
 ///
@@ -92,7 +92,7 @@ macro_rules! rules {
 ///
 /// # Uniqueness Requirement
 ///
-/// Each rule must have a unique name as defined by [`RuleMetadata::name`](crate::rule::RuleMetadata::name).  
+/// Each rule must have a unique name as defined by [`RuleMetadata::name`](crate::rule::RuleMetadata::name).
 /// This macro enforces uniqueness by returning a [`Result`], allowing the caller to handle
 /// duplicates gracefully. For eager construction that panics on duplicates, use [`rules!`] instead.
 ///
