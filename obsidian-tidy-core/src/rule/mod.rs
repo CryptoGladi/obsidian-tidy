@@ -21,8 +21,13 @@ pub use toggleable_rule::ToggleableRule;
 pub use violation::Violation;
 
 pub trait RuleConstMetadata: Send + Sync {
+    /// **Unique** rule name
     const NAME: &'static str;
+
+    /// Description rule
     const DESCRIPTION: &'static str;
+
+    /// Category rule
     const CATEGORY: Category;
 }
 

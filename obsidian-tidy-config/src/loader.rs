@@ -138,6 +138,6 @@ mod tests {
         let registry = rule_fabric_registry![fabric];
 
         let loader = ConfigLoader::new(&registry);
-        loader.load(&mut Cursor::new(buffer)).unwrap();
+        loader.load(Cursor::new(buffer)).unwrap();
     }
 }

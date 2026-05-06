@@ -1,14 +1,15 @@
+pub mod macros;
 pub mod serde;
 
 use super::ToggleableRule;
 use crate::rule::erased_rule::ErasedRule;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::ops::{Index, IndexMut};
 use tracing::{instrument, trace};
 
 type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
-/// A collection of named, toggleable rules stored in a hash map.
+/// A collection of named, toggleable rules stored in a map.
 ///
 /// `Rules` provides a convenient way to manage a set of [`ToggleableRule`] instances,
 /// each identified by a unique string name (retrieved via [`RuleMetadata::name`]).
@@ -92,11 +93,11 @@ type Value = ToggleableRule<Box<dyn ErasedRule>>;
 ///
 /// [`RuleMetadata::name`]: crate::rule::RuleMetadata::name
 #[derive(Default, Debug)]
-pub struct Rules(HashMap<String, Value>);
+pub struct Rules(BTreeMap<String, Value>);
 
 impl IntoIterator for Rules {
     type Item = (String, Value);
-    type IntoIter = std::collections::hash_map::IntoIter<String, Value>;
+    type IntoIter = std::collections::btree_map::IntoIter<String, Value>;
 
     /// Consumes the collection and returns an iterator over the rules.
     ///
@@ -136,22 +137,7 @@ impl Rules {
     /// ```
     #[must_use]
     pub fn new() -> Self {
-        Self(HashMap::new())
-    }
-
-    /// Create a new, empty `Rules` collection, bit with capacity
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use obsidian_tidy_core::rule::Rules;
-    ///
-    /// let rules = Rules::with_capacity(100);
-    /// assert!(rules.is_empty());
-    /// ```
-    #[must_use]
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self(HashMap::with_capacity(capacity))
+        Self(BTreeMap::new())
     }
 
     /// Adds a rule to the collection, keyed by its name.

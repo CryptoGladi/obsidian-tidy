@@ -275,7 +275,8 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
             where
                 M: serde::de::MapAccess<'de>,
             {
-                let mut rules = Rules::with_capacity(map.size_hint().unwrap_or(0));
+                // Not found with_capacity
+                let mut rules = Rules::new();
 
                 while let Some(rule_name) = map.next_key::<Cow<'de, str>>()? {
                     let fabric = self

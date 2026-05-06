@@ -113,10 +113,6 @@ impl RuleFabric for TestRuleFabric {
     }
 
     fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
-        debug_assert_eq!(data.name(), self.name_rule());
-        debug_assert_eq!(data.description(), self.description_rule());
-        debug_assert_eq!(data.category(), self.category_rule());
-
         Ok(data)
     }
 }

@@ -120,6 +120,7 @@
             pkgs.taplo
             pkgs.ast-grep
             pkgs.just
+            pkgs.cargo-insta
           ];
 
           shellHook = ''

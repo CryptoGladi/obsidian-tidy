@@ -2,7 +2,7 @@ use crate::{
     Note,
     rule::{Category, Content, RuleConstMetadata, RuleRunner, Violation},
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -11,7 +11,7 @@ pub enum Error {
     OhNo,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize, Default)]
 pub struct ErrorRule;
 
 impl RuleConstMetadata for ErrorRule {

@@ -47,6 +47,7 @@ derive_more = { version = "2", features = ["is_variant"] }
 miette = { version = "7.6", features = ["fancy"] }
 serial_test = "3.4"
 gag = "1"
+insta = { version = "1.47", features = ["json"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
