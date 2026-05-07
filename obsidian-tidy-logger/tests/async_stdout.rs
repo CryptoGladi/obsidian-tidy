@@ -20,7 +20,7 @@ async fn async_stdout() {
 
     let handles = (0..10).map(|i| {
         tokio::spawn(async move {
-            tracing::info!("Task {i} logging");
+            tracing::info!("task {i} logging");
         })
     });
     futures::future::join_all(handles).await;

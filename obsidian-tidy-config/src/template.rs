@@ -155,7 +155,7 @@ pub fn standard() -> Rules {
 }
 
 /// Template config
-#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, strum::Display)]
 #[clap(rename_all = "kebab-case")]
 pub enum Template {
     /// Enabled all rules
