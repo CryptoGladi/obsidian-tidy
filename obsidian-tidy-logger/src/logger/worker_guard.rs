@@ -30,7 +30,7 @@ use tracing_appender::non_blocking::WorkerGuard as TracingWorkerGuard;
 #[derive(Debug)]
 #[expect(unused)]
 #[must_use = "This guard must be kept alive to ensure logs are flushed to disk"]
-pub struct WorkerGuard(TracingWorkerGuard);
+pub struct WorkerGuard(Option<TracingWorkerGuard>);
 
 impl WorkerGuard {
     /// Creates a new `WorkerGuard` from a [`TracingWorkerGuard`].
@@ -40,7 +40,7 @@ impl WorkerGuard {
     ///
     /// [`Logger::init`]: crate::Logger::init
     #[inline]
-    pub const fn new(worker_guard: TracingWorkerGuard) -> Self {
+    pub const fn new(worker_guard: Option<TracingWorkerGuard>) -> Self {
         Self(worker_guard)
     }
 }

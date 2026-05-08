@@ -6,33 +6,34 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
-#[error("Malformed JSON")]
-pub struct SerdeError {
-    cause: serde_json::Error,
+#[error("Failed config load")]
+pub struct Miette {
+    #[source]
+    source: ConfigError,
 
     #[source_code]
     input: NamedSource<String>,
 
-    #[label("{cause}")]
-    location: SourceSpan,
+    #[label("{source}")]
+    location: Option<SourceSpan>,
 }
 
-impl SerdeError {
-    pub fn from_serde_error(
-        input: impl Into<String>,
-        path: impl AsRef<Path>,
-        cause: serde_json::Error,
-    ) -> Self {
-        let source = input.into();
-        let path = path.as_ref();
+impl Miette {
+    pub fn from(input: impl Into<String>, path: impl AsRef<Path>, error: ConfigError) -> Self {
+        let source: String = input.into();
+        let path_str = path.as_ref().to_string_lossy().into_owned();
 
-        let offset = SourceOffset::from_location(&source, cause.line(), cause.column());
-        let span = SourceSpan::new(offset, 0);
+        let location = if let ConfigError::Json(ref json) = error {
+            let offset = SourceOffset::from_location(&source, json.line(), json.column());
+            Some(SourceSpan::new(offset, 0))
+        } else {
+            None
+        };
 
         Self {
-            cause,
-            input: NamedSource::new(path.to_string_lossy(), source),
-            location: span,
+            input: NamedSource::new(path_str, source).with_language("Json"),
+            source: error,
+            location,
         }
     }
 }
@@ -52,13 +53,7 @@ impl Cli {
 
         let config = Config::loader(&ALL_RULES_FABRICS)
             .load(&mut data.as_bytes())
-            .map_err(|cause| {
-                let ConfigError::Json(cause) = cause else {
-                    unreachable!("expected Json error, got: {:?}", cause);
-                };
-
-                SerdeError::from_serde_error(data, path, cause)
-            })?;
+            .map_err(|error| Miette::from(data, path, error))?;
 
         Ok(config)
     }

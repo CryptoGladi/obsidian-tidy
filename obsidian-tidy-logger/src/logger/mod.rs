@@ -2,11 +2,11 @@
 
 pub mod worker_guard;
 
-use crate::Error;
 use crate::builder::LoggerBuilder;
 use std::fmt::Debug;
 use tracing::Subscriber;
 use tracing_appender::non_blocking::NonBlocking;
+use tracing_appender::non_blocking::WorkerGuard as TracingWorkerGuard;
 use tracing_appender::rolling::Builder as RollingBuilder;
 use tracing_appender::rolling::Rotation;
 use tracing_subscriber::{
@@ -16,6 +16,8 @@ use tracing_subscriber::{
     registry::LookupSpan,
 };
 
+pub use tracing::subscriber::SetGlobalDefaultError;
+pub use tracing_appender::rolling::InitError as AppenderError;
 pub use worker_guard::WorkerGuard;
 
 /// A configured logger instance.
@@ -40,7 +42,7 @@ pub use worker_guard::WorkerGuard;
 /// ```
 #[must_use = "Logger must be stored to keep WorkerGuard alive and ensure logs are flushed"]
 pub struct Logger {
-    guard: Option<WorkerGuard>,
+    guard: WorkerGuard,
     registry: Box<dyn Subscriber + Sync + Send>,
 }
 
@@ -67,15 +69,7 @@ impl Logger {
     ///     Ok(())
     /// }
     /// ```
-    ///
-    /// # Returns
-    ///
-    /// - `Ok(Some(guard))` if file logging is enabled — **store this guard**
-    ///   until program exit to ensure logs are flushed.
-    /// - `Ok(None)` if file logging is disabled — no guard needed.
-    /// - `Err([Error::Init])` if a global subscriber is already set.
-    #[track_caller]
-    pub fn init(self) -> Result<Option<WorkerGuard>, Error> {
+    pub fn init(self) -> Result<WorkerGuard, SetGlobalDefaultError> {
         tracing::subscriber::set_global_default(self.registry)?;
 
         Ok(self.guard)
@@ -93,8 +87,7 @@ impl Logger {
     /// 2. Keeping the [`WorkerGuard`] alive to ensure logs are flushed
     ///
     /// Prefer [`Logger::init()`] for normal usage.
-    #[must_use]
-    pub fn into_components(self) -> (Box<dyn Subscriber + Send + Sync>, Option<WorkerGuard>) {
+    pub fn into_components(self) -> (Box<dyn Subscriber + Send + Sync>, WorkerGuard) {
         (self.registry, self.guard)
     }
 }
@@ -151,7 +144,7 @@ impl LoggerBuilder {
     ///
     /// - `Ok((NonBlocking, WorkerGuard))` on success
     /// - `Err([Error::Appender])` if file appender initialization fails
-    fn build_file_output(&self) -> Result<(NonBlocking, WorkerGuard), Error> {
+    fn build_file_output(&self) -> Result<(NonBlocking, TracingWorkerGuard), AppenderError> {
         let mut builder = RollingBuilder::new()
             .filename_suffix(&self.filename_suffix)
             .filename_prefix(&self.filename_prefix);
@@ -166,9 +159,6 @@ impl LoggerBuilder {
             .build(&self.path)?;
 
         let (writer, guard) = tracing_appender::non_blocking(file_appender);
-
-        let guard = WorkerGuard::new(guard);
-
         Ok((writer, guard))
     }
 
@@ -194,7 +184,7 @@ impl LoggerBuilder {
     /// # Other
     ///
     /// Use [`Logger::into_components()`] for testing
-    pub fn build(self) -> Result<Logger, Error> {
+    pub fn build(self) -> Result<Logger, AppenderError> {
         let registry = tracing_subscriber::registry();
 
         let (writer, guard) = if self.file {
@@ -213,7 +203,7 @@ impl LoggerBuilder {
             .with(self.file.then_some(file_layer));
 
         Ok(Logger {
-            guard,
+            guard: WorkerGuard::new(guard),
             registry: Box::new(registry),
         })
     }
@@ -236,7 +226,7 @@ mod tests {
     fn build_without_file_does_not_create_files() {
         let temp_dir = TempDir::new().unwrap();
 
-        let logger = LoggerBuilder::default()
+        let _logger = LoggerBuilder::default()
             .path(temp_dir.path())
             .file(false)
             .stdout(false)
@@ -254,15 +244,13 @@ mod tests {
             entries.is_empty(),
             "No files should be created when file logging is disabled"
         );
-
-        assert!(logger.guard.is_none());
     }
 
     #[test]
     fn build_with_file_creates_appender() {
         let temp_dir = TempDir::new().unwrap();
 
-        let logger = LoggerBuilder::default()
+        let _logger = LoggerBuilder::default()
             .path(temp_dir.path())
             .file(true)
             .filename_prefix("test-app")
@@ -270,7 +258,6 @@ mod tests {
             .build()
             .expect("build should succeed with valid path");
 
-        assert!(logger.guard.is_some());
         assert!(temp_dir.path().exists());
     }
 
@@ -278,14 +265,13 @@ mod tests {
     fn build_with_zero_max_log_files() {
         let temp_dir = TempDir::new().unwrap();
 
-        let logger = LoggerBuilder::default()
+        let _logger = LoggerBuilder::default()
             .path(temp_dir.path())
             .file(true)
             .max_log_files(0)
             .build()
             .expect("failed build");
 
-        assert!(logger.guard.is_some());
         assert!(temp_dir.path().exists());
     }
 
@@ -296,10 +282,7 @@ mod tests {
             .file(true)
             .build();
 
-        assert!(
-            logger.unwrap_err().is_appender(),
-            "build should fail with unwritable path"
-        );
+        assert!(logger.is_err(), "build should fail with unwritable path");
     }
 
     #[test]

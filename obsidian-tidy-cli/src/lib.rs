@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 pub use clap::Parser;
 pub use command::Command;
-pub use logger_config::{LogLevel, LoggerConfig};
+pub use logger_config::LoggerConfig;
 
 /// Returns the current working directory
 fn current_dir() -> PathBuf {

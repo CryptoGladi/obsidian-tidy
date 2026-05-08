@@ -80,9 +80,7 @@
 #![forbid(clippy::print_stdout)]
 
 pub mod builder;
-pub mod error;
 pub mod logger;
 
 pub use builder::LoggerBuilder;
-pub use error::Error;
 pub use logger::{Logger, WorkerGuard};

@@ -34,6 +34,9 @@ async fn async_stdout() {
 
     // check data race
     for i in 0..10 {
-        assert!(captured.contains(&format!("Task {i} logging")))
+        assert!(
+            captured.contains(&format!("task {i} logging")),
+            "Not found captured data. All captured: `{captured}`"
+        )
     }
 }

@@ -4,10 +4,11 @@
 //!
 //! [`Logger`]: crate::Logger
 
-use crate::Error;
 use obsidian_tidy_core::directories::directories;
 use std::path::PathBuf;
 use tracing_subscriber::filter::{Builder as EnvFilterBuilder, EnvFilter};
+
+pub use tracing_subscriber::filter::ParseError;
 
 // On Unix, create a 'latest.log' symlink to the current log file.
 // On Windows, symlinks typically require administrator privileges, so this feature is disabled.
@@ -19,6 +20,8 @@ pub const DEFAULT_LATEST_SYMLINK: Option<&str> = None;
 
 pub const DEFAULT_CONSOLE_FILTER: &str = "info";
 pub const DEFAULT_FILE_FILTER: &str = "debug";
+
+pub const DEFAULT_MAX_LOG_FILES: usize = 10;
 
 /// Builder for configuring and initializing a [`Logger`].
 ///
@@ -84,7 +87,7 @@ impl Default for LoggerBuilder {
     /// | `path` | [`obsidian_tidy_core::directories::directories`] |
     /// | `filename_prefix` | `""` |
     /// | `filename_suffix` | `"log"` |
-    /// | `max_log_files` | `10` |
+    /// | `max_log_files` | [`DEFAULT_MAX_LOG_FILES`] |
     /// | `latest_symlink` | `latest.log` (in Unix system) |
     fn default() -> Self {
         let logs_dir = directories().logs_dir();
@@ -97,7 +100,7 @@ impl Default for LoggerBuilder {
             file: false,
             filename_prefix: String::new(),
             filename_suffix: String::from("log"),
-            max_log_files: 10,
+            max_log_files: DEFAULT_MAX_LOG_FILES,
             latest_symlink: DEFAULT_LATEST_SYMLINK.map(str::to_string),
         }
     }
@@ -173,7 +176,7 @@ impl LoggerBuilder {
     ///     .console_filter("warn") // Only warnings and errors on console
     ///     .expect("parse console filter");
     /// ```
-    pub fn console_filter(mut self, console_filter: impl AsRef<str>) -> Result<Self, Error> {
+    pub fn console_filter(mut self, console_filter: impl AsRef<str>) -> Result<Self, ParseError> {
         self.console_filter = EnvFilterBuilder::default().parse(console_filter)?;
         Ok(self)
     }
@@ -194,7 +197,7 @@ impl LoggerBuilder {
     ///     .file_filter("trace") // Full verbosity in files
     ///     .expect("parse console filter");
     /// ```
-    pub fn file_filter(mut self, file_filter: impl AsRef<str>) -> Result<Self, Error> {
+    pub fn file_filter(mut self, file_filter: impl AsRef<str>) -> Result<Self, ParseError> {
         self.file_filter = EnvFilterBuilder::default().parse(file_filter)?;
         Ok(self)
     }
@@ -293,22 +296,12 @@ mod tests {
 
     #[test]
     fn invalid_console_filter() {
-        assert!(
-            LoggerBuilder::default()
-                .console_filter("=ds")
-                .unwrap_err()
-                .is_parse()
-        )
+        assert!(LoggerBuilder::default().console_filter("=ds").is_err())
     }
 
     #[test]
     fn invalid_file_filter() {
-        assert!(
-            LoggerBuilder::default()
-                .file_filter("=ds")
-                .unwrap_err()
-                .is_parse()
-        )
+        assert!(LoggerBuilder::default().file_filter("=ds").is_err())
     }
 
     #[test]

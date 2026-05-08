@@ -87,7 +87,7 @@ impl Runnable for ListRules {
             ]);
         }
 
-        println!("{}", table);
+        println!("{table}");
 
         tracing::info!(
             "📊 Summary: {} total | {} 🟢 enabled | {} 🔴 disabled",

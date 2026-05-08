@@ -44,7 +44,7 @@ proptest = "1.11.0"
 tempfile = "3.25"
 strum = { version = "0.28", features = ["derive"] }
 derive_more = { version = "2", features = ["is_variant"] }
-miette = { version = "7.6", features = ["fancy"] }
+miette = { version = "7.6", features = ["fancy", "syntect-highlighter"] }
 serial_test = "3.4"
 gag = "1"
 insta = { version = "1.47", features = ["json"] }
