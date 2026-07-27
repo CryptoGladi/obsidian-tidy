@@ -2,6 +2,7 @@ use crate::rule::{Category, ErasedRule, RuleFabric};
 use serde::Serialize;
 use std::fmt::Debug;
 
+/// Erased version [`RuleFabric`]
 pub trait ErasedRuleFabric {
     fn name_rule(&self) -> &str;
 
@@ -38,7 +39,7 @@ where
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>> {
         let data: R::Data = erased_serde::deserialize(deserializer).map_err(Box::new)?;
-        let rule = self.create_rule(data)?;
+        let rule = R::create_rule(self, data)?;
 
         Ok(Box::new(rule))
     }

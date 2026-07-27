@@ -48,7 +48,7 @@ impl RuleRunner for EmptyContent {
 #[must_use]
 pub fn fabric()
 -> impl RuleFabric<Rule = EmptyContent, Data = EmptyContent, Error = Infallible> + Send + Sync {
-    EmptyContent::fabric()
+    EmptyContent::get_fabric()
 }
 
 #[cfg(test)]
@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn fabric() {
-        let fabric = EmptyContent::fabric();
+        let fabric = EmptyContent::get_fabric();
 
         assert_eq!(fabric.name_rule(), EmptyContent::NAME);
         assert_eq!(fabric.description_rule(), EmptyContent::DESCRIPTION);

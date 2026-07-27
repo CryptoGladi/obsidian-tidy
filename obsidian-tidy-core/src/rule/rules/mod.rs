@@ -445,10 +445,11 @@ where
 
     fn index(&self, index: T) -> &Self::Output {
         #[expect(
-            clippy::expect_used,
+            clippy::panic,
             reason = "The possibility of panic is indicated in the documentation"
         )]
-        self.get(index).expect("Not found rule by name")
+        self.get(index.as_ref())
+            .unwrap_or_else(|| panic!("Rule '{}' not found", index.as_ref()))
     }
 }
 

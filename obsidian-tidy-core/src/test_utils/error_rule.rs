@@ -35,7 +35,7 @@ mod tests {
 
     #[test]
     fn fabric() {
-        let _fabric = ErrorRule::fabric();
+        let _fabric = ErrorRule::get_fabric();
     }
 
     #[test]

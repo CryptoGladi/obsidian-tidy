@@ -80,8 +80,6 @@
 //! - **Capacity hinting**: pre-allocates `Rules` using `MapAccess::size_hint()`.
 //! - **Format agnostic**: works with `JSON`, `YAML`, `TOML`, `MessagePack`, or any `serde`-compatible format.
 
-use std::borrow::Cow;
-
 use super::Rules;
 use crate::rule::{ErasedRule, ErasedRuleFabric, RuleFabricRegistry, ToggleableRule};
 use serde::{
@@ -89,17 +87,16 @@ use serde::{
     de::{DeserializeSeed, Error, Visitor},
     ser::SerializeMap,
 };
+use std::borrow::Cow;
 use strum::{IntoStaticStr, VariantNames};
 use tracing::instrument;
 
 impl Serialize for Rules {
-    #[instrument(skip(serializer))]
+    #[instrument(skip(serializer), err)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        tracing::debug!("serializing `Rules`");
-
         let mut map = serializer.serialize_map(Some(self.len()))?;
 
         #[derive(Serialize)]
@@ -275,7 +272,8 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
             where
                 M: serde::de::MapAccess<'de>,
             {
-                // Not found with_capacity
+                // Not found `with_capacity` because Rules
+                // it is BTreeMap
                 let mut rules = Rules::new();
 
                 while let Some(rule_name) = map.next_key::<Cow<'de, str>>()? {

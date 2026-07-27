@@ -17,15 +17,14 @@ pub struct Directories {
 }
 
 impl Default for Directories {
-    #[allow(clippy::panic)]
+    #[expect(clippy::expect_used)]
     fn default() -> Self {
         trace!("init directories");
 
-        if let Some(project_dirs) = ProjectDirs::from("com", "CryptoGladi", "obsidian-tidy") {
-            return Directories { project_dirs };
-        }
+        let project_dirs = ProjectDirs::from("com", "CryptoGladi", "obsidian-tidy")
+            .expect("no valid home directory path could be retrieved from the operating system");
 
-        panic!("no valid home directory path could be retrieved from the operating system");
+        Self { project_dirs }
     }
 }
 

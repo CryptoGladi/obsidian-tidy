@@ -7,7 +7,7 @@ pub trait GetFabricFromRuleConstMetadata {
     type RuleConstMetadata: RuleConstMetadata;
 
     #[must_use]
-    fn fabric() -> impl RuleFabric<Rule = Self::Rule, Data = Self::Rule, Error = Infallible> {
+    fn get_fabric() -> impl RuleFabric<Rule = Self::Rule, Data = Self::Rule, Error = Infallible> {
         struct FabricFromRule<R: Rule + for<'de> Deserialize<'de>> {
             name_rule: &'static str,
             description_rule: &'static str,
@@ -86,7 +86,7 @@ mod tests {
     #[test]
     fn fabric() {
         let rule = TestRule::default();
-        let fabric = TestRule::fabric();
+        let fabric = TestRule::get_fabric();
 
         assert_eq!(fabric.name_rule(), rule.name());
         assert_eq!(fabric.description_rule(), rule.description());
