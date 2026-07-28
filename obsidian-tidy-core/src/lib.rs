@@ -23,13 +23,14 @@
 //! # Quick Start
 //!
 //! ```rust
-//! use obsidian_tidy_core::rule::{Category, Rules, ToggleableRule, RuleMetadata, RuleRunner};
+//! use obsidian_tidy_core::rule::{Category, Rules, Rule, ToggleableRule, RuleMetadata, RuleRunner};
 //! use obsidian_tidy_core::rule::{Content, Violation};
 //! use obsidian_tidy_core::Note;
 //! use std::convert::Infallible;
+//! use serde::Serialize;
 //!
 //! // 1. Define a rule
-//! #[derive(Debug, Default)]
+//! #[derive(Debug, Default, Serialize)]
 //! struct NoEmptyHeadings;
 //!
 //! impl RuleMetadata for NoEmptyHeadings {

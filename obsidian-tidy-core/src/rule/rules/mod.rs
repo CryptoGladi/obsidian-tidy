@@ -165,7 +165,7 @@ impl Rules {
     /// assert_eq!(old.unwrap().name(), "first");
     /// ```
     #[instrument(skip_all)]
-    #[must_use]
+    #[must_use = "The previous rule is returned and will be lost if ignored"]
     pub fn add(&mut self, rule: Value) -> Option<Value> {
         trace!("Add rule `{}`", rule.name());
 
@@ -528,7 +528,7 @@ mod tests {
         let rule2 = ToggleableRule::new(rule2, false);
 
         let mut rules = Rules::new();
-        let check = rules.add(rule1.into()).is_none();
+        let check = rules.add(rule1.clone().into()).is_none();
         assert!(check);
 
         let check = rules.add(rule2.into()).is_none();

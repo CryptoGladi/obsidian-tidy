@@ -68,7 +68,7 @@ pub trait RuleRunner: Send + Sync {
 }
 
 /// Trait for rule
-pub trait Rule: RuleRunner + RuleMetadata + Send + Sync {}
+pub trait Rule: RuleRunner + RuleMetadata {}
 
 impl<R> Rule for R where R: RuleRunner + RuleMetadata {}
 
