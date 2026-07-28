@@ -7,7 +7,7 @@ pub use get_fabric_from_rule_const_metadata::GetFabricFromRuleConstMetadata;
 pub use rule_fabric_registry::RuleFabricRegistry;
 
 use crate::rule::Category;
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 
 /// A factory trait responsible for dynamically creating [`Rule`] instances
 /// from deserialized configuration data.
@@ -106,7 +106,7 @@ use serde::Deserialize;
 /// [`Rule`]: crate::rule::Rule
 pub trait RuleFabric {
     type Rule: super::Rule;
-    type Data: for<'de> Deserialize<'de>;
+    type Data: DeserializeOwned;
     type Error: std::error::Error;
 
     fn name_rule(&self) -> &str;

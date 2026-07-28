@@ -1,14 +1,14 @@
 use crate::rule::{Category, Rule, RuleConstMetadata, RuleFabric, RuleRunner};
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use std::{convert::Infallible, marker::PhantomData};
 
 pub trait GetFabricFromRuleConstMetadata {
-    type Rule: Rule + for<'de> Deserialize<'de>;
+    type Rule: Rule + DeserializeOwned;
     type RuleConstMetadata: RuleConstMetadata;
 
     #[must_use]
     fn get_fabric() -> impl RuleFabric<Rule = Self::Rule, Data = Self::Rule, Error = Infallible> {
-        struct FabricFromRule<R: Rule + for<'de> Deserialize<'de>> {
+        struct FabricFromRule<R> {
             name_rule: &'static str,
             description_rule: &'static str,
             category: Category,
@@ -17,7 +17,7 @@ pub trait GetFabricFromRuleConstMetadata {
 
         impl<R> RuleFabric for FabricFromRule<R>
         where
-            R: Rule + for<'de> Deserialize<'de>,
+            R: Rule + DeserializeOwned,
         {
             type Rule = R;
             type Data = R;
@@ -51,7 +51,7 @@ pub trait GetFabricFromRuleConstMetadata {
 
 impl<R> GetFabricFromRuleConstMetadata for R
 where
-    R: RuleRunner + RuleConstMetadata + for<'de> Deserialize<'de>,
+    R: RuleRunner + RuleConstMetadata + DeserializeOwned,
 {
     type Rule = R;
     type RuleConstMetadata = R;
@@ -61,6 +61,7 @@ where
 mod tests {
     use super::*;
     use crate::rule::{RuleMetadata, RuleRunner};
+    use serde::Deserialize;
 
     #[derive(Deserialize, Default)]
     struct TestRule;
