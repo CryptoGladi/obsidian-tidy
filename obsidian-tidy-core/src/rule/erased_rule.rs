@@ -55,6 +55,8 @@ where
 
 pub trait ErasedRule: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
+static_assertions::assert_obj_safe!(ErasedRuleRunner, ErasedRule);
+
 impl<R> ErasedRule for R where R: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
 impl RuleMetadata for Box<dyn ErasedRule> {

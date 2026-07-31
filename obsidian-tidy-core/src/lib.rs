@@ -97,6 +97,12 @@ pub mod rule;
 #[cfg_attr(not(test), warn(unused))]
 pub mod test_utils;
 
+/// Utilities for benchmarks.
+///
+/// Test rules for benchmarks are located here.
+#[cfg_attr(not(test), warn(unused))]
+pub mod bench_utils;
+
 /// A parsed Obsidian vault containing a collection of [`Note`]s.
 ///
 /// This is a type alias over [`obsidian_parser::vault::Vault`] specialized

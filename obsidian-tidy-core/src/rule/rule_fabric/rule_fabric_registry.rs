@@ -15,6 +15,7 @@
 //!   across threads when wrapped in `Arc` or `RwLock`.
 
 use crate::rule::{Category, rule_fabric::erased_rule_fabric::ErasedRuleFabric};
+use core::convert::AsRef;
 use std::{collections::HashMap, fmt::Debug};
 
 /// A registry that maps rule names to their corresponding factories.
@@ -155,13 +156,13 @@ impl RuleFabricRegistry {
     }
 
     /// Returns an iterator over all registered rule names
-    pub fn names(&self) -> impl Iterator<Item = &String> {
-        self.0.keys()
+    pub fn names(&self) -> impl Iterator<Item = &str> {
+        self.0.keys().map(AsRef::as_ref)
     }
 
     /// Returns an iterator over all registered rule factories.
-    pub fn fabrics(&self) -> impl Iterator<Item = &Box<dyn ErasedRuleFabric + Send + Sync>> {
-        self.0.values()
+    pub fn fabrics(&self) -> impl Iterator<Item = &(dyn ErasedRuleFabric + Send + Sync)> {
+        self.0.values().map(AsRef::as_ref)
     }
 
     /// Returns `true` if the registry contains a rule factory with the given name.

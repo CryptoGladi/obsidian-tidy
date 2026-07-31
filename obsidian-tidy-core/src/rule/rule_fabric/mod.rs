@@ -118,6 +118,21 @@ pub trait RuleFabric {
     fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error>;
 }
 
+impl<R, D, E> std::fmt::Debug for dyn RuleFabric<Rule = R, Data = D, Error = E>
+where
+    R: super::Rule,
+    D: DeserializeOwned,
+    E: std::error::Error,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.debug_struct("RuleFabric")
+            .field("name_rule", &self.name_rule())
+            .field("description_rule", &self.description_rule())
+            .field("category_rule", &self.category_rule())
+            .finish_non_exhaustive()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

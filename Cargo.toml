@@ -48,6 +48,8 @@ miette = { version = "7.6", features = ["fancy", "syntect-highlighter"] }
 serial_test = "3.4"
 gag = "1"
 insta = { version = "1.47", features = ["json"] }
+criterion = { version = "0.8", features = ["html_reports"] }
+static_assertions = "1.1"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

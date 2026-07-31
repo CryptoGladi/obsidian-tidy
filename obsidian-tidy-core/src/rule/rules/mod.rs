@@ -3,6 +3,7 @@ pub mod serde;
 
 use super::ToggleableRule;
 use crate::rule::erased_rule::ErasedRule;
+use core::convert::AsRef;
 use std::collections::BTreeMap;
 use std::ops::{Index, IndexMut};
 use tracing::{instrument, trace};
@@ -301,8 +302,8 @@ impl Rules {
     /// names.sort();
     /// assert_eq!(names, vec!["x", "y"]);
     /// ```
-    pub fn names(&self) -> impl Iterator<Item = &String> {
-        self.0.keys()
+    pub fn names(&self) -> impl Iterator<Item = &str> {
+        self.0.keys().map(AsRef::as_ref)
     }
 
     /// Returns an iterator over all rules in the collection.

@@ -16,6 +16,8 @@ pub trait ErasedRuleFabric {
     ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>>;
 }
 
+static_assertions::assert_obj_safe!(ErasedRuleFabric);
+
 impl<R> ErasedRuleFabric for R
 where
     R: RuleFabric,
