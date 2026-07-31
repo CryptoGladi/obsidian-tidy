@@ -16,6 +16,7 @@ erased-serde.workspace = true
 strum.workspace = true
 derive_more.workspace = true
 serde_json.workspace = true        # TODO Add features for test and bench
+dhat.workspace = true
 static_assertions.workspace = true
 
 [dev-dependencies]
@@ -25,4 +26,8 @@ criterion.workspace = true
 
 [[bench]]
 name = "deserialization"
+harness = false
+
+[[bench]]
+name = "memory_profile_deserialization"
 harness = false
