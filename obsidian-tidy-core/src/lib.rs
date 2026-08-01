@@ -94,7 +94,7 @@ pub mod rule;
 ///
 /// This module is intended for use in integration tests of downstream crates.
 /// In non-test builds, unused items will emit a warning rather than an error.
-#[cfg_attr(not(test), warn(unused))]
+#[cfg(any(test, doc, debug_assertions))]
 pub mod test_utils;
 
 /// Utilities for benchmarks.

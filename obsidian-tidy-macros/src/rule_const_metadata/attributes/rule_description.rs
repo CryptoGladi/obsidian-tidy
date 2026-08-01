@@ -37,7 +37,7 @@ impl RuleDescription {
             .add(CheckOnlyAscii::new(ASCII_MSG))
             .add(CheckLenString::new(long_msg, MAX_LEN))
             .build_chain()
-            .ok_or(Error::new(span, "No handlers configured"))?;
+            .ok_or_else(|| Error::new(span, "No handlers configured"))?;
 
         run_chain(handler.as_ref(), &str, span)?;
 

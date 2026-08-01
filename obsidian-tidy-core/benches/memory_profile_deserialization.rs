@@ -1,24 +1,25 @@
 //! DHAT benchmarks for deserializer
 
-use obsidian_tidy_core::{bench_utils::setup_registry, rule::RulesSeed};
+use obsidian_tidy_core::{
+    bench_utils::{TestData, generate_data_for_test_rules},
+    rule::RulesSeed,
+};
 use serde::de::DeserializeSeed;
-use serde_json::Deserializer;
 
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
 const FILE_NAME: &str = "dhat-heap.json";
-const RULE_CONST: usize = 100;
+const RULE_COUNT: usize = 100;
 
 fn main() {
-    let json_data = obsidian_tidy_core::bench_utils::generate_benchmark_json(RULE_CONST);
-    let registry = setup_registry(RULE_CONST);
+    let TestData { json, registry } = generate_data_for_test_rules(RULE_COUNT);
     let seed = RulesSeed::new(&registry);
 
     let _profiler = dhat::Profiler::builder().file_name(FILE_NAME).build();
 
     for _ in 0..10 {
-        let mut deserializer = Deserializer::from_str(&json_data);
+        let mut deserializer = serde_json::Deserializer::from_str(&json);
         let result = seed.deserialize(&mut deserializer).unwrap();
         std::hint::black_box(result);
     }

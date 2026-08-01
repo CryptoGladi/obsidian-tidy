@@ -12,11 +12,14 @@ use std::collections::BTreeMap;
 
 fn generate_name_by_index(i: usize) -> String {
     let idx = i % 5;
-    format!("rule-type-{}-{}", idx, i)
+    format!("rule-type-{idx}-{i}")
 }
 
 /// Generates a JSON configuration with a specified number of rules.
 /// The rules cycle through 5 types to ensure realism.
+#[must_use]
+#[expect(clippy::missing_panics_doc, reason = "It is only test code")]
+#[expect(clippy::expect_used, reason = "It is only test code")]
 pub fn generate_benchmark_json(rule_count: usize) -> String {
     let mut final_map: BTreeMap<String, serde_json::Value> = BTreeMap::new();
 
@@ -51,7 +54,7 @@ pub fn generate_benchmark_json(rule_count: usize) -> String {
         final_map.insert(name, val);
     }
 
-    serde_json::to_string_pretty(&final_map).unwrap()
+    serde_json::to_string_pretty(&final_map).expect("json serializing")
 }
 
 struct FixNameRuleFactory {
@@ -147,6 +150,8 @@ impl ErasedRuleRunner for FixNameRule {
     }
 }
 
+#[must_use]
+#[expect(clippy::missing_panics_doc, reason = "It is only test code")]
 pub fn setup_registry(rule_count: usize) -> RuleFabricRegistry {
     let mut registry = RuleFabricRegistry::new();
 
@@ -169,6 +174,7 @@ pub fn setup_registry(rule_count: usize) -> RuleFabricRegistry {
             Box::new(fixed) as Box<dyn ErasedRuleFabric + Send + Sync + 'static>
         };
 
+        #[expect(clippy::panic)]
         if let Some(prev_factory) = registry.add(fixed_factory) {
             panic!(
                 "Duplicate detected! Factory: `{}`",
@@ -178,6 +184,40 @@ pub fn setup_registry(rule_count: usize) -> RuleFabricRegistry {
     }
 
     registry
+}
+
+/// Data for [`generate_data_for_test_rules`]
+pub struct TestData {
+    pub json: String,
+    pub registry: RuleFabricRegistry,
+}
+
+/// Get test data for testing deserialize [`Rules`] and [`RuleFabricRegistry`]
+///
+/// # Example
+///
+/// ```
+/// use obsidian_tidy_core::bench_utils::{TestData, generate_data_for_test_rules};
+/// use obsidian_tidy_core::rule::RulesSeed;
+/// use serde::de::DeserializeSeed;
+///
+/// let TestData { json, registry } = generate_data_for_test_rules(20);
+///
+/// let seed = RulesSeed::new(&registry);
+/// let rules = seed
+///     .deserialize(&mut serde_json::Deserializer::from_str(&json))
+///     .unwrap();
+///
+/// assert_eq!(rules.len(), 20);
+/// ```
+///
+/// [`Rules`]: crate::rule::Rules
+#[must_use]
+pub fn generate_data_for_test_rules(rule_count: usize) -> TestData {
+    let json = self::generate_benchmark_json(rule_count);
+    let registry = self::setup_registry(rule_count);
+
+    TestData { json, registry }
 }
 
 #[cfg(test)]
@@ -227,6 +267,18 @@ mod tests {
     fn get_rules_by_json() {
         let json = generate_benchmark_json(20);
         let registry = setup_registry(20);
+
+        let seed = RulesSeed::new(&registry);
+        let rules = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(&json))
+            .unwrap();
+
+        assert_eq!(rules.len(), 20);
+    }
+
+    #[test]
+    fn all() {
+        let TestData { json, registry } = generate_data_for_test_rules(20);
 
         let seed = RulesSeed::new(&registry);
         let rules = seed

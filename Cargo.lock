@@ -1105,6 +1105,7 @@ dependencies = [
  "obsidian-parser",
  "serde",
  "serde_json",
+ "serial_test",
  "static_assertions",
  "strum",
  "thiserror 2.0.18",

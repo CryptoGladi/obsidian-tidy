@@ -16,10 +16,7 @@ pub fn rule_const_metadata_impl(input: &DeriveInput) -> syn::Result<TokenStream>
         .attrs
         .iter()
         .find(|attr| attr.path().is_ident("rule_metadata"))
-        .ok_or(Error::new(
-            name.span(),
-            "Attribute #[rule_metadata(...)] is required",
-        ))?;
+        .ok_or_else(|| Error::new(name.span(), "Attribute #[rule_metadata(...)] is required"))?;
 
     let Attributes {
         name: rule_name,

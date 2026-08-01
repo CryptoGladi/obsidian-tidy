@@ -1,5 +1,7 @@
 target/
 .direnv/
 /result
+.vscode/
 
 .obsidian-tidy.json
+dhat-heap.json
