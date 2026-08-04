@@ -1,13 +1,12 @@
 use crate::{
     Note,
     rule::{
-        Category, Content, RuleConstMetadata, RuleRunner, Violation,
-        rule_fabric::GetFabricFromRuleConstMetadata,
+        Category, Content, RuleMetadata, RuleRunner, Violation,
+        factory::impl_rule_factory_with_serde,
     },
 };
 use core::iter::IntoIterator;
 use serde::{Deserialize, Serialize};
-use static_assertions::assert_impl_all;
 use std::convert::Infallible;
 
 /// Mock rule for the benchmark
@@ -17,12 +16,18 @@ pub struct HeadingSpacingRule {
     pub max_spaces: usize,
 }
 
-assert_impl_all!(HeadingSpacingRule: GetFabricFromRuleConstMetadata);
+impl RuleMetadata for HeadingSpacingRule {
+    fn name(&self) -> &str {
+        "heading-spacing"
+    }
 
-impl RuleConstMetadata for HeadingSpacingRule {
-    const NAME: &'static str = "heading-spacing";
-    const DESCRIPTION: &'static str = "Checks spacing between headings";
-    const CATEGORY: Category = Category::Spacing;
+    fn description(&self) -> &str {
+        "Checks spacing between headings"
+    }
+
+    fn category(&self) -> Category {
+        Category::Spacing
+    }
 }
 
 impl RuleRunner for HeadingSpacingRule {
@@ -32,18 +37,27 @@ impl RuleRunner for HeadingSpacingRule {
     }
 }
 
+pub struct HeadingSpacingFactory;
+impl_rule_factory_with_serde!(HeadingSpacingFactory, HeadingSpacingRule, "heading-spacing");
+
 /// Mock rule for the benchmark
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct DateFormatRule {
     pub format: String,
 }
 
-assert_impl_all!(DateFormatRule: GetFabricFromRuleConstMetadata);
+impl RuleMetadata for DateFormatRule {
+    fn name(&self) -> &str {
+        "date-format"
+    }
 
-impl RuleConstMetadata for DateFormatRule {
-    const NAME: &'static str = "date-format";
-    const DESCRIPTION: &'static str = "Validates date formats in YAML";
-    const CATEGORY: Category = Category::Yaml;
+    fn description(&self) -> &str {
+        "Validates date formats in YAML"
+    }
+
+    fn category(&self) -> Category {
+        Category::Yaml
+    }
 }
 
 impl RuleRunner for DateFormatRule {
@@ -53,13 +67,14 @@ impl RuleRunner for DateFormatRule {
     }
 }
 
+pub struct DateFormatFactory;
+impl_rule_factory_with_serde!(DateFormatFactory, DateFormatRule, "date-format");
+
 /// Mock rule for the benchmark
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct ForbiddenWordsRule {
     pub words: Vec<String>,
 }
-
-assert_impl_all!(ForbiddenWordsRule: GetFabricFromRuleConstMetadata);
 
 impl ForbiddenWordsRule {
     pub fn new<I, S>(words: I) -> Self
@@ -73,10 +88,18 @@ impl ForbiddenWordsRule {
     }
 }
 
-impl RuleConstMetadata for ForbiddenWordsRule {
-    const NAME: &'static str = "forbidden-words";
-    const DESCRIPTION: &'static str = "Flags specific forbidden words";
-    const CATEGORY: Category = Category::Content;
+impl RuleMetadata for ForbiddenWordsRule {
+    fn name(&self) -> &str {
+        "forbidden-words"
+    }
+
+    fn description(&self) -> &str {
+        "Flags specific forbidden words"
+    }
+
+    fn category(&self) -> Category {
+        Category::Content
+    }
 }
 
 impl RuleRunner for ForbiddenWordsRule {
@@ -86,6 +109,9 @@ impl RuleRunner for ForbiddenWordsRule {
     }
 }
 
+pub struct ForbiddenWordsFactory;
+impl_rule_factory_with_serde!(ForbiddenWordsFactory, ForbiddenWordsRule, "forbidden-words");
+
 /// Mock rule for the benchmark
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct EmptyFileRule {
@@ -93,12 +119,18 @@ pub struct EmptyFileRule {
     pub min_bytes: usize,
 }
 
-assert_impl_all!(EmptyFileRule: GetFabricFromRuleConstMetadata);
+impl RuleMetadata for EmptyFileRule {
+    fn name(&self) -> &str {
+        "empty-file"
+    }
 
-impl RuleConstMetadata for EmptyFileRule {
-    const NAME: &'static str = "empty-file";
-    const DESCRIPTION: &'static str = "Checks for empty or too small files";
-    const CATEGORY: Category = Category::Other;
+    fn description(&self) -> &str {
+        "Checks for empty or too small files"
+    }
+
+    fn category(&self) -> Category {
+        Category::Other
+    }
 }
 
 impl RuleRunner for EmptyFileRule {
@@ -108,6 +140,9 @@ impl RuleRunner for EmptyFileRule {
     }
 }
 
+pub struct EmptyFileFactory;
+impl_rule_factory_with_serde!(EmptyFileFactory, EmptyFileRule, "empty-file");
+
 /// Mock rule for the benchmark
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct TagConsistencyRule {
@@ -115,12 +150,18 @@ pub struct TagConsistencyRule {
     pub allow_extra: bool,
 }
 
-assert_impl_all!(TagConsistencyRule: GetFabricFromRuleConstMetadata);
+impl RuleMetadata for TagConsistencyRule {
+    fn name(&self) -> &str {
+        "tag-consistency"
+    }
 
-impl RuleConstMetadata for TagConsistencyRule {
-    const NAME: &'static str = "tag-consistency";
-    const DESCRIPTION: &'static str = "Ensures required tags are present";
-    const CATEGORY: Category = Category::Yaml;
+    fn description(&self) -> &str {
+        "Ensures required tags are present"
+    }
+
+    fn category(&self) -> Category {
+        Category::Yaml
+    }
 }
 
 impl RuleRunner for TagConsistencyRule {
@@ -129,3 +170,6 @@ impl RuleRunner for TagConsistencyRule {
         Ok(vec![])
     }
 }
+
+pub struct TagConsistencyFactory;
+impl_rule_factory_with_serde!(TagConsistencyFactory, TagConsistencyRule, "tag-consistency");

@@ -16,7 +16,7 @@ mod private {
 }
 
 use crate::{loader::ConfigLoader, saver::ConfigSaver, template::Template};
-use obsidian_tidy_core::rule::{RuleFabricRegistry, Rules};
+use obsidian_tidy_core::rule::{RuleFactoryRegistry, Rules};
 use serde::Serialize;
 use tracing::instrument;
 
@@ -95,7 +95,7 @@ impl Config {
 
     /// Returns a [`ConfigLoader`] for deserializing configuration from input.
     #[must_use = "ConfigLoader does nothing unless you call .load()"]
-    pub const fn loader(registry: &RuleFabricRegistry) -> ConfigLoader<'_> {
+    pub const fn loader(registry: &RuleFactoryRegistry) -> ConfigLoader<'_> {
         ConfigLoader { registry }
     }
 

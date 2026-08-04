@@ -1,9 +1,9 @@
 //! Rule for search notes with empty content
 
 use obsidian_parser::note::Note as _;
-use obsidian_tidy_core::rule::rule_fabric::GetFabricFromRuleConstMetadata;
+use obsidian_tidy_core::rule::factory::GetFabricFromRuleConstMetadata;
 use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Content, RuleFabric, RuleRunner};
+use obsidian_tidy_core::rule::{Content, RuleFactory, RuleRunner};
 use obsidian_tidy_core::{Note, NoteError};
 use obsidian_tidy_macros::RuleConstMetadata;
 use serde::{Deserialize, Serialize};
@@ -47,7 +47,7 @@ impl RuleRunner for EmptyContent {
 
 #[must_use]
 pub fn fabric()
--> impl RuleFabric<Rule = EmptyContent, Data = EmptyContent, Error = Infallible> + Send + Sync {
+-> impl RuleFactory<Rule = EmptyContent, Data = EmptyContent, Error = Infallible> + Send + Sync {
     EmptyContent::get_fabric()
 }
 
@@ -58,7 +58,7 @@ mod tests {
         DEFAULT_MOCK_VAULT, DefaultNoteGenerator, MockVaultBuilder, NoteGenerator as Generator,
     };
     use obsidian_parser::note::{NoteDefault, NoteFromReader};
-    use obsidian_tidy_core::rule::{RuleConstMetadata, RuleFabric};
+    use obsidian_tidy_core::rule::{RuleConstMetadata, RuleFactory};
     use tracing_test::traced_test;
 
     #[derive(Default, Debug)]

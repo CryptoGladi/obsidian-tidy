@@ -14,7 +14,7 @@
 //! - **Thread-Safe Storage:** Factories are `Send + Sync`, making the registry safe to share
 //!   across threads when wrapped in `Arc` or `RwLock`.
 
-use crate::rule::{Category, rule_fabric::erased_rule_fabric::ErasedRuleFabric};
+use crate::rule::{Category, factory::erased_rule_factory::ErasedRuleFactory};
 use core::convert::AsRef;
 use std::{collections::HashMap, fmt::Debug};
 
@@ -46,9 +46,9 @@ use std::{collections::HashMap, fmt::Debug};
 /// assert_eq!(retrieved.name_rule(), "my-rule");
 /// ```
 #[derive(Default)]
-pub struct RuleFabricRegistry(HashMap<String, Box<dyn ErasedRuleFabric + Send + Sync>>);
+pub struct RuleFactoryRegistry(HashMap<String, Box<dyn ErasedRuleFactory + Send + Sync>>);
 
-impl RuleFabricRegistry {
+impl RuleFactoryRegistry {
     /// Creates an empty registry
     ///
     /// # Example
@@ -128,9 +128,9 @@ impl RuleFabricRegistry {
     #[must_use = "To check for factory collisions for rules"]
     pub fn add(
         &mut self,
-        fabric: Box<dyn ErasedRuleFabric + Send + Sync>,
-    ) -> Option<Box<dyn ErasedRuleFabric + Send + Sync>> {
-        self.0.insert(fabric.name_rule().to_string(), fabric)
+        fabric: Box<dyn ErasedRuleFactory + Send + Sync>,
+    ) -> Option<Box<dyn ErasedRuleFactory + Send + Sync>> {
+        self.0.insert(fabric.name().to_string(), fabric)
     }
 
     /// Returns a reference to the rule factory with the given name.
@@ -151,7 +151,7 @@ impl RuleFabricRegistry {
     /// assert!(registry.get("missing").is_none());
     /// ```
     #[must_use]
-    pub fn get(&self, name: &str) -> Option<&(dyn ErasedRuleFabric + Send + Sync)> {
+    pub fn get(&self, name: &str) -> Option<&(dyn ErasedRuleFactory + Send + Sync)> {
         self.0.get(name).map(Box::as_ref)
     }
 
@@ -161,7 +161,7 @@ impl RuleFabricRegistry {
     }
 
     /// Returns an iterator over all registered rule factories.
-    pub fn fabrics(&self) -> impl Iterator<Item = &(dyn ErasedRuleFabric + Send + Sync)> {
+    pub fn fabrics(&self) -> impl Iterator<Item = &(dyn ErasedRuleFactory + Send + Sync)> {
         self.0.values().map(AsRef::as_ref)
     }
 
@@ -185,56 +185,6 @@ impl RuleFabricRegistry {
         self.0.contains_key(name)
     }
 }
-
-impl Debug for RuleFabricRegistry {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        #[allow(unused)]
-        struct InnerDebugFabric<'a> {
-            name: &'a str,
-            description: &'a str,
-            category: Category,
-        }
-
-        impl Debug for InnerDebugFabric<'_> {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.debug_struct(self.name)
-                    .field("description_rule", &self.description)
-                    .field("category_rule", &self.category)
-                    .finish()
-            }
-        }
-
-        f.debug_list()
-            .entries(self.0.iter().map(|(name, fabric)| {
-                debug_assert_eq!(name, fabric.name_rule());
-
-                InnerDebugFabric {
-                    name: fabric.name_rule(),
-                    description: fabric.description_rule(),
-                    category: fabric.category_rule(),
-                }
-            }))
-            .finish()
-    }
-}
-
-impl PartialEq for RuleFabricRegistry {
-    fn eq(&self, other: &Self) -> bool {
-        if self.0.len() != other.0.len() {
-            return false;
-        }
-
-        self.0.iter().all(|(key, self_fabric)| {
-            other.0.get(key).is_some_and(|other_fabric| {
-                self_fabric.name_rule() == other_fabric.name_rule()
-                    && self_fabric.description_rule() == other_fabric.description_rule()
-                    && self_fabric.category_rule() == other_fabric.category_rule()
-            })
-        })
-    }
-}
-
-impl Eq for RuleFabricRegistry {}
 
 /// Creates a [`RuleFabricRegistry`] from a list of rule factories.
 ///
@@ -279,16 +229,16 @@ impl Eq for RuleFabricRegistry {}
 #[macro_export]
 macro_rules! rule_fabric_registry {
     [] => {
-        $crate::rule::RuleFabricRegistry::new()
+        $crate::rule::RuleFactoryRegistry::new()
     };
 
     [$($fabric:expr),+ $(,)?] => {{
-        use $crate::rule::rule_fabric::erased_rule_fabric::IntoErasedRuleFabric;
+        use $crate::rule::factory::erased_rule_factory::IntoErasedRuleFactory;
 
-        let mut registry = $crate::rule::RuleFabricRegistry::new();
+        let mut registry = $crate::rule::RuleFactoryRegistry::new();
         $(
             if let Some(prev) = registry.add($fabric.into_erased()) {
-                panic!("Fabric with name '{}' already exists", prev.name_rule());
+                panic!("Fabric with name '{}' already exists", prev.name());
             }
         )+
         registry
@@ -299,7 +249,7 @@ macro_rules! rule_fabric_registry {
 mod tests {
     use super::*;
     use crate::{
-        rule::rule_fabric::erased_rule_fabric::IntoErasedRuleFabric, test_utils::TestRuleFabric,
+        rule::factory::erased_rule_factory::IntoErasedRuleFactory, test_utils::TestRuleFactory,
     };
 
     mod macro_rule_fabric_registry {
@@ -313,7 +263,7 @@ mod tests {
 
         #[test]
         fn one_element() {
-            let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+            let fabric = TestRuleFactory::new("test-rule");
             let registry = rule_fabric_registry![fabric];
 
             assert_eq!(registry.len(), 1);
@@ -321,8 +271,8 @@ mod tests {
 
         #[test]
         fn many_elements() {
-            let fabric1 = TestRuleFabric::new("test-rule1", "", Category::Heading);
-            let fabric2 = TestRuleFabric::new("test-rule2", "", Category::Heading);
+            let fabric1 = TestRuleFactory::new("test-rule1");
+            let fabric2 = TestRuleFactory::new("test-rule2");
 
             let registry = rule_fabric_registry![fabric1, fabric2];
 
@@ -332,7 +282,7 @@ mod tests {
         #[test]
         #[should_panic]
         fn duplicate() {
-            let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+            let fabric = TestRuleFactory::new("test-rule");
             let _registry = rule_fabric_registry![fabric.clone(), fabric];
         }
     }
@@ -342,9 +292,9 @@ mod tests {
 
     #[test]
     fn add() {
-        let mut registry = RuleFabricRegistry::new();
+        let mut registry = RuleFactoryRegistry::new();
 
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let collision = registry.add(Box::new(fabric.clone())).is_some();
         assert!(!collision);
 
@@ -353,9 +303,9 @@ mod tests {
 
     #[test]
     fn double_add() {
-        let mut registry = RuleFabricRegistry::new();
+        let mut registry = RuleFactoryRegistry::new();
 
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
 
         let collision = registry.add(fabric.clone().into_erased()).is_some();
         assert!(!collision);
@@ -366,25 +316,23 @@ mod tests {
 
     #[test]
     fn get() {
-        let mut registry = RuleFabricRegistry::new();
+        let mut registry = RuleFactoryRegistry::new();
 
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
 
         let collision = registry.add(Box::new(fabric.clone())).is_some();
         assert!(!collision);
 
         let getted_fabric = registry.get("test-rule").unwrap();
 
-        assert_eq!(getted_fabric.name_rule(), fabric.name_rule());
-        assert_eq!(getted_fabric.description_rule(), fabric.description_rule());
-        assert_eq!(getted_fabric.category_rule(), fabric.category_rule());
+        assert_eq!(getted_fabric.name(), fabric.name());
     }
 
     #[test]
     fn not_found_get() {
-        let mut registry = RuleFabricRegistry::new();
+        let mut registry = RuleFactoryRegistry::new();
 
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
 
         let collision = registry.add(Box::new(fabric.clone())).is_some();
         assert!(!collision);
@@ -393,79 +341,23 @@ mod tests {
     }
 
     #[test]
-    fn debug() {
-        let mut registry = RuleFabricRegistry::new();
-        assert_eq!(format!("{registry:?}"), "[]");
-
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
-        let collision = registry.add(Box::new(fabric.clone())).is_some();
-        assert!(!collision);
-
-        assert_eq!(
-            format!("{registry:?}"),
-            r#"[test-rule { description_rule: "", category_rule: Heading }]"#
-        );
-    }
-
-    #[test]
     fn len() {
-        let registry = RuleFabricRegistry::new();
+        let registry = RuleFactoryRegistry::new();
 
         assert_eq!(registry.len(), 0);
     }
 
     #[test]
     fn is_empty() {
-        let registry = RuleFabricRegistry::new();
+        let registry = RuleFactoryRegistry::new();
         assert!(registry.is_empty());
     }
 
     #[test]
-    fn eq_is_empty() {
-        let registry1 = RuleFabricRegistry::new();
-        let registry2 = RuleFabricRegistry::new();
-
-        assert_eq!(registry1, registry2);
-        assert_eq!(registry1, registry1);
-        assert_eq!(registry2, registry2);
-    }
-
-    #[test]
-    fn eq() {
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
-
-        let registry1 = rule_fabric_registry![fabric.clone()];
-        let registry2 = rule_fabric_registry![fabric];
-
-        assert_eq!(registry1, registry2);
-    }
-
-    #[test]
-    fn not_eq_by_len() {
-        let registry1 = RuleFabricRegistry::new();
-
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
-        let registry2 = rule_fabric_registry![fabric];
-
-        assert_ne!(registry1, registry2);
-    }
-
-    #[test]
-    fn not_eq_by_name() {
-        let fabric1 = TestRuleFabric::new("test-rule1", "", Category::Heading);
-        let fabric2 = TestRuleFabric::new("test-rule2", "", Category::Heading);
-
-        let registry1 = rule_fabric_registry![fabric1];
-        let registry2 = rule_fabric_registry![fabric2];
-
-        assert_ne!(registry1, registry2);
-    }
-
-    #[test]
     fn names() {
-        let mut registry = RuleFabricRegistry::new();
+        let mut registry = RuleFactoryRegistry::new();
 
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let collision = registry.add(Box::new(fabric.clone())).is_some();
         assert!(!collision);
 
@@ -475,21 +367,19 @@ mod tests {
 
     #[test]
     fn fabrics() {
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let registry = rule_fabric_registry![fabric.clone()];
 
         let fabrices = registry.fabrics();
-        let data: Vec<_> = fabrices
-            .map(|fabric| (fabric.name_rule(), fabric.description_rule()))
-            .collect();
+        let data: Vec<_> = fabrices.map(|fabric| fabric.name()).collect();
 
         assert_eq!(data.len(), 1);
-        assert_eq!(data[0], (fabric.name_rule(), fabric.description_rule()))
+        assert_eq!(data[0], fabric.name());
     }
 
     #[test]
     fn contains() {
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let registry = rule_fabric_registry![fabric];
 
         assert!(registry.contains("test-rule"));
@@ -500,7 +390,7 @@ mod tests {
     fn macro_check() {
         let _empty_registry = rule_fabric_registry![];
 
-        let fabric = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let _registry = rule_fabric_registry![fabric];
     }
 
@@ -509,7 +399,7 @@ mod tests {
     fn collision_macro_check() {
         let _empty_registry = rule_fabric_registry![];
 
-        let fabric1 = TestRuleFabric::new("test-rule", "", Category::Heading);
+        let fabric1 = TestRuleFactory::new("test-rule");
         let fabric2 = fabric1.clone();
         let _registry = rule_fabric_registry![fabric1, fabric2];
     }

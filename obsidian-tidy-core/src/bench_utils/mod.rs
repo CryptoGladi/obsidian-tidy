@@ -1,12 +1,16 @@
 pub mod mock_rules;
 
-use crate::rule::{
-    Category, ErasedRule, ErasedRuleFabric, ErasedRuleRunner, RuleFabricRegistry, RuleMetadata,
-    rule_fabric::{GetFabricFromRuleConstMetadata, erased_rule_fabric::IntoErasedRuleFabric},
+use crate::{
+    bench_utils::mock_rules::HeadingSpacingFactory,
+    rule::{
+        Category, ErasedRule, ErasedRuleFactory, ErasedRuleRunner, RuleFactoryRegistry,
+        RuleMetadata, factory::erased_rule_factory::IntoErasedRuleFactory,
+    },
 };
 use core::marker::Sync;
 use mock_rules::{
-    DateFormatRule, EmptyFileRule, ForbiddenWordsRule, HeadingSpacingRule, TagConsistencyRule,
+    DateFormatFactory, DateFormatRule, EmptyFileFactory, EmptyFileRule, ForbiddenWordsFactory,
+    ForbiddenWordsRule, HeadingSpacingRule, TagConsistencyFactory, TagConsistencyRule,
 };
 use std::collections::BTreeMap;
 
@@ -58,13 +62,13 @@ pub fn generate_benchmark_json(rule_count: usize) -> String {
 }
 
 struct FixNameRuleFactory {
-    inner: Box<dyn ErasedRuleFabric + Send + Sync + 'static>,
+    inner: Box<dyn ErasedRuleFactory + Send + Sync + 'static>,
     new_name: String,
 }
 
 impl FixNameRuleFactory {
     pub fn new(
-        inner: Box<dyn ErasedRuleFabric + Send + Sync + 'static>,
+        inner: Box<dyn ErasedRuleFactory + Send + Sync + 'static>,
         new_name: impl Into<String>,
     ) -> Self {
         Self {
@@ -74,29 +78,25 @@ impl FixNameRuleFactory {
     }
 }
 
-impl ErasedRuleFabric for FixNameRuleFactory {
-    fn name_rule(&self) -> &str {
+impl ErasedRuleFactory for FixNameRuleFactory {
+    fn name(&self) -> &str {
         &self.new_name
     }
 
-    fn description_rule(&self) -> &str {
-        self.inner.description_rule()
-    }
-
-    fn category_rule(&self) -> Category {
-        self.inner.category_rule()
-    }
-
-    fn create_rule(
+    fn create_by_serde(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<Box<dyn crate::rule::ErasedRule>, Box<dyn std::error::Error>> {
-        let rule = self.inner.create_rule(deserializer)?;
+        let rule = self.inner.create_by_serde(deserializer)?;
 
         // If we do not change the name within the rule itself, we violate a
         // structural invariant: the factory that creates the rule and the
         // rule itself must share the same name.
         Ok(Box::new(FixNameRule::new(rule, self.new_name.clone())))
+    }
+
+    fn create_default(&self) -> Option<Box<dyn ErasedRule>> {
+        self.inner.create_default()
     }
 }
 
@@ -152,15 +152,15 @@ impl ErasedRuleRunner for FixNameRule {
 
 #[must_use]
 #[expect(clippy::missing_panics_doc, reason = "It is only test code")]
-pub fn setup_registry(rule_count: usize) -> RuleFabricRegistry {
-    let mut registry = RuleFabricRegistry::new();
+pub fn setup_registry(rule_count: usize) -> RuleFactoryRegistry {
+    let mut registry = RuleFactoryRegistry::new();
 
-    let fabrics: &[fn() -> Box<dyn ErasedRuleFabric + Send + Sync + 'static>] = &[
-        || HeadingSpacingRule::get_fabric().into_erased(),
-        || DateFormatRule::get_fabric().into_erased(),
-        || ForbiddenWordsRule::get_fabric().into_erased(),
-        || EmptyFileRule::get_fabric().into_erased(),
-        || TagConsistencyRule::get_fabric().into_erased(),
+    let fabrics: &[fn() -> Box<dyn ErasedRuleFactory + Send + Sync + 'static>] = &[
+        || HeadingSpacingFactory.into_erased(),
+        || DateFormatFactory.into_erased(),
+        || ForbiddenWordsFactory.into_erased(),
+        || EmptyFileFactory.into_erased(),
+        || TagConsistencyFactory.into_erased(),
     ];
 
     for i in 0..rule_count {
@@ -171,15 +171,12 @@ pub fn setup_registry(rule_count: usize) -> RuleFabricRegistry {
             let new_name = generate_name_by_index(i);
 
             let fixed = FixNameRuleFactory::new(factory, new_name);
-            Box::new(fixed) as Box<dyn ErasedRuleFabric + Send + Sync + 'static>
+            Box::new(fixed) as Box<dyn ErasedRuleFactory + Send + Sync + 'static>
         };
 
         #[expect(clippy::panic)]
         if let Some(prev_factory) = registry.add(fixed_factory) {
-            panic!(
-                "Duplicate detected! Factory: `{}`",
-                prev_factory.name_rule()
-            );
+            panic!("Duplicate detected! Factory: `{}`", prev_factory.name());
         }
     }
 
@@ -189,7 +186,7 @@ pub fn setup_registry(rule_count: usize) -> RuleFabricRegistry {
 /// Data for [`generate_data_for_test_rules`]
 pub struct TestData {
     pub json: String,
-    pub registry: RuleFabricRegistry,
+    pub registry: RuleFactoryRegistry,
 }
 
 /// Get test data for testing deserialize [`Rules`] and [`RuleFabricRegistry`]
@@ -228,11 +225,11 @@ mod tests {
 
     #[test]
     fn fix_name_factory() {
-        let factory = DateFormatRule::get_fabric();
-        let name = factory.name_rule().to_string();
+        let factory = DateFormatFactory;
+        let name = factory.name().to_string();
 
         let fixed_factory = FixNameRuleFactory::new(factory.into_erased(), "fixed_name");
-        let fixed_name = fixed_factory.name_rule();
+        let fixed_name = fixed_factory.name();
 
         assert_eq!(fixed_name, "fixed_name");
         assert_ne!(name, fixed_name);
@@ -240,15 +237,15 @@ mod tests {
 
     #[test]
     fn fixed_factory_and_rule_have_same_name() {
-        let factory = DateFormatRule::get_fabric();
+        let factory = DateFormatFactory;
         let fixed_factory = FixNameRuleFactory::new(factory.into_erased(), "fixed_name");
 
         let mut deserializer = serde_json::Deserializer::from_str(r#"{"format": "YYYY-MM-DD"}"#);
         let mut deserializer = <dyn erased_serde::Deserializer>::erase(&mut deserializer);
-        let fixed_rule = fixed_factory.create_rule(&mut deserializer).unwrap();
+        let fixed_rule = fixed_factory.create_by_serde(&mut deserializer).unwrap();
 
-        assert_eq!(fixed_factory.name_rule(), fixed_rule.name());
-        assert_eq!(fixed_factory.name_rule(), "fixed_name");
+        assert_eq!(fixed_factory.name(), fixed_rule.name());
+        assert_eq!(fixed_factory.name(), "fixed_name");
     }
 
     #[test]

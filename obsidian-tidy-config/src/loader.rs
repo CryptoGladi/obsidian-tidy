@@ -1,7 +1,7 @@
 //! Deserialization logic for loading configuration from input.
 
 use super::{Config, Error};
-use obsidian_tidy_core::rule::RuleFabricRegistry;
+use obsidian_tidy_core::rule::RuleFactoryRegistry;
 use obsidian_tidy_core::rule::RulesSeed;
 use serde::de::{DeserializeSeed, Error as _, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer};
@@ -30,7 +30,7 @@ use tracing::instrument;
 /// ```
 #[derive(Debug)]
 pub struct ConfigLoader<'a> {
-    pub(crate) registry: &'a RuleFabricRegistry,
+    pub(crate) registry: &'a RuleFactoryRegistry,
 }
 
 impl ConfigLoader<'_> {
@@ -129,7 +129,7 @@ mod tests {
     use obsidian_tidy_core::{
         rule::ToggleableRule,
         rule_fabric_registry, rules,
-        test_utils::{TestRule, TestRuleFabric},
+        test_utils::{TestRule, TestRuleFactory},
     };
     use std::io::Cursor;
     use tracing_test::traced_test;
@@ -149,7 +149,7 @@ mod tests {
         config.saver().save(&mut buffer).unwrap();
         tracing::debug!("DATA: {}", String::from_utf8(buffer.clone()).unwrap());
 
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let loaded = Config::loader(&registry).load(Cursor::new(buffer)).unwrap();
@@ -160,7 +160,7 @@ mod tests {
     #[traced_test]
     fn empty_load() {
         let json = r#"{"rules": {}}"#;
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let loader = Config::loader(&registry);
@@ -173,7 +173,7 @@ mod tests {
     #[traced_test]
     fn missing_rules_field() {
         let json = r#"{}"#;
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let loader = Config::loader(&registry);
@@ -186,7 +186,7 @@ mod tests {
     #[traced_test]
     fn duplicate_rules_field() {
         let json = r#"{"rules": {}, "rules": {}}"#;
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let loader = Config::loader(&registry);
@@ -199,7 +199,7 @@ mod tests {
     #[traced_test]
     fn unknown_field() {
         let json = r#"{"rules": {}, "oh-my": "123"}"#;
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let loader = Config::loader(&registry);
@@ -212,7 +212,7 @@ mod tests {
     #[traced_test]
     fn case_sensitive_field_names() {
         let json = r#"{"Rules": {}}"#; // Capital R
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let loader = Config::loader(&registry);

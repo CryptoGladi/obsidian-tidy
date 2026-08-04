@@ -3,7 +3,7 @@
 pub mod category;
 pub mod content;
 pub mod erased_rule;
-pub mod rule_fabric;
+pub mod factory;
 pub mod rules;
 pub mod toggleable_rule;
 pub mod violation;
@@ -14,22 +14,11 @@ use std::fmt::Debug;
 pub use category::Category;
 pub use content::Content;
 pub use erased_rule::{ErasedRule, ErasedRuleRunner, GetErasedRule};
-pub use rule_fabric::{ErasedRuleFabric, RuleFabric, RuleFabricRegistry};
+pub use factory::{ErasedRuleFactory, RuleFactory, RuleFactoryRegistry};
 pub use rules::Rules;
 pub use rules::serde::RulesSeed;
 pub use toggleable_rule::ToggleableRule;
 pub use violation::Violation;
-
-pub trait RuleConstMetadata: Send + Sync {
-    /// **Unique** rule name
-    const NAME: &'static str;
-
-    /// Description rule
-    const DESCRIPTION: &'static str;
-
-    /// Category rule
-    const CATEGORY: Category;
-}
 
 pub trait RuleMetadata: Send + Sync {
     /// **Unique** rule name
@@ -40,23 +29,6 @@ pub trait RuleMetadata: Send + Sync {
 
     /// Category rule
     fn category(&self) -> Category;
-}
-
-impl<RCM> RuleMetadata for RCM
-where
-    RCM: RuleConstMetadata + ?Sized,
-{
-    fn name(&self) -> &str {
-        Self::NAME
-    }
-
-    fn description(&self) -> &str {
-        Self::DESCRIPTION
-    }
-
-    fn category(&self) -> Category {
-        Self::CATEGORY
-    }
 }
 
 pub trait RuleRunner: Send + Sync {

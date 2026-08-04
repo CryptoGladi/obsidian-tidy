@@ -81,7 +81,7 @@
 //! - **Format agnostic**: works with `JSON`, `YAML`, `TOML`, `MessagePack`, or any `serde`-compatible format.
 
 use super::Rules;
-use crate::rule::{ErasedRule, ErasedRuleFabric, RuleFabricRegistry, ToggleableRule};
+use crate::rule::{ErasedRule, ErasedRuleFactory, RuleFactoryRegistry, ToggleableRule};
 use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
     de::{DeserializeSeed, Error, Visitor},
@@ -121,27 +121,22 @@ impl Serialize for Rules {
 }
 
 pub struct ErasedRuleSeed<'a> {
-    fabric: &'a dyn ErasedRuleFabric,
+    fabric: &'a dyn ErasedRuleFactory,
 }
 
 impl<'de> DeserializeSeed<'de> for ErasedRuleSeed<'_> {
     type Value = Box<dyn ErasedRule>;
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(fabric = %self.fabric.name()))]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
     {
-        tracing::trace!(
-            "deserialize `ErasedRuleFabric` by fabric: {}",
-            self.fabric.name_rule()
-        );
-
         let mut erased_deserializer = &mut <dyn erased_serde::Deserializer>::erase(deserializer);
 
         let rule = self
             .fabric
-            .create_rule(&mut erased_deserializer)
+            .create_by_serde(&mut erased_deserializer)
             .map_err(D::Error::custom)?;
 
         Ok(rule)
@@ -149,22 +144,17 @@ impl<'de> DeserializeSeed<'de> for ErasedRuleSeed<'_> {
 }
 
 pub struct ErasedToggleableRuleSeed<'a> {
-    fabric: &'a dyn ErasedRuleFabric,
+    fabric: &'a dyn ErasedRuleFactory,
 }
 
 impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
     type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(fabric = %self.fabric.name()))]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
     {
-        tracing::trace!(
-            "deserialize `ErasedToggleableRuleSeed` by fabric: {}",
-            self.fabric.name_rule()
-        );
-
         #[derive(Deserialize, IntoStaticStr, VariantNames, strum::Display)]
         #[serde(field_identifier, rename_all = "lowercase")]
         #[strum(serialize_all = "lowercase")]
@@ -174,7 +164,7 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
         }
 
         struct WrapperVisitor<'a> {
-            fabric: &'a dyn ErasedRuleFabric,
+            fabric: &'a dyn ErasedRuleFactory,
         }
 
         impl<'de> Visitor<'de> for WrapperVisitor<'_> {
@@ -236,14 +226,14 @@ impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
 /// let seed = RulesSeed::new(&registry);
 /// let rules = seed.deserialize(&mut serde_json::Deserializer::from_str(json)).unwrap();
 /// ```
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct RulesSeed<'a> {
-    registry: &'a RuleFabricRegistry,
+    registry: &'a RuleFactoryRegistry,
 }
 
 impl<'a> RulesSeed<'a> {
     #[must_use]
-    pub const fn new(registry: &'a RuleFabricRegistry) -> Self {
+    pub const fn new(registry: &'a RuleFactoryRegistry) -> Self {
         Self { registry }
     }
 }
@@ -256,7 +246,7 @@ impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
         D: Deserializer<'de>,
     {
         struct RulesVisitor<'a> {
-            registry: &'a RuleFabricRegistry,
+            registry: &'a RuleFactoryRegistry,
         }
 
         impl<'de> Visitor<'de> for RulesVisitor<'_> {
@@ -310,7 +300,7 @@ mod tests {
     use crate::{
         rule::Category,
         rule_fabric_registry,
-        test_utils::{TestRule, TestRuleFabric},
+        test_utils::{TestRule, TestRuleFactory},
     };
     use tracing_test::traced_test;
 
@@ -335,7 +325,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize() {
-        let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let registry = rule_fabric_registry![fabric];
 
         let test_string = r#"{"test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#;
@@ -372,7 +362,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_empty_rules() {
-        let registry = RuleFabricRegistry::new();
+        let registry = RuleFactoryRegistry::new();
         let seed = RulesSeed::new(&registry);
 
         let rules = seed
@@ -385,7 +375,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_unknown_rule() {
-        let registry = RuleFabricRegistry::new();
+        let registry = RuleFactoryRegistry::new();
         let seed = RulesSeed::new(&registry);
 
         let json = r#"{"unknown":{"enable":true,"config":{}}}"#;
@@ -400,7 +390,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_missing_enable() {
-        let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
@@ -416,7 +406,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_missing_config() {
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
@@ -432,7 +422,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_duplicate_fields() {
-        let fabric = TestRuleFabric::default();
+        let fabric = TestRuleFactory::default();
         let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
@@ -448,7 +438,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_unknown_wrapper_field() {
-        let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);
@@ -464,7 +454,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn deserialize_duplicate_rule() {
-        let fabric = TestRuleFabric::new("test-rule", "Test rule", Category::Heading);
+        let fabric = TestRuleFactory::new("test-rule");
         let registry = rule_fabric_registry![fabric];
 
         let seed = RulesSeed::new(&registry);

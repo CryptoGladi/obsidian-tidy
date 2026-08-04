@@ -1,6 +1,6 @@
 use crate::{
     Note,
-    rule::{Category, Content, RuleFabric, RuleMetadata, RuleRunner, Violation},
+    rule::{Category, Content, RuleFactory, RuleMetadata, RuleRunner, Violation},
 };
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
@@ -63,57 +63,42 @@ impl RuleRunner for TestRule {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TestRuleFabric {
+pub struct TestRuleFactory {
     name: String,
-    description: String,
-    category: Category,
 }
 
-impl Default for TestRuleFabric {
+impl Default for TestRuleFactory {
     fn default() -> Self {
+        // It is MOCK!
         let test_rule = TestRule::default();
 
         Self {
             name: test_rule.name,
-            description: test_rule.description,
-            category: test_rule.category,
         }
     }
 }
 
-impl TestRuleFabric {
-    pub fn new(
-        name: impl Into<String>,
-        description: impl Into<String>,
-        category: Category,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            description: description.into(),
-            category,
-        }
+impl TestRuleFactory {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self { name: name.into() }
     }
 }
 
-impl RuleFabric for TestRuleFabric {
+impl RuleFactory for TestRuleFactory {
     type Rule = TestRule;
     type Data = TestRule;
     type Error = Infallible;
 
-    fn name_rule(&self) -> &str {
+    fn name(&self) -> &str {
         &self.name
     }
 
-    fn description_rule(&self) -> &str {
-        &self.description
-    }
-
-    fn category_rule(&self) -> Category {
-        self.category
-    }
-
-    fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
+    fn create_by_serde(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
         Ok(data)
+    }
+
+    fn create_default(&self) -> Option<Self::Rule> {
+        Some(TestRule::default())
     }
 }
 

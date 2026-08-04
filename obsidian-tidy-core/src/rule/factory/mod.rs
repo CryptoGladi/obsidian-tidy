@@ -1,12 +1,10 @@
-pub mod erased_rule_fabric;
-pub mod get_fabric_from_rule_const_metadata;
-pub mod rule_fabric_registry;
+pub mod erased_rule_factory;
+pub mod rule_factory_registry;
 
-pub use erased_rule_fabric::ErasedRuleFabric;
-pub use get_fabric_from_rule_const_metadata::GetFabricFromRuleConstMetadata;
-pub use rule_fabric_registry::RuleFabricRegistry;
+pub use erased_rule_factory::ErasedRuleFactory;
 
-use crate::rule::Category;
+pub use rule_factory_registry::RuleFactoryRegistry;
+
 use serde::de::DeserializeOwned;
 
 /// A factory trait responsible for dynamically creating [`Rule`] instances
@@ -104,41 +102,48 @@ use serde::de::DeserializeOwned;
 ///
 /// [`RuleMetadata`]: crate::rule::RuleMetadata
 /// [`Rule`]: crate::rule::Rule
-pub trait RuleFabric {
+pub trait RuleFactory {
     type Rule: super::Rule;
     type Data: DeserializeOwned;
     type Error: std::error::Error;
 
-    fn name_rule(&self) -> &str;
+    fn name(&self) -> &str;
 
-    fn description_rule(&self) -> &str;
+    fn create_by_serde(&self, data: Self::Data) -> Result<Self::Rule, Self::Error>;
 
-    fn category_rule(&self) -> Category;
-
-    fn create_rule(&self, data: Self::Data) -> Result<Self::Rule, Self::Error>;
+    fn create_default(&self) -> Option<Self::Rule>;
 }
 
-impl<R, D, E> std::fmt::Debug for dyn RuleFabric<Rule = R, Data = D, Error = E>
-where
-    R: super::Rule,
-    D: DeserializeOwned,
-    E: std::error::Error,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        f.debug_struct("RuleFabric")
-            .field("name_rule", &self.name_rule())
-            .field("description_rule", &self.description_rule())
-            .field("category_rule", &self.category_rule())
-            .finish_non_exhaustive()
-    }
+macro_rules! impl_rule_factory_with_serde {
+    ($item:ident, $rule:ident, $name:literal) => {
+        impl $crate::rule::factory::RuleFactory for $item {
+            type Rule = $rule;
+            type Data = $rule;
+            type Error = std::convert::Infallible;
+
+            fn name(&self) -> &str {
+                $name
+            }
+
+            fn create_by_serde(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
+                Ok(data)
+            }
+
+            fn create_default(&self) -> Option<Self::Rule> {
+                None
+            }
+        }
+    };
 }
+
+pub(crate) use impl_rule_factory_with_serde;
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
         rule::{Category, RuleMetadata},
-        test_utils::{TestRule, TestRuleFabric},
+        test_utils::{TestRule, TestRuleFactory},
     };
 
     #[test]
@@ -150,9 +155,9 @@ mod tests {
         let test_rule = TestRule::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY, []);
         let json = serde_json::to_string_pretty(&test_rule).unwrap();
 
-        let fabric = TestRuleFabric::new(TEST_NAME, TEST_DESCRIPTION, TEST_CATEGORY);
+        let fabric = TestRuleFactory::new(TEST_NAME);
         let data = serde_json::from_str(&json).unwrap();
-        let deserialized_rule = RuleFabric::create_rule(&fabric, data).unwrap();
+        let deserialized_rule = RuleFactory::create_by_serde(&fabric, data).unwrap();
 
         assert_eq!(test_rule, deserialized_rule);
         assert_eq!(test_rule.name(), deserialized_rule.name());

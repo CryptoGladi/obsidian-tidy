@@ -1,83 +1,66 @@
-use crate::rule::{Category, ErasedRule, RuleFabric};
+use crate::rule::{ErasedRule, RuleFactory};
 use serde::Serialize;
-use std::fmt::Debug;
 
-/// Erased version [`RuleFabric`]
-pub trait ErasedRuleFabric {
-    fn name_rule(&self) -> &str;
+/// Erased version [`RuleFactory`]
+pub trait ErasedRuleFactory {
+    fn name(&self) -> &str;
 
-    fn description_rule(&self) -> &str;
-
-    fn category_rule(&self) -> Category;
-
-    fn create_rule(
+    fn create_by_serde(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>>;
+
+    fn create_default(&self) -> Option<Box<dyn ErasedRule>>;
 }
 
-static_assertions::assert_obj_safe!(ErasedRuleFabric);
+static_assertions::assert_obj_safe!(ErasedRuleFactory);
 
-impl<R> ErasedRuleFabric for R
+impl<R> ErasedRuleFactory for R
 where
-    R: RuleFabric,
-    <R as RuleFabric>::Rule: Serialize + 'static,
-    <R as RuleFabric>::Error: 'static,
+    R: RuleFactory,
+    <R as RuleFactory>::Rule: Serialize + 'static,
+    <R as RuleFactory>::Error: 'static,
 {
-    fn name_rule(&self) -> &str {
-        R::name_rule(self)
+    fn name(&self) -> &str {
+        R::name(self)
     }
 
-    fn description_rule(&self) -> &str {
-        R::description_rule(self)
-    }
-
-    fn category_rule(&self) -> Category {
-        R::category_rule(self)
-    }
-
-    fn create_rule(
+    fn create_by_serde(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>> {
         let data: R::Data = erased_serde::deserialize(deserializer).map_err(Box::new)?;
-        let rule = R::create_rule(self, data)?;
+        let rule = R::create_by_serde(self, data)?;
 
         Ok(Box::new(rule))
     }
+
+    fn create_default(&self) -> Option<Box<dyn ErasedRule>> {
+        R::create_default(self).map(|r| Box::new(r) as Box<dyn ErasedRule>)
+    }
 }
 
-pub trait IntoErasedRuleFabric {
-    fn into_erased(self) -> Box<dyn ErasedRuleFabric + Send + Sync>;
+pub trait IntoErasedRuleFactory {
+    fn into_erased(self) -> Box<dyn ErasedRuleFactory + Send + Sync>;
 }
 
-impl<R> IntoErasedRuleFabric for R
+impl<R> IntoErasedRuleFactory for R
 where
-    R: RuleFabric + Send + Sync + 'static,
-    <R as RuleFabric>::Rule: Serialize,
+    R: RuleFactory + Send + Sync + 'static,
+    <R as RuleFactory>::Rule: Serialize,
 {
-    fn into_erased(self) -> Box<dyn ErasedRuleFabric + Send + Sync> {
+    fn into_erased(self) -> Box<dyn ErasedRuleFactory + Send + Sync> {
         Box::new(self)
     }
 }
 
-impl<R> From<R> for Box<dyn ErasedRuleFabric>
+impl<R> From<R> for Box<dyn ErasedRuleFactory>
 where
-    R: RuleFabric + Send + Sync + 'static,
-    <R as RuleFabric>::Rule: Serialize,
+    R: RuleFactory + Send + Sync + 'static,
+    <R as RuleFactory>::Rule: Serialize,
 {
     fn from(rule_fabric: R) -> Self {
         rule_fabric.into_erased()
-    }
-}
-
-impl Debug for dyn ErasedRuleFabric {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ErasedRuleFabric")
-            .field("name_rule", &self.name_rule())
-            .field("description_rule", &self.description_rule())
-            .field("category_rule", &self.category_rule())
-            .finish_non_exhaustive()
     }
 }
 
@@ -85,8 +68,8 @@ impl Debug for dyn ErasedRuleFabric {
 mod tests {
     use super::*;
     use crate::{
-        rule::RuleMetadata,
-        test_utils::{TestRule, TestRuleFabric},
+        rule::{Category, RuleMetadata},
+        test_utils::{TestRule, TestRuleFactory},
     };
 
     #[test]
@@ -100,14 +83,10 @@ mod tests {
 
         let mut deserializer = serde_json::Deserializer::from_str(&json);
         let mut erased_deserializer = <dyn erased_serde::Deserializer>::erase(&mut deserializer);
-        let fabric: Box<dyn ErasedRuleFabric> = Box::new(TestRuleFabric::new(
-            TEST_NAME,
-            TEST_DESCRIPTION,
-            TEST_CATEGORY,
-        ));
+        let fabric: Box<dyn ErasedRuleFactory> = Box::new(TestRuleFactory::new(TEST_NAME));
 
         let deserialized_rule = fabric
-            .create_rule(&mut erased_deserializer)
+            .create_by_serde(&mut erased_deserializer)
             .expect("Failed to create rule from fabric");
 
         assert_eq!(test_rule.name(), deserialized_rule.name());
@@ -124,9 +103,9 @@ mod tests {
 
         let mut deserializer = serde_json::Deserializer::from_str(invalid_json);
         let mut erased_deserializer = <dyn erased_serde::Deserializer>::erase(&mut deserializer);
-        let fabric: Box<dyn ErasedRuleFabric> = Box::new(TestRuleFabric::default());
+        let fabric: Box<dyn ErasedRuleFactory> = Box::new(TestRuleFactory::default());
 
-        let result = fabric.create_rule(&mut erased_deserializer);
+        let result = fabric.create_by_serde(&mut erased_deserializer);
         assert!(result.is_err(), "Should fail with invalid JSON");
 
         if let Err(e) = result {
