@@ -53,9 +53,12 @@ where
     }
 }
 
+// Dont delete ErasedSerialize!
 pub trait ErasedRule: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
 static_assertions::assert_obj_safe!(ErasedRuleRunner, ErasedRule);
+
+erased_serde::serialize_trait_object!(ErasedRule);
 
 impl<R> ErasedRule for R where R: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
@@ -102,15 +105,6 @@ impl Debug for dyn ErasedRule {
             .field("description", &self.description())
             .field("category", &self.category())
             .finish_non_exhaustive()
-    }
-}
-
-impl Serialize for Box<dyn ErasedRule> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        erased_serde::serialize(self.as_ref(), serializer)
     }
 }
 

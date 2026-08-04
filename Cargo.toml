@@ -54,6 +54,7 @@ insta = { version = "1.47", features = ["json"] }
 criterion = { version = "0.8", features = ["html_reports"] }
 static_assertions = "1.1"
 dhat = "0.3"
+inventory = "0.3"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

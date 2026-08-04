@@ -18,11 +18,11 @@ pub enum Error {
 pub struct ErrorRule;
 
 impl RuleMetadata for ErrorRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "error-rule"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "A rule that always returns an error"
     }
 

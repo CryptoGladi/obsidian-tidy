@@ -22,7 +22,7 @@ where
     <R as RuleFactory>::Error: 'static,
 {
     fn name(&self) -> &str {
-        R::name(self)
+        R::id(self)
     }
 
     fn create_by_serde(

@@ -14,9 +14,9 @@
 //! - **Thread-Safe Storage:** Factories are `Send + Sync`, making the registry safe to share
 //!   across threads when wrapped in `Arc` or `RwLock`.
 
-use crate::rule::{Category, factory::erased_rule_factory::ErasedRuleFactory};
+use crate::rule::factory::erased_rule_factory::ErasedRuleFactory;
 use core::convert::AsRef;
-use std::{collections::HashMap, fmt::Debug};
+use std::collections::HashMap;
 
 /// A registry that maps rule names to their corresponding factories.
 ///
@@ -286,9 +286,6 @@ mod tests {
             let _registry = rule_fabric_registry![fabric.clone(), fabric];
         }
     }
-
-    #[test]
-    fn macro_rule_fabric_empty() {}
 
     #[test]
     fn add() {

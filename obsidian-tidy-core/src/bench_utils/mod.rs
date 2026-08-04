@@ -110,7 +110,7 @@ impl serde::Serialize for FixNameRule {
     where
         S: serde::Serializer,
     {
-        erased_serde::serialize(self, serializer)
+        self.inner.serialize(serializer)
     }
 }
 

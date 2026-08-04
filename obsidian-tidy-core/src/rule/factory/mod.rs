@@ -1,8 +1,9 @@
 pub mod erased_rule_factory;
+pub mod inventory;
 pub mod rule_factory_registry;
 
 pub use erased_rule_factory::ErasedRuleFactory;
-
+pub use inventory::{RuleFactoryInventory, get_all_rule_factories};
 pub use rule_factory_registry::RuleFactoryRegistry;
 
 use serde::de::DeserializeOwned;
@@ -107,7 +108,7 @@ pub trait RuleFactory {
     type Data: DeserializeOwned;
     type Error: std::error::Error;
 
-    fn name(&self) -> &str;
+    fn id(&self) -> &str;
 
     fn create_by_serde(&self, data: Self::Data) -> Result<Self::Rule, Self::Error>;
 
@@ -115,14 +116,14 @@ pub trait RuleFactory {
 }
 
 macro_rules! impl_rule_factory_with_serde {
-    ($item:ident, $rule:ident, $name:literal) => {
+    ($item:ident, $rule:ident, $id:literal) => {
         impl $crate::rule::factory::RuleFactory for $item {
             type Rule = $rule;
             type Data = $rule;
             type Error = std::convert::Infallible;
 
-            fn name(&self) -> &str {
-                $name
+            fn id(&self) -> &str {
+                $id
             }
 
             fn create_by_serde(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {

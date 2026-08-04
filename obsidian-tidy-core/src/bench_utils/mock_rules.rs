@@ -17,11 +17,11 @@ pub struct HeadingSpacingRule {
 }
 
 impl RuleMetadata for HeadingSpacingRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "heading-spacing"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Checks spacing between headings"
     }
 
@@ -47,11 +47,11 @@ pub struct DateFormatRule {
 }
 
 impl RuleMetadata for DateFormatRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "date-format"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Validates date formats in YAML"
     }
 
@@ -89,11 +89,11 @@ impl ForbiddenWordsRule {
 }
 
 impl RuleMetadata for ForbiddenWordsRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "forbidden-words"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Flags specific forbidden words"
     }
 
@@ -120,11 +120,11 @@ pub struct EmptyFileRule {
 }
 
 impl RuleMetadata for EmptyFileRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "empty-file"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Checks for empty or too small files"
     }
 
@@ -151,11 +151,11 @@ pub struct TagConsistencyRule {
 }
 
 impl RuleMetadata for TagConsistencyRule {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "tag-consistency"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Ensures required tags are present"
     }
 

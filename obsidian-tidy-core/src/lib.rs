@@ -88,6 +88,7 @@
 #![deny(unsafe_code)]
 
 pub mod directories;
+pub mod prelude;
 pub mod rule;
 
 /// Utilities for testing rules and fabrics.

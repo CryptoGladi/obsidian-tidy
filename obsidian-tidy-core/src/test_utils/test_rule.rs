@@ -89,7 +89,7 @@ impl RuleFactory for TestRuleFactory {
     type Data = TestRule;
     type Error = Infallible;
 
-    fn name(&self) -> &str {
+    fn id(&self) -> &str {
         &self.name
     }
 
