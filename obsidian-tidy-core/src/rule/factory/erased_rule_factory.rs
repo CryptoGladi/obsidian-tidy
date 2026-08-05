@@ -3,7 +3,7 @@ use serde::Serialize;
 
 /// Erased version [`RuleFactory`]
 pub trait ErasedRuleFactory {
-    fn name(&self) -> &str;
+    fn id(&self) -> &str;
 
     fn create_by_serde(
         &self,
@@ -21,7 +21,7 @@ where
     <R as RuleFactory>::Rule: Serialize + 'static,
     <R as RuleFactory>::Error: 'static,
 {
-    fn name(&self) -> &str {
+    fn id(&self) -> &str {
         R::id(self)
     }
 
@@ -37,6 +37,23 @@ where
 
     fn create_default(&self) -> Option<Box<dyn ErasedRule>> {
         R::create_default(self).map(|r| Box::new(r) as Box<dyn ErasedRule>)
+    }
+}
+
+impl ErasedRuleFactory for &(dyn ErasedRuleFactory + Send + Sync) {
+    fn id(&self) -> &str {
+        (**self).id()
+    }
+
+    fn create_by_serde(
+        &self,
+        deserializer: &mut dyn erased_serde::Deserializer,
+    ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>> {
+        (**self).create_by_serde(deserializer)
+    }
+
+    fn create_default(&self) -> Option<Box<dyn ErasedRule>> {
+        (**self).create_default()
     }
 }
 

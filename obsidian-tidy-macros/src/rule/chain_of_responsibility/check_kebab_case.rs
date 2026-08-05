@@ -1,5 +1,5 @@
 use super::Handler;
-use crate::rule_const_metadata::kebab_case::IsKebabCase;
+use crate::rule::kebab_case::IsKebabCase;
 use proc_macro2::Span;
 use syn::Error;
 
@@ -62,7 +62,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rule_const_metadata::kebab_case::kebab_strategy;
+    use crate::rule::kebab_case::kebab_strategy;
     use proptest::prelude::*;
 
     #[test]

@@ -1,7 +1,7 @@
 use obsidian_tidy_core::{
     Note,
     rule::{
-        Category, Content, RuleFactory, RuleMetadata, RuleRunner, Violation,
+        Category, Content, RuleFactory, RuleFactoryRegistry, RuleMetadata, RuleRunner, Violation,
         factory::inventory::get_all_rule_factories,
     },
 };
@@ -70,7 +70,7 @@ obsidian_tidy_core::registration_rule_factory!(TestRuleFactory);
 #[test]
 fn inventory_iter() {
     let rules = get_all_rule_factories()
-        .map(|fabric| (fabric.name(), fabric.create_default().unwrap()))
+        .map(|fabric| (fabric.id(), fabric.create_default().unwrap()))
         .collect::<HashMap<_, _>>();
 
     let result = rules
@@ -80,4 +80,12 @@ fn inventory_iter() {
         .unwrap();
 
     assert_eq!(result[0].message(), "Rule with `YYYY-MM-DD` format");
+}
+
+#[test]
+fn registry_by_inventory() {
+    let rules = RuleFactoryRegistry::new_by_inventory();
+
+    assert_eq!(rules.len(), 1);
+    assert_eq!(rules.get("test").unwrap().id(), "test");
 }

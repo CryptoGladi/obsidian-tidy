@@ -14,6 +14,7 @@ pub struct Attributes {
     pub name: RuleName,
     pub description: RuleDescription,
     pub category: Category,
+    pub default: bool,
 }
 
 impl syn::parse::Parse for Attributes {
@@ -21,56 +22,70 @@ impl syn::parse::Parse for Attributes {
         let mut name = None;
         let mut description = None;
         let mut category = None;
+        let mut default = None;
 
         while !input.is_empty() {
             let key: Ident = input.parse()?;
-            let _: Token![=] = input.parse()?;
 
-            if key == "name" {
-                if name.is_some() {
-                    return Err(Error::new(key.span(), "Duplicate `name` attribute"));
+            if key == "default" {
+                if default.is_some() {
+                    return Err(Error::new(key.span(), "Duplicate `default` attribute"));
                 }
 
-                let lit: LitStr = input.parse()?;
-                name = Some(RuleName::new(lit.value(), lit.span())?);
-            } else if key == "description" {
-                if description.is_some() {
-                    return Err(Error::new(key.span(), "Duplicate `description` attribute"));
+                if input.peek(Token![=]) {
+                    return Err(Error::new(
+                        key.span(),
+                        "`default` is a flag and does not take a value. \
+                         Write just `default`, not `default = ...`",
+                    ));
                 }
 
-                let lit: LitStr = input.parse()?;
-                description = Some(RuleDescription::new(lit.value(), lit.span())?);
-            } else if key == "category" {
-                if category.is_some() {
-                    return Err(Error::new(key.span(), "Duplicate `category` attribute"));
-                }
-
-                let lit: Category = input.parse()?;
-                category = Some(lit);
+                default = Some(true);
             } else {
-                return Err(Error::new(key.span(), format!("Unknown attribute `{key}`")));
+                let _: Token![=] = input.parse()?;
+
+                if key == "name" {
+                    if name.is_some() {
+                        return Err(Error::new(key.span(), "Duplicate `name` attribute"));
+                    }
+                    let lit: LitStr = input.parse()?;
+                    name = Some(RuleName::new(lit.value(), lit.span())?);
+                } else if key == "description" {
+                    if description.is_some() {
+                        return Err(Error::new(key.span(), "Duplicate `description` attribute"));
+                    }
+                    let lit: LitStr = input.parse()?;
+                    description = Some(RuleDescription::new(lit.value(), lit.span())?);
+                } else if key == "category" {
+                    if category.is_some() {
+                        return Err(Error::new(key.span(), "Duplicate `category` attribute"));
+                    }
+                    let lit: Category = input.parse()?;
+                    category = Some(lit);
+                } else {
+                    return Err(Error::new(key.span(), format!("Unknown attribute `{key}`")));
+                }
             }
 
-            // Если после пары есть запятая, пропускаем её
             if input.peek(Token![,]) {
                 let _: Token![,] = input.parse()?;
-            } else {
-                break;
             }
         }
 
         let name =
             name.ok_or_else(|| Error::new(input.span(), "Missing required attribute `name`"))?;
-
         let description = description
             .ok_or_else(|| Error::new(input.span(), "Missing required attribute `description`"))?;
         let category = category
             .ok_or_else(|| Error::new(input.span(), "Missing required attribute `category`"))?;
 
+        let default = default.unwrap_or(false);
+
         Ok(Self {
             name,
             description,
             category,
+            default,
         })
     }
 }
@@ -78,7 +93,7 @@ impl syn::parse::Parse for Attributes {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rule_const_metadata::attributes::category::CoreCategory;
+    use crate::rule::attributes::category::CoreCategory;
     use syn::parse_quote;
 
     #[test]

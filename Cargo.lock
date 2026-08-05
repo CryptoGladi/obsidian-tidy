@@ -1146,6 +1146,7 @@ dependencies = [
  "proc-macro2",
  "proptest",
  "quote",
+ "serde",
  "syn",
 ]
 

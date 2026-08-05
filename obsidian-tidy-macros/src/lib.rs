@@ -3,7 +3,7 @@
 #![forbid(clippy::print_stdout)]
 #![forbid(clippy::print_stderr)]
 
-pub(crate) mod rule_const_metadata;
+pub(crate) mod rule;
 
 #[cfg(test)]
 pub(crate) mod test_utils;
@@ -27,10 +27,11 @@ use proc_macro::TokenStream;
 ///
 /// Then import the macro and derive it on your rule struct:
 ///
-/// ```
-/// use obsidian_tidy_macros::RuleConstMetadata;
+/// ```ignore
+/// TODO
+/// use obsidian_tidy_macros::Rule;
 ///
-/// #[derive(RuleConstMetadata)]
+/// #[derive(Rule)]
 /// #[rule_metadata(
 ///     name = "no-empty-links",
 ///     description = "Detects empty markdown links",
@@ -41,7 +42,8 @@ use proc_macro::TokenStream;
 ///
 /// This will generate the following implementation:
 ///
-/// ```
+/// ```ignore
+/// TODO
 /// # use obsidian_tidy_core::rule::Category;
 /// # struct NoEmptyLinks;
 /// impl obsidian_tidy_core::rule::RuleConstMetadata for NoEmptyLinks {
@@ -66,11 +68,11 @@ use proc_macro::TokenStream;
 ///
 /// The macro performs validation at compile time. If any of the constraints are violated,
 /// a descriptive error message will be emitted pointing to the exact location.
-#[proc_macro_derive(RuleConstMetadata, attributes(rule_metadata))]
+#[proc_macro_derive(Rule, attributes(rule_metadata))]
 pub fn derive_rule(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
 
-    rule_const_metadata::rule_const_metadata_impl(&input)
+    rule::rule_impl(&input)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }

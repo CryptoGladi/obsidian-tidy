@@ -3,7 +3,7 @@
 //! when its `handle` method is called, allowing tests to assert that a particular
 //! handler was reached
 
-use crate::rule_const_metadata::chain_of_responsibility::Handler;
+use crate::rule::chain_of_responsibility::Handler;
 use proc_macro2::Span;
 use std::sync::mpsc::Sender;
 

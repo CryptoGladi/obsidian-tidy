@@ -43,10 +43,7 @@ mod tests {
     use proc_macro2::Span;
 
     use super::*;
-    use crate::{
-        rule_const_metadata::chain_of_responsibility::run_chain,
-        test_utils::test_handler::TestHandler,
-    };
+    use crate::{rule::chain_of_responsibility::run_chain, test_utils::test_handler::TestHandler};
     use std::sync::mpsc::channel;
 
     #[test]

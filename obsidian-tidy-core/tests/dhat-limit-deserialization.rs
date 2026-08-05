@@ -58,6 +58,7 @@ fn dhat_limit() {
     let stats = dhat::HeapStats::get();
 
     assert_eq!(result.len(), RULE_COUNT);
+
     let curr = stats.curr_bytes as f64;
     let max = stats.max_bytes as f64;
     let total = stats.total_blocks as f64;
@@ -69,7 +70,6 @@ fn dhat_limit() {
     );
 
     let ratio = max / curr;
-
     dhat::assert!(
         ratio <= 1.01,
         "INTERMEDIATE BUFFER DETECTED! \n\

@@ -127,7 +127,7 @@ pub struct ErasedRuleSeed<'a> {
 impl<'de> DeserializeSeed<'de> for ErasedRuleSeed<'_> {
     type Value = Box<dyn ErasedRule>;
 
-    #[instrument(skip_all, fields(fabric = %self.fabric.name()))]
+    #[instrument(skip_all, fields(fabric = %self.fabric.id()))]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
@@ -150,7 +150,7 @@ pub struct ErasedToggleableRuleSeed<'a> {
 impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
     type Value = ToggleableRule<Box<dyn ErasedRule>>;
 
-    #[instrument(skip_all, fields(fabric = %self.fabric.name()))]
+    #[instrument(skip_all, fields(fabric = %self.fabric.id()))]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,

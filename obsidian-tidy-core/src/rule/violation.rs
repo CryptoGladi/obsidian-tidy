@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::ops::{Bound, Range, RangeBounds};
-use thiserror::Error;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Violation {

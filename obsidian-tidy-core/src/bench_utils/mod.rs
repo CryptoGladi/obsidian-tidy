@@ -79,7 +79,7 @@ impl FixNameRuleFactory {
 }
 
 impl ErasedRuleFactory for FixNameRuleFactory {
-    fn name(&self) -> &str {
+    fn id(&self) -> &str {
         &self.new_name
     }
 
@@ -176,7 +176,7 @@ pub fn setup_registry(rule_count: usize) -> RuleFactoryRegistry {
 
         #[expect(clippy::panic)]
         if let Some(prev_factory) = registry.add(fixed_factory) {
-            panic!("Duplicate detected! Factory: `{}`", prev_factory.name());
+            panic!("Duplicate detected! Factory: `{}`", prev_factory.id());
         }
     }
 
@@ -226,10 +226,10 @@ mod tests {
     #[test]
     fn fix_name_factory() {
         let factory = DateFormatFactory;
-        let name = factory.name().to_string();
+        let name = factory.id().to_string();
 
         let fixed_factory = FixNameRuleFactory::new(factory.into_erased(), "fixed_name");
-        let fixed_name = fixed_factory.name();
+        let fixed_name = fixed_factory.id();
 
         assert_eq!(fixed_name, "fixed_name");
         assert_ne!(name, fixed_name);
@@ -244,8 +244,8 @@ mod tests {
         let mut deserializer = <dyn erased_serde::Deserializer>::erase(&mut deserializer);
         let fixed_rule = fixed_factory.create_by_serde(&mut deserializer).unwrap();
 
-        assert_eq!(fixed_factory.name(), fixed_rule.name());
-        assert_eq!(fixed_factory.name(), "fixed_name");
+        assert_eq!(fixed_factory.id(), fixed_rule.name());
+        assert_eq!(fixed_factory.id(), "fixed_name");
     }
 
     #[test]

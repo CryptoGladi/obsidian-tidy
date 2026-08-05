@@ -14,7 +14,9 @@
 //! - **Thread-Safe Storage:** Factories are `Send + Sync`, making the registry safe to share
 //!   across threads when wrapped in `Arc` or `RwLock`.
 
-use crate::rule::factory::erased_rule_factory::ErasedRuleFactory;
+use crate::rule::factory::{
+    erased_rule_factory::ErasedRuleFactory, inventory::get_all_rule_factories,
+};
 use core::convert::AsRef;
 use std::collections::HashMap;
 
@@ -130,7 +132,7 @@ impl RuleFactoryRegistry {
         &mut self,
         fabric: Box<dyn ErasedRuleFactory + Send + Sync>,
     ) -> Option<Box<dyn ErasedRuleFactory + Send + Sync>> {
-        self.0.insert(fabric.name().to_string(), fabric)
+        self.0.insert(fabric.id().to_string(), fabric)
     }
 
     /// Returns a reference to the rule factory with the given name.
@@ -183,6 +185,43 @@ impl RuleFactoryRegistry {
     #[must_use]
     pub fn contains(&self, name: &str) -> bool {
         self.0.contains_key(name)
+    }
+
+    /// Creates a registry populated with all rule factories registered via [`inventory`].
+    ///
+    /// This is the primary way to build a registry when rules are registered
+    /// through the `#[derive(Rule)]` macro.
+    ///
+    /// # Panics
+    ///
+    /// Panics if two factories in the inventory share the same name. This indicates
+    /// a configuration error — rule names must be globally unique.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use obsidian_tidy_core::rule::RuleFactoryRegistry;
+    ///
+    /// let registry = RuleFactoryRegistry::new_by_inventory();
+    /// assert!(!registry.is_empty());
+    /// ```
+    #[must_use = "Creating a registry without using it is pointless"]
+    #[expect(clippy::panic)]
+    pub fn new_by_inventory() -> Self {
+        let mut registry = RuleFactoryRegistry::new();
+
+        for factory in get_all_rule_factories() {
+            if let Some(prev) = registry.add(Box::new(*factory)) {
+                panic!(
+                    "Duplicate rule factory '{}' detected in inventory. \
+                     Rule factory names must be unique across the binary. \
+                     Check your #[rule_metadata(name = ...)] attributes for duplicates.",
+                    prev.id()
+                );
+            }
+        }
+
+        registry
     }
 }
 
@@ -238,7 +277,7 @@ macro_rules! rule_fabric_registry {
         let mut registry = $crate::rule::RuleFactoryRegistry::new();
         $(
             if let Some(prev) = registry.add($fabric.into_erased()) {
-                panic!("Fabric with name '{}' already exists", prev.name());
+                panic!("Fabric with name '{}' already exists", prev.id());
             }
         )+
         registry
@@ -322,7 +361,7 @@ mod tests {
 
         let getted_fabric = registry.get("test-rule").unwrap();
 
-        assert_eq!(getted_fabric.name(), fabric.name());
+        assert_eq!(getted_fabric.id(), fabric.id());
     }
 
     #[test]
@@ -368,10 +407,10 @@ mod tests {
         let registry = rule_fabric_registry![fabric.clone()];
 
         let fabrices = registry.fabrics();
-        let data: Vec<_> = fabrices.map(|fabric| fabric.name()).collect();
+        let data: Vec<_> = fabrices.map(|fabric| fabric.id()).collect();
 
         assert_eq!(data.len(), 1);
-        assert_eq!(data[0], fabric.name());
+        assert_eq!(data[0], fabric.id());
     }
 
     #[test]

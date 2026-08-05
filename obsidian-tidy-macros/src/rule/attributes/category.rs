@@ -67,7 +67,7 @@ impl quote::ToTokens for Category {
             CoreCategory::Other => quote! { Other },
         };
 
-        tokens.append_all(quote! { obsidian_tidy_core::rule::Category::#variant });
+        tokens.append_all(quote! { ::obsidian_tidy_core::rule::Category::#variant });
     }
 }
 
@@ -98,23 +98,23 @@ mod tests {
         let test_cases = vec![
             (
                 CoreCategory::Yaml,
-                quote! { obsidian_tidy_core::rule::Category::Yaml },
+                quote! { ::obsidian_tidy_core::rule::Category::Yaml },
             ),
             (
                 CoreCategory::Heading,
-                quote! { obsidian_tidy_core::rule::Category::Heading },
+                quote! { ::obsidian_tidy_core::rule::Category::Heading },
             ),
             (
                 CoreCategory::Content,
-                quote! { obsidian_tidy_core::rule::Category::Content },
+                quote! { ::obsidian_tidy_core::rule::Category::Content },
             ),
             (
                 CoreCategory::Spacing,
-                quote! { obsidian_tidy_core::rule::Category::Spacing },
+                quote! { ::obsidian_tidy_core::rule::Category::Spacing },
             ),
             (
                 CoreCategory::Other,
-                quote! { obsidian_tidy_core::rule::Category::Other },
+                quote! { ::obsidian_tidy_core::rule::Category::Other },
             ),
         ];
 
