@@ -206,7 +206,10 @@ impl RuleFactoryRegistry {
     /// assert!(!registry.is_empty());
     /// ```
     #[must_use = "Creating a registry without using it is pointless"]
-    #[expect(clippy::panic)]
+    #[expect(
+        clippy::panic,
+        reason = "Duplicate factory names in inventory is a critical configuration error"
+    )]
     pub fn new_by_inventory() -> Self {
         let mut registry = RuleFactoryRegistry::new();
 

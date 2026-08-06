@@ -1,7 +1,5 @@
 use crate::rule::ErasedRuleFactory;
 
-pub use inventory as _inventory;
-
 pub type RuleFactoryInventory = &'static (dyn ErasedRuleFactory + Send + Sync);
 inventory::collect!(RuleFactoryInventory);
 
@@ -12,7 +10,7 @@ pub fn get_all_rule_factories() -> impl Iterator<Item = &'static RuleFactoryInve
 #[macro_export]
 macro_rules! registration_rule_factory {
     ($factory:ident) => {
-        $crate::rule::factory::inventory::_inventory::submit! {
+        $crate::__private::inventory::submit! {
             &$factory as $crate::prelude::RuleFactoryInventory
         }
     };

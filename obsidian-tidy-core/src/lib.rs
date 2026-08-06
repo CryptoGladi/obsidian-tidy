@@ -104,6 +104,12 @@ pub mod test_utils;
 #[cfg_attr(not(test), warn(unused))]
 pub mod bench_utils;
 
+#[doc(hidden)]
+pub mod __private {
+    pub use inventory;
+    pub use serde;
+}
+
 /// A parsed Obsidian vault containing a collection of [`Note`]s.
 ///
 /// This is a type alias over [`obsidian_parser::vault::Vault`] specialized

@@ -19,9 +19,9 @@ pub fn rule_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
         .ok_or_else(|| Error::new(ident.span(), "Attribute #[rule_metadata(...)] is required"))?;
 
     let Attributes {
-        name: rule_name,
-        description: rule_description,
-        category: rule_category,
+        name,
+        description,
+        category,
         default,
     } = rule_metadata.parse_args()?;
 
@@ -43,20 +43,22 @@ pub fn rule_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
     let result = quote! {
         impl ::obsidian_tidy_core::rule::RuleMetadata for #ident {
             fn name(&self) -> &'static str {
-                #rule_name
+                #name
             }
 
             fn description(&self) -> &'static str {
-                #rule_description
+                #description
             }
 
             fn category(&self) -> ::obsidian_tidy_core::rule::Category {
-                #rule_category
+                #category
             }
         }
 
         const _: () = {
-            const fn assert_traits<T: ::serde::Serialize + ::serde::de::DeserializeOwned>() {}
+            const fn assert_traits<T: ::obsidian_tidy_core::__private::serde::Serialize +
+                ::obsidian_tidy_core::__private::serde::de::DeserializeOwned>() {}
+
             assert_traits::<#ident>();
         };
 
@@ -70,7 +72,7 @@ pub fn rule_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
             type Error = ::std::convert::Infallible;
 
             fn id(&self) -> &'static str {
-                #rule_name
+                #name
             }
 
             fn create_by_serde(&self, data: Self::Data) -> Result<Self::Rule, Self::Error> {
