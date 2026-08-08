@@ -42,18 +42,18 @@ where
 
 impl ErasedRuleFactory for &(dyn ErasedRuleFactory + Send + Sync) {
     fn id(&self) -> &str {
-        (**self).id()
+        ErasedRuleFactory::id(*self)
     }
 
     fn create_by_serde(
         &self,
         deserializer: &mut dyn erased_serde::Deserializer,
     ) -> Result<Box<dyn ErasedRule>, Box<dyn std::error::Error>> {
-        (**self).create_by_serde(deserializer)
+        ErasedRuleFactory::create_by_serde(*self, deserializer)
     }
 
     fn create_default(&self) -> Option<Box<dyn ErasedRule>> {
-        (**self).create_default()
+        ErasedRuleFactory::create_default(*self)
     }
 }
 

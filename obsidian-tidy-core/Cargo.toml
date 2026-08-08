@@ -26,10 +26,17 @@ criterion.workspace = true
 dhat.workspace = true
 serial_test.workspace = true
 
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+gungraun.workspace = true
+
 [[bench]]
-name = "deserialization"
+name = "criterion-deserialization"
 harness = false
 
 [[bench]]
-name = "memory_profile_deserialization"
+name = "gungraun-deserialization"
+harness = false
+
+[[bench]]
+name = "memory-profile-deserialization"
 harness = false

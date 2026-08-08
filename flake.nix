@@ -34,6 +34,8 @@
           overlays = [ (import rust-overlay) ];
         };
 
+        gungraun-runner = pkgs.callPackage ./nix/gungraun-runner.nix { };
+
         rust = pkgs.rust-bin.stable.latest.default.override {
           extensions = [
             "rust-src"
@@ -112,11 +114,13 @@
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
             rust
+            gungraun-runner
 
             pkgs.taplo
             pkgs.ast-grep
             pkgs.just
             pkgs.cargo-insta
+            pkgs.valgrind
           ];
 
           shellHook = ''
@@ -124,6 +128,7 @@
           '';
 
           RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+          VALGRIND = "${pkgs.valgrind}/bin/valgrind";
         };
       }
     );
