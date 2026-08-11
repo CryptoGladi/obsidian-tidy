@@ -25,11 +25,10 @@ impl RuleDescription {
         const EMPTY_MSG: &str = "Rule description cannot be empty string. Provide a non-empty value like name = \"My rule description\"";
         const ASCII_MSG: &str = "Rule description must contain only ASCII characters";
 
-        #[allow(clippy::bytes_count_to_len, reason = "To support Unicode strings")]
         let long_msg = format!(
             "Rule description is very long\nThe maximum number of characters for a rule name is {}, and you have {}",
             MAX_LEN,
-            str.bytes().count()
+            str.chars().count()
         );
 
         let handler = Handlers::new()

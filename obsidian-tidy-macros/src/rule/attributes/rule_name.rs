@@ -30,11 +30,10 @@ impl RuleName {
         const ASCII_MSG: &str = "Rule name must contain only ASCII characters";
         const KEBAB_MSG: &str = "Rule name must be in kebab-case";
 
-        #[allow(clippy::bytes_count_to_len, reason = "To support Unicode strings")]
         let long_msg = format!(
             "Rule name is very long\nThe maximum number of characters for a rule name is {}, and you have {}",
             MAX_LEN,
-            str.bytes().count()
+            str.chars().count()
         );
 
         let handler = Handlers::new()
