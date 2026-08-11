@@ -1,0 +1,11 @@
+[package]
+name = "obsidian-tidy-parser"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pulldown-cmark = { version = "0.13", default-features = false }
+derive_more.workspace = true
+
+[lints]
+workspace = true
