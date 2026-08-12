@@ -1,29 +1,10 @@
 pub mod node;
+pub mod stack;
 
-use node::Node;
-use pulldown_cmark::{
-    CowStr, Event as MarkEvent, LinkType, Options as MarkOptions, Parser as MarkParser,
-    Tag as MarkTag,
-};
-
-pub(crate) enum Frame<'a> {
-    Root(Vec<Node<'a>>),
-    Tagged {
-        tag: MarkTag<'a>,
-        children: Vec<Node<'a>>,
-    },
-}
-
-impl<'a> Frame<'a> {
-    pub(crate) fn children_mut(&mut self) -> &mut Vec<Node<'a>> {
-        match self {
-            Frame::Root(children) => children,
-            Frame::Tagged { children, .. } => children,
-        }
-    }
-
-    pub fn tag_mut(&mut self) -> Option<&mut >
-}
+use node::{Heading, Node, NodeKind, Paragraph, Root, Tag};
+use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
+use stack::{Frame, Stack};
+use std::range::Range;
 
 pub struct ASTBuilder<I> {
     inner: I,
@@ -37,27 +18,68 @@ impl<I> ASTBuilder<I> {
 
 impl<'a, I> ASTBuilder<I>
 where
-    I: Iterator<Item = MarkEvent<'a>>,
+    I: Iterator<Item = (MarkEvent<'a>, Range<usize>)>,
 {
-    pub fn build(self) -> Node<'a> {
-        let mut stack = vec![Frame::Root(Vec::new())];
+    fn process_tag_end(
+        tag_end: MarkTagEnd,
+        frame: Frame<'a>,
+        parent: &mut Vec<Node<'a>>,
+        offset: Range<usize>,
+    ) {
+        match frame.tag {
+            MarkTag::Heading { level, .. } => {
+                let heading = Heading::new(level.into());
+                let tag = Tag::new(heading, frame.children.into_boxed_slice());
 
-        for event in self.inner {
+                parent.push(Node::new(NodeKind::Heading(tag), offset));
+            }
+            MarkTag::Paragraph => {
+                let paragraph = Paragraph::new();
+                let tag = Tag::new(paragraph, frame.children.into_boxed_slice());
+
+                parent.push(Node::new(NodeKind::Paragraph(tag), offset));
+            }
+            _ => todo!(),
+        };
+
+        debug_assert_eq!(tag_end, frame.tag.to_end());
+    }
+
+    pub fn build(self) -> Node<'a> {
+        let mut stack = Stack::new();
+
+        for (event, offset) in self.inner {
             match event {
-                MarkEvent::Start(tag) => stack.push(Frame::Tagged {
-                    tag,
-                    children: Vec::new(),
-                }),
-                MarkEvent::End(tag) => {
-                    let frame = stack.pop().unwrap();
-                    
-                    frame.
+                MarkEvent::Start(tag) => stack.push(Frame::new(tag, Vec::new())),
+                MarkEvent::End(tag_end) => {
+                    let frame = stack.pop().expect("unbalanced tags"); // библиотека гарантирует, что это невозможно
+                    let parent = stack.get_parent();
+
+                    Self::process_tag_end(tag_end, frame, parent, offset);
+                }
+                MarkEvent::Text(text) => {
+                    let parent = stack.get_parent();
+                    parent.push(Node::new(NodeKind::Text(text), offset));
+                }
+                MarkEvent::SoftBreak => {
+                    let parent = stack.get_parent();
+                    parent.push(Node::new(NodeKind::SoftBreak, offset));
                 }
                 _ => todo!(),
             }
         }
 
-        todo!()
+        // В конце на дне стека останутся все корневые узлы документа
+        let children_root = stack.into_root().expect("stack not empty");
+        let children_root = children_root.into_boxed_slice();
+
+        let offset_end = children_root
+            .last()
+            .map(|node| node.offset.end)
+            .unwrap_or(0);
+
+        let root = Tag::new(Root::new(), children_root);
+        Node::new(NodeKind::Root(root), (0..offset_end).into())
     }
 }
 
@@ -67,7 +89,7 @@ pub trait ASTBuildExt<'a>: Iterator {
 
 impl<'a, I> ASTBuildExt<'a> for I
 where
-    I: Iterator<Item = MarkEvent<'a>>,
+    I: Iterator<Item = (MarkEvent<'a>, Range<usize>)>,
 {
     fn build_ast(self) -> Node<'a> {
         ASTBuilder::new(self).build()
@@ -77,12 +99,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pulldown_cmark::Parser as MarkParser;
 
     #[test]
-    pub fn parse() {
-        let document = "Это тестовый документ";
+    fn empty() {
+        let document = "";
+        let ast = MarkParser::new(document)
+            .into_offset_iter()
+            .map(|(event, range)| (event, std::range::Range::from(range)))
+            .build_ast();
 
-        let options = MarkOptions::all();
-        let ast = MarkParser::new_ext(document, options).build_ast();
+        let children = ast.as_root().unwrap().children();
+        assert!(children.is_empty());
     }
 }

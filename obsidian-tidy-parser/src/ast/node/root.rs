@@ -1,7 +1,7 @@
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Paragraph;
+pub struct Root;
 
-impl Paragraph {
+impl Root {
     pub fn new() -> Self {
         Self
     }

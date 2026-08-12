@@ -58,6 +58,7 @@ static_assertions = "1.1"
 dhat = "0.3"
 inventory = "0.3"
 gungraun = "0.19"
+pastey = "0.2"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

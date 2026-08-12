@@ -1,11 +1,14 @@
 mod heading;
 mod paragraph;
+mod root;
 
 pub use heading::Heading;
 pub use paragraph::Paragraph;
+pub use root::Root;
 
 use crate::prelude::CowStr;
 use derive_more::IsVariant;
+use std::range::Range;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tag<'a, T> {
@@ -24,18 +27,29 @@ impl<'a, T> Tag<'a, T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, IsVariant)]
-pub enum Node<'a> {
-    Root(Box<[Node<'a>]>),
+pub enum NodeKind<'a> {
+    Root(Tag<'a, Root>),
 
     Paragraph(Tag<'a, Paragraph>),
     Heading(Tag<'a, Heading>),
 
     Text(CowStr<'a>),
+    SoftBreak,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Node<'a> {
+    pub kind: NodeKind<'a>,
+    pub offset: Range<usize>,
 }
 
 impl<'a> Node<'a> {
-    pub fn as_root(&self) -> Option<&[Node<'a>]> {
-        if let Node::Root(data) = self {
+    pub fn new(kind: NodeKind<'a>, offset: Range<usize>) -> Self {
+        Self { kind, offset }
+    }
+
+    pub fn as_root(&self) -> Option<&Tag<'a, Root>> {
+        if let NodeKind::Root(data) = &self.kind {
             return Some(data);
         }
 
