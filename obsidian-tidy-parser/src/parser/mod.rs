@@ -11,10 +11,12 @@ pub struct Parser<'input> {
 }
 
 impl<'input> Parser<'input> {
+    #[must_use]
     pub fn new(text: &'input str) -> Self {
         ParserBuilder::default().build(text)
     }
 
+    #[must_use]
     pub fn ast(self) -> Node<'input> {
         self.inner
             .map(|(event, offset)| (event, std::range::Range::from(offset)))

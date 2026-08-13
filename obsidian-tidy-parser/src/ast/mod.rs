@@ -11,7 +11,7 @@ pub struct ASTBuilder<I> {
 }
 
 impl<I> ASTBuilder<I> {
-    pub fn new(inner: I) -> Self {
+    pub const fn new(inner: I) -> Self {
         Self { inner }
     }
 }
@@ -20,31 +20,36 @@ impl<'a, I> ASTBuilder<I>
 where
     I: Iterator<Item = (MarkEvent<'a>, Range<usize>)>,
 {
-    fn process_tag_end(
-        tag_end: MarkTagEnd,
-        frame: Frame<'a>,
-        parent: &mut Vec<Node<'a>>,
-        offset: Range<usize>,
-    ) {
+    fn process_tag_end(tag_end: MarkTagEnd, stack: &mut Stack<'a>, offset: Range<usize>) {
+        #[expect(
+            clippy::expect_used,
+            reason = "библиотека гарантирует, что это невозможно"
+        )]
+        let frame = stack.pop().expect("unbalanced tags");
+
         match frame.tag {
             MarkTag::Heading { level, .. } => {
                 let heading = Heading::new(level.into());
-                let tag = Tag::new(heading, frame.children.into_boxed_slice());
+                let tag = Tag::new(heading, frame.children().into());
 
-                parent.push(Node::new(NodeKind::Heading(tag), offset));
+                stack.push_parent(Node::new(NodeKind::Heading(tag), offset));
             }
             MarkTag::Paragraph => {
                 let paragraph = Paragraph::new();
-                let tag = Tag::new(paragraph, frame.children.into_boxed_slice());
+                let tag = Tag::new(paragraph, frame.children().into());
 
-                parent.push(Node::new(NodeKind::Paragraph(tag), offset));
+                stack.push_parent(Node::new(NodeKind::Paragraph(tag), offset));
             }
             _ => todo!(),
-        };
+        }
 
         debug_assert_eq!(tag_end, frame.tag.to_end());
     }
 
+    #[expect(
+        clippy::missing_panics_doc,
+        reason = "каждая строка — это валидный Markdown"
+    )]
     pub fn build(self) -> Node<'a> {
         let mut stack = Stack::new();
 
@@ -52,31 +57,26 @@ where
             match event {
                 MarkEvent::Start(tag) => stack.push(Frame::new(tag, Vec::new())),
                 MarkEvent::End(tag_end) => {
-                    let frame = stack.pop().expect("unbalanced tags"); // библиотека гарантирует, что это невозможно
-                    let parent = stack.get_parent();
-
-                    Self::process_tag_end(tag_end, frame, parent, offset);
+                    Self::process_tag_end(tag_end, &mut stack, offset);
                 }
                 MarkEvent::Text(text) => {
-                    let parent = stack.get_parent();
-                    parent.push(Node::new(NodeKind::Text(text), offset));
+                    stack.push_parent(Node::new(NodeKind::Text(text), offset));
                 }
                 MarkEvent::SoftBreak => {
-                    let parent = stack.get_parent();
-                    parent.push(Node::new(NodeKind::SoftBreak, offset));
+                    stack.push_parent(Node::new(NodeKind::SoftBreak, offset));
                 }
                 _ => todo!(),
             }
         }
 
-        // В конце на дне стека останутся все корневые узлы документа
+        #[expect(
+            clippy::expect_used,
+            reason = "В конце на дне стека останутся все корневые узлы документа"
+        )]
         let children_root = stack.into_root().expect("stack not empty");
         let children_root = children_root.into_boxed_slice();
 
-        let offset_end = children_root
-            .last()
-            .map(|node| node.offset.end)
-            .unwrap_or(0);
+        let offset_end = children_root.last().map_or(0, |node| node.offset().end);
 
         let root = Tag::new(Root::new(), children_root);
         Node::new(NodeKind::Root(root), (0..offset_end).into())

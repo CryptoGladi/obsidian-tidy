@@ -1,10 +1,10 @@
 mod fold;
-mod marco;
+mod macros;
 
 pub use fold::{FoldVisitor, FoldVisitorExt};
 
 use crate::prelude::{CowStr, Heading, Node, Paragraph, Root};
-use marco::define_visitor;
+use macros::define_visitor;
 
 define_visitor! {
     tagged {

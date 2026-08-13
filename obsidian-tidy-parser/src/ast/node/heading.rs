@@ -1,4 +1,4 @@
-use super::Tag;
+use super::{Node, NodeKind, Tag};
 use serde::Serialize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
@@ -36,17 +36,31 @@ pub struct Heading {
 }
 
 impl Heading {
-    pub fn new(level: HeadingLevel) -> Self {
+    #[must_use]
+    pub const fn new(level: HeadingLevel) -> Self {
         Self { level }
     }
 
-    pub fn level(&self) -> HeadingLevel {
+    #[must_use]
+    pub const fn level(&self) -> HeadingLevel {
         self.level
     }
 }
 
-impl<'a> Tag<'a, Heading> {
-    pub fn level(&self) -> HeadingLevel {
+impl Tag<'_, Heading> {
+    #[must_use]
+    pub const fn level(&self) -> HeadingLevel {
         self.kind.level()
+    }
+}
+
+impl Node<'_> {
+    #[must_use]
+    pub const fn as_heading(&self) -> Option<&Tag<'_, Heading>> {
+        if let NodeKind::Heading(data) = &self.kind {
+            return Some(data);
+        }
+
+        None
     }
 }

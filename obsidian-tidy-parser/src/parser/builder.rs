@@ -2,18 +2,7 @@ use super::Parser;
 use pulldown_cmark::{Options as MarkOptions, Parser as MarkParser};
 
 pub struct ParserBuilder {
-    enable_tables: bool,
-    enable_strikethrough: bool,
-    enable_tasklists: bool,
-    enable_smart_punctuation: bool,
-    enable_yaml_style_metadata_blocks: bool,
-    enable_old_footnotes: bool,
-    enable_math: bool,
-    enable_gfm: bool,
-    enable_definition_list: bool,
-    enable_superscript: bool,
-    enable_subscript: bool,
-    enable_wikilinks: bool,
+    options: MarkOptions,
 }
 
 impl Default for ParserBuilder {
@@ -23,155 +12,108 @@ impl Default for ParserBuilder {
 }
 
 impl ParserBuilder {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
-            enable_tables: false,
-            enable_strikethrough: false,
-            enable_tasklists: false,
-            enable_smart_punctuation: false,
-            enable_yaml_style_metadata_blocks: false,
-            enable_old_footnotes: false,
-            enable_math: false,
-            enable_gfm: false,
-            enable_definition_list: false,
-            enable_superscript: false,
-            enable_subscript: false,
-            enable_wikilinks: false,
+            options: MarkOptions::empty(),
         }
     }
 
-    pub fn all() -> Self {
+    #[must_use]
+    pub const fn all() -> Self {
         Self {
-            enable_tables: true,
-            enable_strikethrough: true,
-            enable_tasklists: true,
-            enable_smart_punctuation: true,
-            enable_yaml_style_metadata_blocks: true,
-            enable_old_footnotes: true,
-            enable_math: true,
-            enable_gfm: true,
-            enable_definition_list: true,
-            enable_superscript: true,
-            enable_subscript: true,
-            enable_wikilinks: true,
+            options: MarkOptions::all(),
         }
     }
 
+    #[must_use]
     pub fn tables(mut self, enable: bool) -> Self {
-        self.enable_tables = enable;
+        self.options.set(MarkOptions::ENABLE_TABLES, enable);
         self
     }
 
+    #[must_use]
     pub fn strikethrough(mut self, enable: bool) -> Self {
-        self.enable_strikethrough = enable;
+        self.options.set(MarkOptions::ENABLE_STRIKETHROUGH, enable);
         self
     }
 
+    #[must_use]
     pub fn tasklists(mut self, enable: bool) -> Self {
-        self.enable_tasklists = enable;
+        self.options.set(MarkOptions::ENABLE_TASKLISTS, enable);
         self
     }
 
+    #[must_use]
     pub fn smart_punctuation(mut self, enable: bool) -> Self {
-        self.enable_smart_punctuation = enable;
+        self.options
+            .set(MarkOptions::ENABLE_SMART_PUNCTUATION, enable);
+
         self
     }
 
+    #[must_use]
     pub fn frontmatter(mut self, enable: bool) -> Self {
-        self.enable_yaml_style_metadata_blocks = enable;
+        self.options
+            .set(MarkOptions::ENABLE_YAML_STYLE_METADATA_BLOCKS, enable);
+
         self
     }
 
+    #[must_use]
     pub fn old_footnotes(mut self, enable: bool) -> Self {
-        self.enable_old_footnotes = enable;
+        self.options.set(MarkOptions::ENABLE_OLD_FOOTNOTES, enable);
         self
     }
 
+    #[must_use]
     pub fn math(mut self, enable: bool) -> Self {
-        self.enable_math = enable;
+        self.options.set(MarkOptions::ENABLE_MATH, enable);
         self
     }
 
+    #[must_use]
     pub fn gfm(mut self, enable: bool) -> Self {
-        self.enable_gfm = enable;
+        self.options.set(MarkOptions::ENABLE_GFM, enable);
         self
     }
 
+    #[must_use]
     pub fn definition_list(mut self, enable: bool) -> Self {
-        self.enable_definition_list = enable;
+        self.options
+            .set(MarkOptions::ENABLE_DEFINITION_LIST, enable);
+
         self
     }
 
+    #[must_use]
     pub fn superscript(mut self, enable: bool) -> Self {
-        self.enable_superscript = enable;
+        self.options.set(MarkOptions::ENABLE_SUPERSCRIPT, enable);
         self
     }
 
+    #[must_use]
     pub fn subscript(mut self, enable: bool) -> Self {
-        self.enable_subscript = enable;
+        self.options.set(MarkOptions::ENABLE_SUBSCRIPT, enable);
         self
     }
 
+    #[must_use]
     pub fn wikilinks(mut self, enable: bool) -> Self {
-        self.enable_wikilinks = enable;
+        self.options.set(MarkOptions::ENABLE_WIKILINKS, enable);
         self
     }
 
+    #[must_use]
     pub fn strict_markdown() -> Self {
         Self::new().tables(true).tasklists(true).old_footnotes(true)
     }
 
-    // Построение парсера
+    #[must_use]
+    #[expect(clippy::elidable_lifetime_names, reason = "чтобы было более понятно")]
     pub fn build<'input>(self, text: &'input str) -> Parser<'input> {
-        let options = MarkOptions::from(self);
-
         Parser {
-            inner: MarkParser::new_ext(text, options).into_offset_iter(),
+            inner: MarkParser::new_ext(text, self.options).into_offset_iter(),
         }
-    }
-}
-
-impl From<ParserBuilder> for MarkOptions {
-    fn from(builder: ParserBuilder) -> Self {
-        let mut options = MarkOptions::empty();
-
-        if builder.enable_tables {
-            options.insert(MarkOptions::ENABLE_TABLES);
-        }
-        if builder.enable_strikethrough {
-            options.insert(MarkOptions::ENABLE_STRIKETHROUGH);
-        }
-        if builder.enable_tasklists {
-            options.insert(MarkOptions::ENABLE_TASKLISTS);
-        }
-        if builder.enable_smart_punctuation {
-            options.insert(MarkOptions::ENABLE_SMART_PUNCTUATION);
-        }
-        if builder.enable_yaml_style_metadata_blocks {
-            options.insert(MarkOptions::ENABLE_YAML_STYLE_METADATA_BLOCKS);
-        }
-        if builder.enable_old_footnotes {
-            options.insert(MarkOptions::ENABLE_OLD_FOOTNOTES);
-        }
-        if builder.enable_math {
-            options.insert(MarkOptions::ENABLE_MATH);
-        }
-        if builder.enable_gfm {
-            options.insert(MarkOptions::ENABLE_GFM);
-        }
-        if builder.enable_definition_list {
-            options.insert(MarkOptions::ENABLE_DEFINITION_LIST);
-        }
-        if builder.enable_superscript {
-            options.insert(MarkOptions::ENABLE_SUPERSCRIPT);
-        }
-        if builder.enable_subscript {
-            options.insert(MarkOptions::ENABLE_SUBSCRIPT);
-        }
-        if builder.enable_wikilinks {
-            options.insert(MarkOptions::ENABLE_WIKILINKS);
-        }
-
-        options
     }
 }

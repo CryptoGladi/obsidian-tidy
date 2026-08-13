@@ -11,6 +11,7 @@ use crate::prelude::CowStr;
 use derive_more::IsVariant;
 use serde::Serialize;
 use std::range::Range;
+use strum::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Tag<'a, T> {
@@ -19,7 +20,7 @@ pub struct Tag<'a, T> {
 }
 
 impl<'a, T> Tag<'a, T> {
-    pub fn new(kind: T, children: Box<[Node<'a>]>) -> Self {
+    pub const fn new(kind: T, children: Box<[Node<'a>]>) -> Self {
         Self { kind, children }
     }
 
@@ -28,7 +29,8 @@ impl<'a, T> Tag<'a, T> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize, Display)]
+#[non_exhaustive]
 pub enum NodeKind<'a> {
     Root(Tag<'a, Root>),
 
@@ -41,22 +43,31 @@ pub enum NodeKind<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Node<'a> {
-    pub kind: NodeKind<'a>,
+    kind: NodeKind<'a>,
 
     #[serde(with = "range_serde")]
-    pub offset: Range<usize>,
+    offset: Range<usize>,
+}
+
+impl std::fmt::Display for Node<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.kind.fmt(f)
+    }
 }
 
 impl<'a> Node<'a> {
-    pub fn new(kind: NodeKind<'a>, offset: Range<usize>) -> Self {
+    #[must_use]
+    pub const fn new(kind: NodeKind<'a>, offset: Range<usize>) -> Self {
         Self { kind, offset }
     }
 
-    pub fn as_root(&self) -> Option<&Tag<'a, Root>> {
-        if let NodeKind::Root(data) = &self.kind {
-            return Some(data);
-        }
+    #[must_use]
+    pub const fn kind(&self) -> &NodeKind<'a> {
+        &self.kind
+    }
 
-        None
+    #[must_use]
+    pub const fn offset(&self) -> Range<usize> {
+        self.offset
     }
 }

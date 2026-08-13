@@ -1197,8 +1197,13 @@ name = "obsidian-tidy-parser"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "insta",
  "pastey",
+ "proptest",
  "pulldown-cmark",
+ "serde",
+ "serde_json",
+ "strum",
 ]
 
 [[package]]
@@ -1446,6 +1451,7 @@ checksum = "e9f068eba8e7071c5f9511831b44f32c740d5adf574e990f946ddb53db2f314e"
 dependencies = [
  "bitflags",
  "memchr",
+ "serde",
  "unicase",
 ]
 

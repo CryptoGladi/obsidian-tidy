@@ -4,12 +4,18 @@ use pulldown_cmark::Tag as MarkTag;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Frame<'a> {
     pub tag: MarkTag<'a>,
-    pub children: Vec<Node<'a>>,
+    children: Vec<Node<'a>>,
 }
 
 impl<'a> Frame<'a> {
-    pub fn new(tag: MarkTag<'a>, children: Vec<Node<'a>>) -> Self {
+    #[must_use]
+    pub const fn new(tag: MarkTag<'a>, children: Vec<Node<'a>>) -> Self {
         Self { tag, children }
+    }
+
+    #[must_use]
+    pub fn children(&self) -> &[Node<'a>] {
+        &self.children
     }
 }
 
@@ -20,7 +26,8 @@ pub struct Stack<'a> {
 }
 
 impl<'a> Stack<'a> {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             root: Vec::new(),
             frames: Vec::new(),
@@ -35,31 +42,24 @@ impl<'a> Stack<'a> {
         self.frames.pop()
     }
 
-    pub fn count_frames(&self) -> usize {
+    #[must_use]
+    pub const fn count_frames(&self) -> usize {
         self.frames.len()
     }
 
-    pub fn get_parent(&mut self) -> &mut Vec<Node<'a>> {
+    pub fn push_parent(&mut self, node: Node<'a>) {
         match self.frames.last_mut() {
-            Some(parent) => &mut parent.children,
-            None => &mut self.root,
+            Some(parent) => parent.children.push(node),
+            None => self.root.push(node),
         }
     }
 
+    #[must_use]
     pub fn into_root(self) -> Option<Vec<Node<'a>>> {
-        if !self.frames.is_empty() {
-            return None;
-        }
-
-        Some(self.root)
+        self.frames.is_empty().then_some(self.root)
     }
-}
 
-impl<'a> IntoIterator for Stack<'a> {
-    type Item = Frame<'a>;
-    type IntoIter = std::iter::Rev<std::vec::IntoIter<Frame<'a>>>;
-
-    fn into_iter(self) -> Self::IntoIter {
+    pub fn into_frames(self) -> impl Iterator<Item = Frame<'a>> {
         self.frames.into_iter().rev()
     }
 }
@@ -108,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn check_lifo_in_iterator() {
+    fn into_frames() {
         let mut stack = Stack::default();
 
         let frame1 = Frame::new(MarkTag::Paragraph, Vec::new());
@@ -119,7 +119,7 @@ mod tests {
             stack.push(frame.clone());
         }
 
-        let tags: Vec<_> = stack.into_iter().map(|frame| frame.tag).collect();
+        let tags: Vec<_> = stack.into_frames().map(|frame| frame.tag).collect();
 
         assert_eq!(tags[0], frame3.tag);
         assert_eq!(tags[1], frame2.tag);
@@ -142,24 +142,19 @@ mod tests {
     }
 
     #[test]
-    fn get_parent() {
+    fn push_parent() {
         let mut stack = Stack::default();
 
         // get root and add node
-        let root = stack.get_parent();
-        root.push(Node::new(NodeKind::SoftBreak, (0..1).into()));
+        stack.push_parent(Node::new(NodeKind::SoftBreak, (0..1).into()));
 
         let frame = Frame::new(MarkTag::Paragraph, Vec::new());
         stack.push(frame);
 
-        // get frame
-        let frame = stack.get_parent();
-        assert!(frame.is_empty());
-
         let _ = stack.pop().unwrap();
 
-        let root = stack.get_parent();
-        assert_eq!(root.len(), 1);
+        assert!(stack.frames.is_empty());
+        assert_eq!(stack.root.len(), 1);
     }
 
     #[test]

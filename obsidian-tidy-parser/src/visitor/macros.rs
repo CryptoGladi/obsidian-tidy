@@ -42,18 +42,18 @@ macro_rules! define_visitor {
                 fn visit_node(&mut self, node: &$crate::prelude::Node<'a>) {
                     self.pre_visit_node(node);
 
-                    match &node.kind {
+                    match &node.kind() {
                         $(
                             $crate::prelude::NodeKind::$variant(tag) =>
-                                self.[<visit_ $variant:snake>](tag, node.offset),
+                                self.[<visit_ $variant:snake>](tag, node.offset()),
                         )*
                         $(
                             $crate::prelude::NodeKind::$data_variant(data) =>
-                                self.[<visit_ $data_variant:snake>](data, node.offset),
+                                self.[<visit_ $data_variant:snake>](data, node.offset()),
                         )*
                         $(
                             $crate::prelude::NodeKind::$empty_variant =>
-                                self.[<visit_ $empty_variant:snake>](node.offset),
+                                self.[<visit_ $empty_variant:snake>](node.offset()),
                         )*
                     }
 
@@ -115,6 +115,8 @@ macro_rules! define_visitor {
                         stringify!([<post_visit_ $variant:snake>]),
                         ") after."
                     )]
+                    #[doc = "If you override this method, you are"]
+                    #[doc = "responsible for calling these hooks yourself if needed"]
                     fn [<visit_ $variant:snake>](&mut self, tag: &$crate::prelude::Tag<'a, $inner>,
                         offset: ::std::range::Range<usize>) {
                         self.[<pre_visit_ $variant:snake>](tag, offset);
