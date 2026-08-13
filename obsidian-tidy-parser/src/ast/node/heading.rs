@@ -1,6 +1,7 @@
 use super::Tag;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub enum HeadingLevel {
     H1 = 1,
     H2,
@@ -29,7 +30,7 @@ impl std::fmt::Display for HeadingLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct Heading {
     level: HeadingLevel,
 }

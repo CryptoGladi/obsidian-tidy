@@ -1,4 +1,6 @@
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+use serde::Serialize;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct Paragraph;
 
 impl Paragraph {

@@ -4,9 +4,17 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-pulldown-cmark = { version = "0.13", default-features = false }
+pulldown-cmark = { version = "0.13", default-features = false, features = [
+    "serde",
+] }
 derive_more.workspace = true
 pastey.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+serde_json.workspace = true
+proptest.workspace = true
 
 [lints]
 workspace = true

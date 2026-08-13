@@ -165,6 +165,22 @@ mod tests {
     #[test]
     fn into_root() {
         let mut stack = Stack::default();
-        todo!()
+
+        let frame = Frame::new(MarkTag::Paragraph, Vec::new());
+        stack.push(frame);
+        let _ = stack.pop().unwrap();
+
+        let root = stack.into_root();
+        assert!(root.is_some());
+    }
+
+    #[test]
+    fn into_root_but_stack_not_empty() {
+        let mut stack = Stack::default();
+
+        let frame = Frame::new(MarkTag::Paragraph, Vec::new());
+        stack.push(frame);
+
+        assert!(stack.into_root().is_none());
     }
 }

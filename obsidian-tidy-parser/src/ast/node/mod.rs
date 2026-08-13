@@ -1,5 +1,6 @@
 mod heading;
 mod paragraph;
+mod range_serde;
 mod root;
 
 pub use heading::Heading;
@@ -8,9 +9,10 @@ pub use root::Root;
 
 use crate::prelude::CowStr;
 use derive_more::IsVariant;
+use serde::Serialize;
 use std::range::Range;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Tag<'a, T> {
     kind: T,
     children: Box<[Node<'a>]>,
@@ -26,7 +28,7 @@ impl<'a, T> Tag<'a, T> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, IsVariant)]
+#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize)]
 pub enum NodeKind<'a> {
     Root(Tag<'a, Root>),
 
@@ -37,9 +39,11 @@ pub enum NodeKind<'a> {
     SoftBreak,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Node<'a> {
     pub kind: NodeKind<'a>,
+
+    #[serde(with = "range_serde")]
     pub offset: Range<usize>,
 }
 

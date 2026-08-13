@@ -21,3 +21,16 @@ impl<'input> Parser<'input> {
             .build_ast()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ast() {
+        let document = "# Heading\nLol";
+        let ast = Parser::new(document).ast();
+
+        insta::assert_json_snapshot!(ast);
+    }
+}
