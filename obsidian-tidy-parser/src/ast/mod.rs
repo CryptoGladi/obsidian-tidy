@@ -1,7 +1,7 @@
 pub mod node;
 pub mod stack;
 
-use node::{Heading, Node, NodeKind, Paragraph, Root, Tag};
+use node::{Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 use stack::{Frame, Stack};
 use std::range::Range;
@@ -40,7 +40,13 @@ where
 
                 stack.push_parent(Node::new(NodeKind::Paragraph(tag), offset));
             }
-            _ => todo!(),
+            MarkTag::Strong => {
+                let strong = Strong::new();
+                let tag = Tag::new(strong, frame.children().into());
+
+                stack.push_parent(Node::new(NodeKind::Strong(tag), offset));
+            }
+            _ => todo!("{:?}", frame.tag),
         }
 
         debug_assert_eq!(tag_end, frame.tag.to_end());
@@ -56,16 +62,15 @@ where
         for (event, offset) in self.inner {
             match event {
                 MarkEvent::Start(tag) => stack.push(Frame::new(tag, Vec::new())),
-                MarkEvent::End(tag_end) => {
-                    Self::process_tag_end(tag_end, &mut stack, offset);
-                }
+                MarkEvent::End(tag_end) => Self::process_tag_end(tag_end, &mut stack, offset),
                 MarkEvent::Text(text) => {
-                    stack.push_parent(Node::new(NodeKind::Text(text), offset));
+                    stack.push_parent(Node::new(NodeKind::Text(text.into()), offset))
                 }
-                MarkEvent::SoftBreak => {
-                    stack.push_parent(Node::new(NodeKind::SoftBreak, offset));
+                MarkEvent::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
+                MarkEvent::Code(text) => {
+                    stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
                 }
-                _ => todo!(),
+                _ => todo!("{:?}", event),
             }
         }
 

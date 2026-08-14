@@ -1,19 +1,22 @@
 mod fold;
 mod macros;
 
-pub use fold::{FoldVisitor, FoldVisitorExt};
+pub use fold::{Fold, FoldVisitorExt};
 
-use crate::prelude::{CowStr, Heading, Node, Paragraph, Root};
+use crate::prelude::{Heading, Node, Paragraph, Root, Strong};
 use macros::define_visitor;
+use std::borrow::Cow;
 
 define_visitor! {
     tagged {
         Root: Root,
         Paragraph: Paragraph,
         Heading: Heading,
+        Strong: Strong
     }
     leaf {
-        Text: CowStr<'a>,
+        Text: Cow<'a, str>,
+        InlineCode: Cow<'a, str>
     }
     empty {
         SoftBreak,
@@ -21,17 +24,17 @@ define_visitor! {
 }
 
 pub trait VisitExt<'a> {
-    fn visit<V>(&self, visitor: &mut V)
+    fn visit<V>(&'a self, visitor: &mut V)
     where
         V: Visitor<'a>;
 }
 
 impl<'a> VisitExt<'a> for Node<'a> {
-    fn visit<V>(&self, visitor: &mut V)
+    fn visit<V>(&'a self, visitor: &mut V)
     where
         V: Visitor<'a>,
     {
-        visitor.visit_node(self);
+        let _ = visitor.visit_node(self);
     }
 }
 
@@ -41,7 +44,7 @@ impl<'a> VisitExt<'a> for Node<'a> {
 mod tests {
     use super::*;
     use crate::prelude::{Tag, *};
-    use std::range::Range;
+    use std::{ops::ControlFlow, range::Range};
 
     #[derive(Debug, Default)]
     struct CountWord {
@@ -49,8 +52,9 @@ mod tests {
     }
 
     impl Visitor<'_> for CountWord {
-        fn visit_text(&mut self, text: &CowStr<'_>, _offset: Range<usize>) {
+        fn visit_text(&mut self, text: &Cow<'_, str>, _offset: Range<usize>) -> ControlFlow<()> {
             self.count += text.split_whitespace().count();
+            ControlFlow::Continue(())
         }
     }
 
@@ -60,7 +64,7 @@ mod tests {
         let ast = Parser::new(&document).ast();
 
         let mut count_word = CountWord::default();
-        count_word.visit_node(&ast);
+        let _ = count_word.visit_node(&ast);
 
         assert_eq!(count_word.count, 3);
     }
@@ -93,23 +97,33 @@ mod tests {
         }
 
         impl Visitor<'_> for CallOrderVisitor {
-            fn pre_visit_heading(&mut self, _tag: &Tag<'_, Heading>, _offset: Range<usize>) {
+            fn pre_visit_heading(
+                &mut self,
+                _tag: &Tag<'_, Heading>,
+                _offset: Range<usize>,
+            ) -> ControlFlow<()> {
                 self.push("pre_visit_heading");
+                ControlFlow::Continue(())
             }
 
             fn post_visit_heading(&mut self, _tag: &Tag<'_, Heading>, _offset: Range<usize>) {
                 self.push("post_visit_heading");
             }
 
-            fn visit_heading(&mut self, tag: &Tag<'_, Heading>, offset: Range<usize>) {
-                self.pre_visit_heading(tag, offset);
+            fn visit_heading(
+                &mut self,
+                tag: &Tag<'_, Heading>,
+                offset: Range<usize>,
+            ) -> ControlFlow<()> {
+                self.pre_visit_heading(tag, offset)?;
 
                 self.push("visit_heading");
                 for child in tag.children() {
-                    self.visit_node(child);
+                    self.visit_node(child)?;
                 }
 
                 self.post_visit_heading(tag, offset);
+                ControlFlow::Continue(())
             }
         }
 

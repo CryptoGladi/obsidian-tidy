@@ -29,7 +29,7 @@ mod tests {
     where
         T: Serialize,
     {
-        #[serde(with = "self")]
+        #[serde(with = "super")]
         range: std::range::Range<T>,
     }
 
@@ -51,7 +51,7 @@ mod tests {
             let json = serde_json::to_string(&range).unwrap();
 
             let result = format!(r#"{{"range":{{"start":{},"end":{}}}}}"#, start, end);
-            assert_eq!(json, result);
+            proptest::prop_assert_eq!(json, result);
         }
     }
 }

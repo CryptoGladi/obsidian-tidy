@@ -1,0 +1,63 @@
+---
+source: obsidian-tidy-parser/src/ast/node/heading.rs
+expression: ast
+---
+{
+  "kind": {
+    "Root": {
+      "kind": null,
+      "children": [
+        {
+          "kind": {
+            "Heading": {
+              "kind": {
+                "level": "H1"
+              },
+              "children": [
+                {
+                  "kind": {
+                    "Text": "Definition"
+                  },
+                  "offset": {
+                    "start": 2,
+                    "end": 12
+                  }
+                }
+              ]
+            }
+          },
+          "offset": {
+            "start": 0,
+            "end": 13
+          }
+        },
+        {
+          "kind": {
+            "Paragraph": {
+              "kind": null,
+              "children": [
+                {
+                  "kind": {
+                    "Text": "Rust is one of the memory-safe programming languages"
+                  },
+                  "offset": {
+                    "start": 13,
+                    "end": 65
+                  }
+                }
+              ]
+            }
+          },
+          "offset": {
+            "start": 13,
+            "end": 65
+          }
+        }
+      ]
+    }
+  },
+  "offset": {
+    "start": 0,
+    "end": 65
+  }
+}

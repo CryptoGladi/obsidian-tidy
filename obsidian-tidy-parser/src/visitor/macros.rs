@@ -29,35 +29,42 @@ macro_rules! define_visitor {
             /// so you only need to override the methods you care about.
             #[allow(unused_variables)]
             pub trait Visitor<'a> {
-                /// Called before [`visit_node`]
-                fn pre_visit_node(&mut self, node: &$crate::prelude::Node<'a>) {}
+                /// Called before [`Self::visit_node`]
+                ///
+                /// Return `ControlFlow::Break(())` to stop traversal.
+                fn pre_visit_node(&mut self, node: &'a $crate::prelude::Node<'a>) -> ::std::ops::ControlFlow<()> {
+                    ::std::ops::ControlFlow::Continue(())
+                }
 
                 /// Called after [`Self::visit_node`]
-                fn post_visit_node(&mut self, node: &$crate::prelude::Node<'a>) {}
+                fn post_visit_node(&mut self, node: &'a $crate::prelude::Node<'a>) {}
 
                 /// Visits a node by dispatching to the appropriate method based on node kind.
                 ///
                 /// This is the main entry point for traversal. It matches on `node.kind`
                 /// and calls the corresponding `visit_*` method.
-                fn visit_node(&mut self, node: &$crate::prelude::Node<'a>) {
-                    self.pre_visit_node(node);
+                ///
+                /// Return `ControlFlow::Break(())` to stop traversal.
+                fn visit_node(&mut self, node: &'a $crate::prelude::Node<'a>) -> ::std::ops::ControlFlow<()> {
+                    self.pre_visit_node(node)?;
 
                     match &node.kind() {
                         $(
                             $crate::prelude::NodeKind::$variant(tag) =>
-                                self.[<visit_ $variant:snake>](tag, node.offset()),
+                                self.[<visit_ $variant:snake>](tag, node.offset())?,
                         )*
                         $(
                             $crate::prelude::NodeKind::$data_variant(data) =>
-                                self.[<visit_ $data_variant:snake>](data, node.offset()),
+                                self.[<visit_ $data_variant:snake>](data, node.offset())?,
                         )*
                         $(
                             $crate::prelude::NodeKind::$empty_variant =>
-                                self.[<visit_ $empty_variant:snake>](node.offset()),
+                                self.[<visit_ $empty_variant:snake>](node.offset())?,
                         )*
                     }
 
                     self.post_visit_node(node);
+                    ::std::ops::ControlFlow::Continue(())
                 }
 
                 $(
@@ -77,8 +84,11 @@ macro_rules! define_visitor {
                         stringify!([<post_visit_ $variant:snake>]),
                         ")."
                     )]
-                    fn [<pre_visit_ $variant:snake>](&mut self, tag: &$crate::prelude::Tag<'a, $inner>,
-                        offset: ::std::range::Range<usize>) {}
+                    #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
+                    fn [<pre_visit_ $variant:snake>](&mut self, tag: &'a $crate::prelude::Tag<'a, $inner>,
+                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
+                        ::std::ops::ControlFlow::Continue(())
+                    }
 
                     #[doc = concat!(
                         "Called after visiting children of `",
@@ -96,8 +106,8 @@ macro_rules! define_visitor {
                         stringify!([<visit_ $variant:snake>]),
                         ")."
                     )]
-                    fn [<post_visit_ $variant:snake>](&mut self, tag: &$crate::prelude::Tag<'a, $inner>,
-                        offset: ::std::range::Range<usize>) {}
+                    fn [<post_visit_ $variant:snake>](&mut self, tag: &'a $crate::prelude::Tag<'a, $inner>,
+                        offset: ::std::range::Range<usize>) { }
 
                     #[doc = concat!(
                         "Visits `",
@@ -117,15 +127,17 @@ macro_rules! define_visitor {
                     )]
                     #[doc = "If you override this method, you are"]
                     #[doc = "responsible for calling these hooks yourself if needed"]
-                    fn [<visit_ $variant:snake>](&mut self, tag: &$crate::prelude::Tag<'a, $inner>,
-                        offset: ::std::range::Range<usize>) {
-                        self.[<pre_visit_ $variant:snake>](tag, offset);
+                    #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
+                    fn [<visit_ $variant:snake>](&mut self, tag: &'a $crate::prelude::Tag<'a, $inner>,
+                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
+                        self.[<pre_visit_ $variant:snake>](tag, offset)?;
 
                         for child in tag.children() {
-                            self.visit_node(child);
+                            self.visit_node(child)?;
                         }
 
                         self.[<post_visit_ $variant:snake>](tag, offset);
+                        ::std::ops::ControlFlow::Continue(())
                     }
                 )*
 
@@ -138,8 +150,11 @@ macro_rules! define_visitor {
                     #[doc = concat!(
                         "Leaf nodes have data but no children. The default implementation does nothing."
                     )]
-                    fn [<visit_ $data_variant:snake>](&mut self, data: &$data_type,
-                        offset: ::std::range::Range<usize>) {}
+                    #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
+                    fn [<visit_ $data_variant:snake>](&mut self, data: &'a $data_type,
+                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
+                        ::std::ops::ControlFlow::Continue(())
+                    }
                 )*
 
                 $(
@@ -151,8 +166,11 @@ macro_rules! define_visitor {
                     #[doc = concat!(
                         "Empty nodes have no data and no children. The default implementation does nothing."
                     )]
+                    #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
                     fn [<visit_ $empty_variant:snake>](&mut self,
-                        offset: ::std::range::Range<usize>) {}
+                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
+                        ::std::ops::ControlFlow::Continue(())
+                    }
                 )*
             }
         }

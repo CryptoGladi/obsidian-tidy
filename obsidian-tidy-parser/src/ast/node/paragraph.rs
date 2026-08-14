@@ -11,13 +11,4 @@ impl Paragraph {
     }
 }
 
-impl Node<'_> {
-    #[must_use]
-    pub const fn as_paragraph(&self) -> Option<&Tag<'_, Paragraph>> {
-        if let NodeKind::Paragraph(data) = &self.kind {
-            return Some(data);
-        }
-
-        None
-    }
-}
+super::impl_node_as!(Paragraph);

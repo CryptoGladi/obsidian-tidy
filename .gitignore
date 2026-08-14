@@ -5,3 +5,4 @@ target/
 
 .obsidian-tidy.json
 dhat-heap.json
+proptest-regressions

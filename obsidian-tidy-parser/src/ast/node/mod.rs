@@ -1,15 +1,22 @@
 mod heading;
+mod iter;
+pub(crate) mod macros;
 mod paragraph;
 mod range_serde;
 mod root;
+mod strong;
+mod text_content;
 
-pub use heading::Heading;
+pub use heading::{Heading, HeadingLevel};
+pub(crate) use macros::impl_node_as;
 pub use paragraph::Paragraph;
 pub use root::Root;
+pub use strong::Strong;
+pub use text_content::TextContent;
 
-use crate::prelude::CowStr;
 use derive_more::IsVariant;
 use serde::Serialize;
+use std::borrow::Cow;
 use std::range::Range;
 use strum::Display;
 
@@ -36,8 +43,10 @@ pub enum NodeKind<'a> {
 
     Paragraph(Tag<'a, Paragraph>),
     Heading(Tag<'a, Heading>),
+    Strong(Tag<'a, Strong>),
 
-    Text(CowStr<'a>),
+    Text(Cow<'a, str>),
+    InlineCode(Cow<'a, str>),
     SoftBreak,
 }
 
@@ -69,5 +78,12 @@ impl<'a> Node<'a> {
     #[must_use]
     pub const fn offset(&self) -> Range<usize> {
         self.offset
+    }
+
+    pub fn as_text(&self) -> Option<&Cow<'a, str>> {
+        match &self.kind {
+            NodeKind::Text(text) => Some(&text),
+            _ => None,
+        }
     }
 }

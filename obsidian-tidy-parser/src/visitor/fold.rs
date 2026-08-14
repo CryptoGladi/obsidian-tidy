@@ -1,25 +1,25 @@
 use super::Visitor;
 use crate::prelude::Node;
 
-pub trait FoldVisitor<'a>: Visitor<'a> {
+pub trait Fold {
     type Output;
 
     fn finish(self) -> Self::Output;
 }
 
 pub trait FoldVisitorExt<'a> {
-    fn fold<V>(&self, visitor: V) -> V::Output
+    fn fold_visitor<V>(&'a self, visitor: V) -> V::Output
     where
-        V: FoldVisitor<'a>;
+        V: Visitor<'a> + Fold;
 }
 
 impl<'a> FoldVisitorExt<'a> for Node<'a> {
-    fn fold<V>(&self, visitor: V) -> V::Output
+    fn fold_visitor<V>(&'a self, visitor: V) -> V::Output
     where
-        V: FoldVisitor<'a>,
+        V: Visitor<'a> + Fold,
     {
         let mut visitor = visitor;
-        visitor.visit_node(self);
+        let _ = visitor.visit_node(self);
 
         visitor.finish()
     }
@@ -31,7 +31,7 @@ impl<'a> FoldVisitorExt<'a> for Node<'a> {
 mod tests {
     use super::*;
     use crate::prelude::*;
-    use std::range::Range;
+    use std::{borrow::Cow, ops::ControlFlow, range::Range};
 
     #[derive(Debug, Default)]
     struct CountWord {
@@ -39,12 +39,13 @@ mod tests {
     }
 
     impl Visitor<'_> for CountWord {
-        fn visit_text(&mut self, text: &CowStr<'_>, _offset: Range<usize>) {
+        fn visit_text(&mut self, text: &Cow<'_, str>, _offset: Range<usize>) -> ControlFlow<()> {
             self.count += text.split_whitespace().count();
+            ControlFlow::Continue(())
         }
     }
 
-    impl FoldVisitor<'_> for CountWord {
+    impl Fold for CountWord {
         type Output = usize;
 
         fn finish(self) -> Self::Output {
@@ -58,7 +59,7 @@ mod tests {
         let ast = Parser::new(&document).ast();
 
         let count_word = CountWord::default();
-        let result = ast.fold(count_word);
+        let result = ast.fold_visitor(count_word);
 
         assert_eq!(result, 3);
     }
