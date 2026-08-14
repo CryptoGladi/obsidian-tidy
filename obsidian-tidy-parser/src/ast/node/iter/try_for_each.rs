@@ -7,9 +7,9 @@ impl<'ast> Node<'ast> {
     where
         F: FnMut(&'ast Node<'ast>) -> ControlFlow<E>,
     {
-        self.fold_while(Ok(()), |acc, node| match predicate(node) {
-            ControlFlow::Continue(_) => ControlFlow::Continue(acc),
+        self.fold_while(Ok(()), |_, node| match predicate(node) {
             ControlFlow::Break(err) => ControlFlow::Break(Err(err)),
+            ControlFlow::Continue(()) => ControlFlow::Continue(Ok(())),
         })
     }
 }

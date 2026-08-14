@@ -1,0 +1,110 @@
+---
+source: obsidian-tidy-parser/src/ast/node/block_quote.rs
+expression: ast
+---
+{
+  "Root": {
+    "children": [
+      {
+        "Heading": {
+          "level": "H1",
+          "children": [
+            {
+              "Text": "Define",
+              "offset": {
+                "start": 2,
+                "end": 8
+              }
+            }
+          ]
+        },
+        "offset": {
+          "start": 0,
+          "end": 9
+        }
+      },
+      {
+        "BlockQuote": {
+          "children": [
+            {
+              "Paragraph": {
+                "children": [
+                  {
+                    "Text": "My ",
+                    "offset": {
+                      "start": 10,
+                      "end": 13
+                    }
+                  },
+                  {
+                    "Strong": {
+                      "children": [
+                        {
+                          "Text": "super",
+                          "offset": {
+                            "start": 15,
+                            "end": 20
+                          }
+                        }
+                      ]
+                    },
+                    "offset": {
+                      "start": 13,
+                      "end": 22
+                    }
+                  },
+                  {
+                    "Text": " quote",
+                    "offset": {
+                      "start": 22,
+                      "end": 28
+                    }
+                  }
+                ]
+              },
+              "offset": {
+                "start": 10,
+                "end": 29
+              }
+            },
+            {
+              "BlockQuote": {
+                "children": [
+                  {
+                    "Paragraph": {
+                      "children": [
+                        {
+                          "Text": "Quote by quote",
+                          "offset": {
+                            "start": 32,
+                            "end": 46
+                          }
+                        }
+                      ]
+                    },
+                    "offset": {
+                      "start": 32,
+                      "end": 46
+                    }
+                  }
+                ]
+              },
+              "offset": {
+                "start": 30,
+                "end": 46
+              }
+            }
+          ]
+        },
+        "offset": {
+          "start": 9,
+          "end": 46
+        }
+      }
+    ]
+  },
+  "offset": {
+    "start": 0,
+    "end": 46
+  }
+}

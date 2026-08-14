@@ -3,6 +3,7 @@ mod any;
 mod collect;
 mod collect_map;
 mod count;
+mod count_node;
 mod find;
 mod find_map;
 mod fold;

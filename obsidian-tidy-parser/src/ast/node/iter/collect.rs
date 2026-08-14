@@ -2,16 +2,17 @@ use crate::prelude::Node;
 
 impl<'ast> Node<'ast> {
     #[inline]
-    pub fn collect<F>(&'ast self, predicate: F) -> Vec<&'ast Node<'ast>>
+    pub fn collect<B, F>(&'ast self, predicate: F) -> B
     where
+        B: Default + Extend<&'ast Node<'ast>>,
         F: FnMut(&'ast Node<'ast>) -> bool,
     {
         let mut predicate = predicate;
-        let mut acc = Vec::new();
+        let mut acc = B::default();
 
         self.for_each(|node| {
             if predicate(node) {
-                acc.push(node);
+                acc.extend(std::iter::once(node));
             }
         });
 
@@ -28,7 +29,7 @@ mod tests {
         let document = "My **super** document with `code` and **Rust**";
         let ast = Parser::new(document).ast();
 
-        let strongs = ast.collect(|node| node.kind().is_strong());
+        let strongs: Vec<_> = ast.collect(|node| node.kind().is_strong());
         let text_strongs: Vec<_> = strongs
             .into_iter()
             .map(|node| node.as_strong().unwrap().as_plain_text().unwrap())
@@ -44,7 +45,7 @@ mod tests {
 
         let mut var_mut = 0;
 
-        let strongs = ast.collect(|node| {
+        let strongs: Vec<_> = ast.collect(|node| {
             var_mut += 1;
             node.kind().is_strong()
         });
@@ -63,7 +64,7 @@ mod tests {
         let document = "My **super** document with `code` and **Rust**";
         let ast = Parser::new(document).ast();
 
-        let headings = ast.collect(|node| node.kind().is_heading());
+        let headings: Vec<_> = ast.collect(|node| node.kind().is_heading());
         assert!(headings.is_empty());
     }
 }

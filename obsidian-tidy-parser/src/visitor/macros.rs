@@ -28,6 +28,7 @@ macro_rules! define_visitor {
             /// All methods have default implementations that do nothing,
             /// so you only need to override the methods you care about.
             #[allow(unused_variables)]
+            #[allow(clippy::ptr_arg)]
             pub trait Visitor<'a> {
                 /// Called before [`Self::visit_node`]
                 ///

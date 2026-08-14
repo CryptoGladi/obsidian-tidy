@@ -1,3 +1,4 @@
+mod block_quote;
 mod heading;
 mod iter;
 pub(crate) mod macros;
@@ -7,6 +8,7 @@ mod root;
 mod strong;
 mod text_content;
 
+pub use block_quote::BlockQuote;
 pub use heading::{Heading, HeadingLevel};
 pub(crate) use macros::impl_node_as;
 pub use paragraph::Paragraph;
@@ -22,7 +24,9 @@ use strum::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Tag<'a, T> {
+    #[serde(flatten)]
     kind: T,
+
     children: Box<[Node<'a>]>,
 }
 
@@ -44,6 +48,7 @@ pub enum NodeKind<'a> {
     Paragraph(Tag<'a, Paragraph>),
     Heading(Tag<'a, Heading>),
     Strong(Tag<'a, Strong>),
+    BlockQuote(Tag<'a, BlockQuote>),
 
     Text(Cow<'a, str>),
     InlineCode(Cow<'a, str>),
@@ -52,6 +57,7 @@ pub enum NodeKind<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Node<'a> {
+    #[serde(flatten)]
     kind: NodeKind<'a>,
 
     #[serde(with = "range_serde")]
@@ -80,9 +86,10 @@ impl<'a> Node<'a> {
         self.offset
     }
 
-    pub fn as_text(&self) -> Option<&Cow<'a, str>> {
+    #[must_use]
+    pub const fn as_text(&self) -> Option<&Cow<'a, str>> {
         match &self.kind {
-            NodeKind::Text(text) => Some(&text),
+            NodeKind::Text(text) => Some(text),
             _ => None,
         }
     }

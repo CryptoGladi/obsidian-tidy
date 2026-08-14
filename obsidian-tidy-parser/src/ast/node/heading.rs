@@ -1,4 +1,4 @@
-use super::{Node, NodeKind, Tag};
+use super::Tag;
 use pulldown_cmark::HeadingLevel as MarkHeadingLevel;
 use serde::Serialize;
 
@@ -123,11 +123,9 @@ mod tests {
         let document = "# Simple heading";
         let ast = Parser::new(document).ast();
 
-        // TODO операция find лучше всего
-        let heading = ast.as_root().unwrap().children().first().unwrap();
-        assert_eq!(
-            heading.as_heading().unwrap().as_plain_text().unwrap(),
-            "Simple heading"
-        );
+        let heading: Vec<_> = ast.collect_map(|node| node.as_heading());
+
+        assert_eq!(heading.len(), 1);
+        assert_eq!(heading[0].as_plain_text().unwrap(), "Simple heading");
     }
 }

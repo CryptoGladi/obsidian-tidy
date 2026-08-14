@@ -3,89 +3,68 @@ source: obsidian-tidy-parser/src/ast/node/heading.rs
 expression: ast
 ---
 {
-  "kind": {
-    "Root": {
-      "kind": null,
-      "children": [
-        {
-          "kind": {
-            "Heading": {
-              "kind": {
-                "level": "H1"
-              },
-              "children": [
-                {
-                  "kind": {
-                    "Strong": {
-                      "kind": null,
-                      "children": [
-                        {
-                          "kind": {
-                            "Text": "Super"
-                          },
-                          "offset": {
-                            "start": 4,
-                            "end": 9
-                          }
-                        }
-                      ]
+  "Root": {
+    "children": [
+      {
+        "Heading": {
+          "level": "H1",
+          "children": [
+            {
+              "Strong": {
+                "children": [
+                  {
+                    "Text": "Super",
+                    "offset": {
+                      "start": 4,
+                      "end": 9
                     }
-                  },
-                  "offset": {
-                    "start": 2,
-                    "end": 11
                   }
-                },
-                {
-                  "kind": {
-                    "Text": " "
-                  },
-                  "offset": {
-                    "start": 11,
-                    "end": 12
-                  }
-                },
-                {
-                  "kind": {
-                    "InlineCode": "Definition"
-                  },
-                  "offset": {
-                    "start": 12,
-                    "end": 24
-                  }
-                }
-              ]
+                ]
+              },
+              "offset": {
+                "start": 2,
+                "end": 11
+              }
+            },
+            {
+              "Text": " ",
+              "offset": {
+                "start": 11,
+                "end": 12
+              }
+            },
+            {
+              "InlineCode": "Definition",
+              "offset": {
+                "start": 12,
+                "end": 24
+              }
             }
-          },
-          "offset": {
-            "start": 0,
-            "end": 25
-          }
+          ]
         },
-        {
-          "kind": {
-            "Paragraph": {
-              "kind": null,
-              "children": [
-                {
-                  "kind": {
-                    "Text": "Simple text"
-                  },
-                  "offset": {
-                    "start": 25,
-                    "end": 36
-                  }
-                }
-              ]
-            }
-          },
-          "offset": {
-            "start": 25,
-            "end": 36
-          }
+        "offset": {
+          "start": 0,
+          "end": 25
         }
-      ]
-    }
+      },
+      {
+        "Paragraph": {
+          "children": [
+            {
+              "Text": "Simple text",
+              "offset": {
+                "start": 25,
+                "end": 36
+              }
+            }
+          ]
+        },
+        "offset": {
+          "start": 25,
+          "end": 36
+        }
+      }
+    ]
   },
   "offset": {
     "start": 0,

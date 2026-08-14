@@ -9,7 +9,7 @@ struct FoldWhileVisitor<B, F> {
 }
 
 impl<B, F> FoldWhileVisitor<B, F> {
-    pub fn new(init: B, predicate: F) -> Self {
+    pub const fn new(init: B, predicate: F) -> Self {
         Self {
             predicate,
             data: Some(init),
@@ -22,6 +22,7 @@ where
     F: FnMut(B, &'ast Node<'ast>) -> ControlFlow<B, B>,
 {
     fn pre_visit_node(&mut self, node: &'ast Node<'ast>) -> ControlFlow<()> {
+        #[expect(clippy::expect_used)]
         let data = self.data.take().expect(PANIC_MESSAGE);
         let result = (self.predicate)(data, node);
 
@@ -44,6 +45,7 @@ impl<B, F> Fold for FoldWhileVisitor<B, F> {
     type Output = B;
 
     fn finish(self) -> Self::Output {
+        #[expect(clippy::expect_used)]
         self.data.expect(PANIC_MESSAGE)
     }
 }
@@ -188,12 +190,13 @@ mod tests {
         let document = "Hello world";
         let ast = Parser::new(document).ast();
 
-        let text = ast.fold_while(String::new(), |mut acc, node| {
+        let mut text = String::new();
+        ast.fold_while((), |_, node| {
             if let NodeKind::Text(content) = node.kind() {
-                acc.push_str(content);
+                text.push_str(content);
             }
 
-            ControlFlow::Continue(acc)
+            ControlFlow::Continue(())
         });
 
         assert_eq!(text, "Hello world");
@@ -212,6 +215,7 @@ mod tests {
             if let NodeKind::Text(content) = node.kind() {
                 acc.push_str(content);
             }
+
             ControlFlow::Continue(acc)
         });
 

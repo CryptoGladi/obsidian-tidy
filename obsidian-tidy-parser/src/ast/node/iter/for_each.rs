@@ -8,7 +8,7 @@ impl<'ast> Node<'ast> {
     {
         let mut predicate = predicate;
 
-        self.fold((), |_, node| predicate(node));
+        self.fold((), |(), node| predicate(node));
     }
 }
 

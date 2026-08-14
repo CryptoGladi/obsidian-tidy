@@ -3,7 +3,7 @@ mod macros;
 
 pub use fold::{Fold, FoldVisitorExt};
 
-use crate::prelude::{Heading, Node, Paragraph, Root, Strong};
+use crate::prelude::{BlockQuote, Heading, Node, Paragraph, Root, Strong};
 use macros::define_visitor;
 use std::borrow::Cow;
 
@@ -12,7 +12,8 @@ define_visitor! {
         Root: Root,
         Paragraph: Paragraph,
         Heading: Heading,
-        Strong: Strong
+        Strong: Strong,
+        BlockQuote: BlockQuote
     }
     leaf {
         Text: Cow<'a, str>,

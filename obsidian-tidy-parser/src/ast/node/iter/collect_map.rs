@@ -2,16 +2,17 @@ use crate::prelude::Node;
 
 impl<'ast> Node<'ast> {
     #[inline]
-    pub fn collect_map<F, T>(&'ast self, predicate: F) -> Vec<T>
+    pub fn collect_map<F, B, T>(&'ast self, predicate: F) -> B
     where
+        B: Default + Extend<T>,
         F: FnMut(&'ast Node<'ast>) -> Option<T>,
     {
         let mut predicate = predicate;
-        let mut acc = Vec::new();
+        let mut acc = B::default();
 
         self.for_each(|node| {
             if let Some(data) = predicate(node) {
-                acc.push(data);
+                acc.extend(std::iter::once(data));
             }
         });
 
@@ -22,13 +23,14 @@ impl<'ast> Node<'ast> {
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Parser, TextContent};
+    use std::collections::HashMap;
 
     #[test]
     fn collect_map_strong() {
         let document = "My **super** document with `code` and **Rust**";
         let ast = Parser::new(document).ast();
 
-        let strongs = ast.collect_map(|node| node.as_strong());
+        let strongs: Vec<_> = ast.collect_map(|node| node.as_strong());
         let text_strongs: Vec<_> = strongs
             .into_iter()
             .map(|strong| strong.as_plain_text().unwrap())
@@ -44,7 +46,7 @@ mod tests {
 
         let mut var_mut = 0;
 
-        let strongs = ast.collect_map(|node| {
+        let strongs: Vec<_> = ast.collect_map(|node| {
             var_mut += 1;
             node.as_strong()
         });
@@ -63,7 +65,25 @@ mod tests {
         let document = "My **super** document with `code` and **Rust**";
         let ast = Parser::new(document).ast();
 
-        let headings = ast.collect_map(|node| node.as_heading());
+        let headings: Vec<_> = ast.collect_map(|node| node.as_heading());
         assert!(headings.is_empty());
+    }
+
+    #[test]
+    fn collect_hash_map() {
+        let document = "My **super** document with `code` and **Rust**";
+        let ast = Parser::new(document).ast();
+
+        let mut idx = 0usize;
+        let map: HashMap<_, _> = ast.collect_map(|node| {
+            idx += 1;
+            if let Some(text) = node.as_text() {
+                return Some((idx, text));
+            }
+
+            None
+        });
+
+        assert_eq!(map.len(), 5);
     }
 }

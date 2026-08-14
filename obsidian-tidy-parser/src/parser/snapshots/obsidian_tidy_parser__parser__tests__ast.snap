@@ -1,61 +1,46 @@
 ---
 source: obsidian-tidy-parser/src/parser/mod.rs
-assertion_line: 34
 expression: ast
 ---
 {
-  "kind": {
-    "Root": {
-      "kind": null,
-      "children": [
-        {
-          "kind": {
-            "Heading": {
-              "kind": {
-                "level": "H1"
-              },
-              "children": [
-                {
-                  "kind": {
-                    "Text": "Heading"
-                  },
-                  "offset": {
-                    "start": 2,
-                    "end": 9
-                  }
-                }
-              ]
+  "Root": {
+    "children": [
+      {
+        "Heading": {
+          "level": "H1",
+          "children": [
+            {
+              "Text": "Heading",
+              "offset": {
+                "start": 2,
+                "end": 9
+              }
             }
-          },
-          "offset": {
-            "start": 0,
-            "end": 10
-          }
+          ]
         },
-        {
-          "kind": {
-            "Paragraph": {
-              "kind": null,
-              "children": [
-                {
-                  "kind": {
-                    "Text": "Lol"
-                  },
-                  "offset": {
-                    "start": 10,
-                    "end": 13
-                  }
-                }
-              ]
-            }
-          },
-          "offset": {
-            "start": 10,
-            "end": 13
-          }
+        "offset": {
+          "start": 0,
+          "end": 10
         }
-      ]
-    }
+      },
+      {
+        "Paragraph": {
+          "children": [
+            {
+              "Text": "Lol",
+              "offset": {
+                "start": 10,
+                "end": 13
+              }
+            }
+          ]
+        },
+        "offset": {
+          "start": 10,
+          "end": 13
+        }
+      }
+    ]
   },
   "offset": {
     "start": 0,

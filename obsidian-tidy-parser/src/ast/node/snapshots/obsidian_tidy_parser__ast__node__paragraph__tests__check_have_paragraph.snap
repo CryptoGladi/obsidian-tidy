@@ -1,0 +1,31 @@
+---
+source: obsidian-tidy-parser/src/ast/node/paragraph.rs
+expression: ast
+---
+{
+  "Root": {
+    "children": [
+      {
+        "Paragraph": {
+          "children": [
+            {
+              "Text": "Super text",
+              "offset": {
+                "start": 0,
+                "end": 10
+              }
+            }
+          ]
+        },
+        "offset": {
+          "start": 0,
+          "end": 10
+        }
+      }
+    ]
+  },
+  "offset": {
+    "start": 0,
+    "end": 10
+  }
+}

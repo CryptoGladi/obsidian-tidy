@@ -1,10 +1,10 @@
 macro_rules! impl_node_as {
     ($name:ident) => {
         ::pastey::paste! {
-            impl Node<'_> {
+            impl $crate::prelude::Node<'_> {
                 #[must_use]
-                pub const fn [<as_ $name:snake>](&self) -> Option<&Tag<'_, $name>> {
-                    if let NodeKind::$name(data) = &self.kind {
+                pub const fn [<as_ $name:snake>](&self) -> Option<&$crate::prelude::Tag<'_, $name>> {
+                    if let $crate::prelude::NodeKind::$name(data) = &self.kind {
                         return Some(data);
                     }
 

@@ -1,10 +1,11 @@
 pub mod node;
 pub mod stack;
 
-use node::{Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
+use node::{BlockQuote, Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 use stack::{Frame, Stack};
 use std::range::Range;
+use tracing::instrument;
 
 pub struct ASTBuilder<I> {
     inner: I,
@@ -46,6 +47,12 @@ where
 
                 stack.push_parent(Node::new(NodeKind::Strong(tag), offset));
             }
+            MarkTag::BlockQuote(_) => {
+                let block_quote = BlockQuote::new();
+                let tag = Tag::new(block_quote, frame.children().into());
+
+                stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
+            }
             _ => todo!("{:?}", frame.tag),
         }
 
@@ -56,15 +63,18 @@ where
         clippy::missing_panics_doc,
         reason = "каждая строка — это валидный Markdown"
     )]
+    #[instrument(skip_all, level = "trace", fields(node_kind, child_count, parse_range))]
     pub fn build(self) -> Node<'a> {
         let mut stack = Stack::new();
 
         for (event, offset) in self.inner {
+            tracing::trace!(?event, ?offset, "building AST");
+
             match event {
                 MarkEvent::Start(tag) => stack.push(Frame::new(tag, Vec::new())),
                 MarkEvent::End(tag_end) => Self::process_tag_end(tag_end, &mut stack, offset),
                 MarkEvent::Text(text) => {
-                    stack.push_parent(Node::new(NodeKind::Text(text.into()), offset))
+                    stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
                 }
                 MarkEvent::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
                 MarkEvent::Code(text) => {
@@ -79,12 +89,19 @@ where
             reason = "В конце на дне стека останутся все корневые узлы документа"
         )]
         let children_root = stack.into_root().expect("stack not empty");
-        let children_root = children_root.into_boxed_slice();
+        let root = children_root.into_boxed_slice();
 
-        let offset_end = children_root.last().map_or(0, |node| node.offset().end);
+        let offset_end = root.last().map_or(0, |node| node.offset().end);
+        let root = Tag::new(Root::new(), root);
+        let root = Node::new(NodeKind::Root(root), (0..offset_end).into());
 
-        let root = Tag::new(Root::new(), children_root);
-        Node::new(NodeKind::Root(root), (0..offset_end).into())
+        tracing::trace!(
+            parse_range = ?root.offset(),
+            node_count = root.node_count(),
+            "AST build finished"
+        );
+
+        root
     }
 }
 
@@ -105,8 +122,10 @@ where
 mod tests {
     use super::*;
     use pulldown_cmark::Parser as MarkParser;
+    use tracing_test::traced_test;
 
     #[test]
+    #[traced_test]
     fn empty() {
         let document = "";
         let ast = MarkParser::new(document)
