@@ -1,16 +1,23 @@
+use std::range::Range;
+
 use crate::prelude::Node;
 use pulldown_cmark::Tag as MarkTag;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Frame<'a> {
     pub tag: MarkTag<'a>,
+    pub offset: Range<usize>,
     children: Vec<Node<'a>>,
 }
 
 impl<'a> Frame<'a> {
     #[must_use]
-    pub const fn new(tag: MarkTag<'a>, children: Vec<Node<'a>>) -> Self {
-        Self { tag, children }
+    pub const fn new(tag: MarkTag<'a>, offset: Range<usize>, children: Vec<Node<'a>>) -> Self {
+        Self {
+            tag,
+            offset,
+            children,
+        }
     }
 
     #[must_use]
@@ -69,13 +76,15 @@ mod tests {
     use super::*;
     use crate::prelude::NodeKind;
 
+    const OFFSET: Range<usize> = Range { start: 1, end: 3 };
+
     #[test]
     fn push_and_pop() {
         let mut stack = Stack::default();
 
         assert!(stack.pop().is_none());
 
-        let frame = Frame::new(MarkTag::Paragraph, Vec::new());
+        let frame = Frame::new(MarkTag::Paragraph, OFFSET, Vec::new());
         stack.push(frame.clone());
 
         assert_eq!(stack.count_frames(), 1);
@@ -90,9 +99,9 @@ mod tests {
     fn check_lifo() {
         let mut stack = Stack::default();
 
-        let frame1 = Frame::new(MarkTag::Paragraph, Vec::new());
-        let frame2 = Frame::new(MarkTag::Emphasis, Vec::new());
-        let frame3 = Frame::new(MarkTag::HtmlBlock, Vec::new());
+        let frame1 = Frame::new(MarkTag::Paragraph, OFFSET, Vec::new());
+        let frame2 = Frame::new(MarkTag::Emphasis, OFFSET, Vec::new());
+        let frame3 = Frame::new(MarkTag::HtmlBlock, OFFSET, Vec::new());
 
         for frame in [&frame1, &frame2, &frame3] {
             stack.push(frame.clone());
@@ -111,9 +120,9 @@ mod tests {
     fn into_frames() {
         let mut stack = Stack::default();
 
-        let frame1 = Frame::new(MarkTag::Paragraph, Vec::new());
-        let frame2 = Frame::new(MarkTag::Emphasis, Vec::new());
-        let frame3 = Frame::new(MarkTag::HtmlBlock, Vec::new());
+        let frame1 = Frame::new(MarkTag::Paragraph, OFFSET, Vec::new());
+        let frame2 = Frame::new(MarkTag::Emphasis, OFFSET, Vec::new());
+        let frame3 = Frame::new(MarkTag::HtmlBlock, OFFSET, Vec::new());
 
         for frame in [&frame1, &frame2, &frame3] {
             stack.push(frame.clone());
@@ -133,7 +142,7 @@ mod tests {
 
         (1..=5)
             .into_iter()
-            .map(|_| Frame::new(MarkTag::Emphasis, Vec::new()))
+            .map(|_| Frame::new(MarkTag::Emphasis, OFFSET, Vec::new()))
             .for_each(|frame| {
                 stack.push(frame);
             });
@@ -148,7 +157,7 @@ mod tests {
         // get root and add node
         stack.push_parent(Node::new(NodeKind::SoftBreak, (0..1).into()));
 
-        let frame = Frame::new(MarkTag::Paragraph, Vec::new());
+        let frame = Frame::new(MarkTag::Paragraph, OFFSET, Vec::new());
         stack.push(frame);
 
         let _ = stack.pop().unwrap();
@@ -161,7 +170,7 @@ mod tests {
     fn into_root() {
         let mut stack = Stack::default();
 
-        let frame = Frame::new(MarkTag::Paragraph, Vec::new());
+        let frame = Frame::new(MarkTag::Paragraph, OFFSET, Vec::new());
         stack.push(frame);
         let _ = stack.pop().unwrap();
 
@@ -173,7 +182,7 @@ mod tests {
     fn into_root_but_stack_not_empty() {
         let mut stack = Stack::default();
 
-        let frame = Frame::new(MarkTag::Paragraph, Vec::new());
+        let frame = Frame::new(MarkTag::Paragraph, OFFSET, Vec::new());
         stack.push(frame);
 
         assert!(stack.into_root().is_none());

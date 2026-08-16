@@ -2,6 +2,7 @@ use crate::prelude::Node;
 
 impl Node<'_> {
     #[inline]
+    #[must_use]
     pub fn node_count(&self) -> usize {
         self.count(|_| true)
     }

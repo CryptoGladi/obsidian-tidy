@@ -1201,7 +1201,6 @@ dependencies = [
  "pastey",
  "proptest",
  "pulldown-cmark",
- "regex",
  "serde",
  "serde_json",
  "strum",

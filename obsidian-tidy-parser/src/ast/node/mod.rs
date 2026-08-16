@@ -1,4 +1,5 @@
 mod block_quote;
+pub mod callout;
 mod heading;
 mod iter;
 pub(crate) mod macros;
@@ -9,6 +10,7 @@ mod strong;
 mod text_content;
 
 pub use block_quote::BlockQuote;
+pub use callout::Callout;
 pub use heading::{Heading, HeadingLevel};
 pub(crate) use macros::impl_node_as;
 pub use paragraph::Paragraph;
@@ -42,17 +44,19 @@ impl<'a, T> Tag<'a, T> {
 
 #[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize, Display)]
 #[non_exhaustive]
-pub enum NodeKind<'a> {
-    Root(Tag<'a, Root>),
+pub enum NodeKind<'ast> {
+    Root(Tag<'ast, Root>),
 
-    Paragraph(Tag<'a, Paragraph>),
-    Heading(Tag<'a, Heading>),
-    Strong(Tag<'a, Strong>),
-    BlockQuote(Tag<'a, BlockQuote>),
+    Paragraph(Tag<'ast, Paragraph>),
+    Heading(Tag<'ast, Heading>),
+    Strong(Tag<'ast, Strong>),
+    BlockQuote(Tag<'ast, BlockQuote>),
+    Callout(Tag<'ast, Callout<'ast>>),
 
-    Text(Cow<'a, str>),
-    InlineCode(Cow<'a, str>),
+    Text(Cow<'ast, str>),
+    InlineCode(Cow<'ast, str>),
     SoftBreak,
+    HardBreak,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

@@ -14,7 +14,7 @@ super::impl_node_as!(Paragraph);
 
 #[cfg(test)]
 mod tests {
-    use crate::{TextContent, prelude::Parser};
+    use crate::prelude::{Parser, TextContent};
     use tracing_test::traced_test;
 
     #[test]

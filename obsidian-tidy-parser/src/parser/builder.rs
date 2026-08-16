@@ -20,10 +20,13 @@ impl ParserBuilder {
     }
 
     #[must_use]
-    pub const fn all() -> Self {
-        Self {
-            options: MarkOptions::all(),
-        }
+    pub fn all() -> Self {
+        let mut options = MarkOptions::all();
+
+        // Мы сделали свою реализацию callout
+        options.set(MarkOptions::ENABLE_GFM, false);
+
+        Self { options }
     }
 
     #[must_use]

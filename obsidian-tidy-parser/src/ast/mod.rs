@@ -1,7 +1,7 @@
 pub mod node;
 pub mod stack;
 
-use node::{BlockQuote, Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
+use node::{BlockQuote, Callout, Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 use stack::{Frame, Stack};
 use std::range::Range;
@@ -51,7 +51,12 @@ where
                 let block_quote = BlockQuote::new();
                 let tag = Tag::new(block_quote, frame.children().into());
 
-                stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
+                tag.as_callout(offset);
+                if let Some(tag) = tag.as_callout(offset) {
+                    stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
+                } else {
+                    stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
+                }
             }
             _ => todo!("{:?}", frame.tag),
         }
@@ -71,12 +76,13 @@ where
             tracing::trace!(?event, ?offset, "building AST");
 
             match event {
-                MarkEvent::Start(tag) => stack.push(Frame::new(tag, Vec::new())),
+                MarkEvent::Start(tag) => stack.push(Frame::new(tag, offset, Vec::new())),
                 MarkEvent::End(tag_end) => Self::process_tag_end(tag_end, &mut stack, offset),
                 MarkEvent::Text(text) => {
                     stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
                 }
                 MarkEvent::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
+                MarkEvent::HardBreak => stack.push_parent(Node::new(NodeKind::HardBreak, offset)),
                 MarkEvent::Code(text) => {
                     stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
                 }
