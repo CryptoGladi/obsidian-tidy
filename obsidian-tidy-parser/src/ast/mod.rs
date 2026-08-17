@@ -51,8 +51,7 @@ where
                 let block_quote = BlockQuote::new();
                 let tag = Tag::new(block_quote, frame.children().into());
 
-                tag.as_callout(offset);
-                if let Some(tag) = tag.as_callout(offset) {
+                if let Some(tag) = Callout::parse(&tag, offset) {
                     stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
                 } else {
                     stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));

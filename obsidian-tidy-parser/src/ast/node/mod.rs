@@ -51,7 +51,7 @@ pub enum NodeKind<'ast> {
     Heading(Tag<'ast, Heading>),
     Strong(Tag<'ast, Strong>),
     BlockQuote(Tag<'ast, BlockQuote>),
-    Callout(Tag<'ast, Callout<'ast>>),
+    Callout(Tag<'ast, Callout>),
 
     Text(Cow<'ast, str>),
     InlineCode(Cow<'ast, str>),

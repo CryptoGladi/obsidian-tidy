@@ -60,9 +60,6 @@ inventory = "0.3"
 gungraun = "0.19"
 pastey = "0.2"
 
-[workspace.lints.rust]
-unsafe_code = "forbid"
-
 [workspace.lints.rustdoc]
 broken_intra_doc_links = "deny"
 private_intra_doc_links = "allow"

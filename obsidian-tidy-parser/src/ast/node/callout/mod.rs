@@ -92,16 +92,15 @@ impl<'ast> Iterator for CalloutContentIter<'ast> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct Callout<'ast> {
+pub struct Callout {
     pub foldable: CalloutFoldable,
-    kind: CalloutKind<'ast>,
 }
 
-impl<'ast> Callout<'ast> {
-    pub(crate) fn parse(
+impl Callout {
+    pub(crate) fn parse<'ast>(
         block_quote: &Tag<'ast, BlockQuote>,
         offset: Range<usize>,
-    ) -> Option<Tag<'ast, Callout<'ast>>> {
+    ) -> Option<Tag<'ast, Self>> {
         let first_child = block_quote.children().first()?;
         let paragraph = first_child.as_paragraph()?;
         let paragraph_offset = first_child.offset();
@@ -120,7 +119,7 @@ impl<'ast> Callout<'ast> {
             .filter(|text| *text == "[")?;
 
         // For check iterator
-        let kind = CalloutKind::from_paragraph_iter(&mut paragraph_iter)?;
+        CalloutKind::from_paragraph_iter(&mut paragraph_iter)?;
 
         paragraph_iter
             .next()?
