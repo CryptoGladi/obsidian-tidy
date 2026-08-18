@@ -5,6 +5,7 @@ pub use builder::MarkdownLexerBuilder;
 use pulldown_cmark::{Event as MarkEvent, Options as MarkOptions, Parser as MarkParser};
 use std::range::Range;
 
+#[derive(Debug)]
 pub struct MarkdownLexer<'input> {
     inner: pulldown_cmark::OffsetIter<'input>,
 }

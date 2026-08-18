@@ -22,13 +22,14 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{Parser, TextContent};
+    use crate::prelude::{Document, TextContent};
     use std::collections::HashMap;
 
     #[test]
     fn collect_map_strong() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let strongs: Vec<_> = ast.collect_map(|node| node.as_strong());
         let text_strongs: Vec<_> = strongs
@@ -41,8 +42,9 @@ mod tests {
 
     #[test]
     fn collect_map_use_mut_fn() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut var_mut = 0;
 
@@ -62,8 +64,9 @@ mod tests {
 
     #[test]
     fn collect_map_empty() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let headings: Vec<_> = ast.collect_map(|node| node.as_heading());
         assert!(headings.is_empty());
@@ -71,8 +74,9 @@ mod tests {
 
     #[test]
     fn collect_hash_map() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut idx = 0usize;
         let map: HashMap<_, _> = ast.collect_map(|node| {

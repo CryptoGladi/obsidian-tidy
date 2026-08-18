@@ -17,12 +17,13 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::Parser;
+    use crate::prelude::Document;
 
     #[test]
     fn counting_use_strong() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let count_strong = ast.count(|node| node.kind().is_strong());
         assert_eq!(count_strong, 2);
@@ -30,9 +31,9 @@ mod tests {
 
     #[test]
     fn counting_use_mut_fn() {
-        let document = "# My **super** document with `code` and **Rust**";
-
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut mut_var = 0;
         let count_strong = ast.count(|node| {
@@ -47,8 +48,9 @@ mod tests {
 
     #[test]
     fn counting_but_not_found() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let count_strong = ast.count(|node| node.kind().is_heading());
         assert_eq!(count_strong, 0);

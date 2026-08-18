@@ -5,7 +5,6 @@ pub use fold::{Fold, FoldVisitorExt};
 
 use crate::prelude::{BlockQuote, Callout, Heading, Node, Paragraph, Root, Strong};
 use macros::define_visitor;
-use std::borrow::Cow;
 
 define_visitor! {
     tagged {
@@ -17,8 +16,8 @@ define_visitor! {
         Callout: Callout
     }
     leaf {
-        Text: Cow<'ast, str>,
-        InlineCode: Cow<'ast, str>
+        Text: str,
+        InlineCode: str
     }
     empty {
         SoftBreak,
@@ -55,7 +54,7 @@ mod tests {
     }
 
     impl Visitor<'_> for CountWord {
-        fn visit_text(&mut self, text: &Cow<'_, str>, _offset: Range<usize>) -> ControlFlow<()> {
+        fn visit_text(&mut self, text: &str, _offset: Range<usize>) -> ControlFlow<()> {
             self.count += text.split_whitespace().count();
             ControlFlow::Continue(())
         }
@@ -63,8 +62,8 @@ mod tests {
 
     #[test]
     fn visit_node() {
-        let document = "# Hello world everyone!";
-        let ast = Parser::new(&document).ast();
+        let document = Document::new("# Hello world everyone!");
+        let ast = document.ast();
 
         let mut count_word = CountWord::default();
         let _ = count_word.visit_node(&ast);
@@ -74,8 +73,8 @@ mod tests {
 
     #[test]
     fn visit_ext() {
-        let document = "# Hello world everyone!";
-        let ast = Parser::new(&document).ast();
+        let document = Document::new("# Hello world everyone!");
+        let ast = document.ast();
 
         let mut count_word = CountWord::default();
         ast.visit(&mut count_word);
@@ -130,8 +129,8 @@ mod tests {
             }
         }
 
-        let document = "# Hello world everyone!";
-        let ast = Parser::new(&document).ast();
+        let document = Document::new("# Hello world everyone!");
+        let ast = document.ast();
 
         let mut call_order = CallOrderVisitor::new();
         ast.visit(&mut call_order);

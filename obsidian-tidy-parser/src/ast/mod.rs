@@ -1,6 +1,7 @@
 pub mod node;
 pub mod stack;
 
+use crate::token_stream::Token;
 use node::{BlockQuote, Callout, Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 use stack::{Frame, Stack};
@@ -17,11 +18,11 @@ impl<I> ASTBuilder<I> {
     }
 }
 
-impl<'a, I> ASTBuilder<I>
+impl<'ast, I> ASTBuilder<I>
 where
-    I: Iterator<Item = (MarkEvent<'a>, Range<usize>)>,
+    I: Iterator<Item = (Token<'ast>, Range<usize>)>,
 {
-    fn process_tag_end(tag_end: MarkTagEnd, stack: &mut Stack<'a>, offset: Range<usize>) {
+    fn process_tag_end(tag_end: MarkTagEnd, stack: &mut Stack<'ast>, offset: Range<usize>) {
         #[expect(
             clippy::expect_used,
             reason = "библиотека гарантирует, что это невозможно"
@@ -51,11 +52,7 @@ where
                 let block_quote = BlockQuote::new();
                 let tag = Tag::new(block_quote, frame.children().into());
 
-                if let Some(tag) = Callout::parse(&tag, offset) {
-                    stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
-                } else {
-                    stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
-                }
+                stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
             }
             _ => todo!("{:?}", frame.tag),
         }
@@ -63,29 +60,42 @@ where
         debug_assert_eq!(tag_end, frame.tag.to_end());
     }
 
+    fn process_token_markdown(
+        markdown: MarkEvent<'ast>,
+        stack: &mut Stack<'ast>,
+        offset: Range<usize>,
+    ) {
+        match markdown {
+            MarkEvent::Start(tag) => stack.push(Frame::new(tag, offset, Vec::new())),
+            MarkEvent::End(tag_end) => Self::process_tag_end(tag_end, stack, offset),
+            MarkEvent::Text(text) => {
+                stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
+            }
+            MarkEvent::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
+            MarkEvent::HardBreak => stack.push_parent(Node::new(NodeKind::HardBreak, offset)),
+            MarkEvent::Code(text) => {
+                stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
+            }
+            _ => todo!("{:?}", markdown),
+        }
+    }
+
     #[expect(
         clippy::missing_panics_doc,
         reason = "каждая строка — это валидный Markdown"
     )]
     #[instrument(skip_all, level = "trace", fields(node_kind, child_count, parse_range))]
-    pub fn build(self) -> Node<'a> {
+    pub fn build(self) -> Node<'ast> {
         let mut stack = Stack::new();
 
-        for (event, offset) in self.inner {
-            tracing::trace!(?event, ?offset, "building AST");
+        for (token, offset) in self.inner {
+            tracing::trace!(?token, ?offset, "building AST");
 
-            match event {
-                MarkEvent::Start(tag) => stack.push(Frame::new(tag, offset, Vec::new())),
-                MarkEvent::End(tag_end) => Self::process_tag_end(tag_end, &mut stack, offset),
-                MarkEvent::Text(text) => {
-                    stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
+            match token {
+                Token::Markdown(markdown) => {
+                    Self::process_token_markdown(markdown, &mut stack, offset)
                 }
-                MarkEvent::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
-                MarkEvent::HardBreak => stack.push_parent(Node::new(NodeKind::HardBreak, offset)),
-                MarkEvent::Code(text) => {
-                    stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
-                }
-                _ => todo!("{:?}", event),
+                _ => todo!("{:?}", token),
             }
         }
 
@@ -110,15 +120,15 @@ where
     }
 }
 
-pub trait ASTBuildExt<'a>: Iterator {
-    fn build_ast(self) -> Node<'a>;
+pub trait ASTBuildExt<'ast>: Iterator {
+    fn build_ast(self) -> Node<'ast>;
 }
 
-impl<'a, I> ASTBuildExt<'a> for I
+impl<'ast, I> ASTBuildExt<'ast> for I
 where
-    I: Iterator<Item = (MarkEvent<'a>, Range<usize>)>,
+    I: Iterator<Item = (Token<'ast>, Range<usize>)>,
 {
-    fn build_ast(self) -> Node<'a> {
+    fn build_ast(self) -> Node<'ast> {
         ASTBuilder::new(self).build()
     }
 }
@@ -126,17 +136,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pulldown_cmark::Parser as MarkParser;
+    use crate::{markdown_lexer::MarkdownLexerBuilder, token_stream::TokenStream};
     use tracing_test::traced_test;
 
     #[test]
     #[traced_test]
     fn empty() {
         let document = "";
-        let ast = MarkParser::new(document)
-            .into_offset_iter()
-            .map(|(event, range)| (event, std::range::Range::from(range)))
-            .build_ast();
+        let lexer = MarkdownLexerBuilder::default().build(document);
+        let token_stream = TokenStream::new(document, lexer, []);
+
+        let ast = token_stream.build_ast();
 
         let children = ast.as_root().unwrap().children();
         assert!(children.is_empty());

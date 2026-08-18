@@ -12,28 +12,31 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::Parser;
+    use crate::prelude::Document;
 
     #[test]
     fn any_positive() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         assert!(ast.any(|node| node.kind().is_strong()));
     }
 
     #[test]
     fn any_negative() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         assert!(!ast.any(|node| node.kind().is_heading()));
     }
 
     #[test]
     fn any_use_mut_fn() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut var_mut = 0;
 

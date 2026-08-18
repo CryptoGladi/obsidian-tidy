@@ -29,7 +29,7 @@ where
     ///
     /// The original N tokens are **dropped**.
     /// New items are appended to the buffer in the same order.
-    pub fn commit_with<T>(mut self, items: T)
+    pub fn commit_with<T>(self, items: T)
     where
         T: IntoIterator<Item = I::Item>,
         T::IntoIter: DoubleEndedIterator,
@@ -49,12 +49,43 @@ where
         }
     }
 
-    pub fn commit(mut self) {
+    /// Replaces the N peeked elements with the provided items and returns the first item.
+    ///
+    /// The original N elements are **dropped**.
+    /// The first item from `items` is returned to the caller.
+    /// Remaining items are pushed to the buffer in their original order
+    /// (so they'll be returned by subsequent `next()` calls in that order).
+    ///
+    /// Returns `None` if `items` is empty.
+    pub fn commit_returning_first<T>(self, items: T) -> Option<I::Item>
+    where
+        T: IntoIterator<Item = I::Item>,
+        T::IntoIter: DoubleEndedIterator,
+    {
+        let mut this = std::mem::ManuallyDrop::new(self);
+        let mut items_iter = items.into_iter();
+
+        for item in &mut this.data {
+            // SAFETY: all elements are initialized
+            unsafe {
+                item.assume_init_drop();
+            }
+        }
+
+        let first = items_iter.next()?;
+        for item in items_iter.rev() {
+            this.lookahead.buffer.push_front(item);
+        }
+
+        Some(first)
+    }
+
+    pub fn commit(self) {
         self.commit_with([]);
     }
 
     pub fn commit_into(self) -> [I::Item; N] {
-        let mut this = ManuallyDrop::new(self);
+        let this = ManuallyDrop::new(self);
 
         unsafe { std::ptr::read(this.data.as_ptr() as *const [I::Item; N]) }
     }
@@ -226,6 +257,86 @@ mod tests {
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             guard.commit_with(PanickingIterable::new());
+        }));
+
+        assert!(result.is_err());
+
+        assert_eq!(lookahead.next(), Some("D"));
+        assert_eq!(lookahead.next(), Some("E"));
+        assert_eq!(lookahead.next(), None);
+    }
+
+    #[test]
+    fn commit_returning_first() {
+        let source = vec!["A", "B", "C", "D", "E"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<3>().unwrap();
+        let tokens = guard.data();
+
+        assert_eq!(tokens[0], "A");
+        assert_eq!(tokens[1], "B");
+        assert_eq!(tokens[2], "C");
+
+        let first = guard.commit_returning_first(["F", "P"]).unwrap();
+        assert_eq!(first, "F");
+
+        assert_eq!(lookahead.next(), Some("P"));
+        assert_eq!(lookahead.next(), Some("D"));
+        assert_eq!(lookahead.next(), Some("E"));
+        assert_eq!(lookahead.next(), None);
+    }
+
+    #[test]
+    fn commit_returning_first_but_peek_many_zero() {
+        let source = vec!["A", "B"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<0>().unwrap();
+
+        let first = guard.commit_returning_first(["F", "P"]).unwrap();
+        assert_eq!(first, "F");
+
+        assert_eq!(lookahead.next(), Some("P"));
+        assert_eq!(lookahead.next(), Some("A"));
+        assert_eq!(lookahead.next(), Some("B"));
+        assert_eq!(lookahead.next(), None);
+    }
+
+    #[test]
+    fn commit_returning_first_but_arg_zero() {
+        let source = vec!["A", "B", "C", "D", "E"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<3>().unwrap();
+        let tokens = guard.data();
+
+        assert_eq!(tokens[0], "A");
+        assert_eq!(tokens[1], "B");
+        assert_eq!(tokens[2], "C");
+
+        let first = guard.commit_returning_first([]);
+        assert!(first.is_none());
+
+        assert_eq!(lookahead.next(), Some("D"));
+        assert_eq!(lookahead.next(), Some("E"));
+        assert_eq!(lookahead.next(), None);
+    }
+
+    #[test]
+    fn commit_returning_first_but_panic() {
+        let source = vec!["A", "B", "C", "D", "E"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<3>().unwrap();
+        let tokens = guard.data();
+
+        assert_eq!(tokens[0], "A");
+        assert_eq!(tokens[1], "B");
+        assert_eq!(tokens[2], "C");
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            guard.commit_returning_first(PanickingIterable::new());
         }));
 
         assert!(result.is_err());
@@ -422,6 +533,23 @@ mod tests {
 
             let panic_iter = PanickingIterable::new();
             guard.commit_with(panic_iter);
+        }));
+
+        assert!(result.is_err());
+
+        // In buffer
+        assert_eq!(Rc::strong_count(&watchers[0]), 2);
+    }
+
+    #[test]
+    fn rc_panic_commit_returning_first() {
+        let (mut lookahead, watchers) = setup_lookahead_env(1);
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let guard = lookahead.peek_many::<1>().unwrap();
+
+            let panic_iter = PanickingIterable::new();
+            guard.commit_returning_first(panic_iter);
         }));
 
         assert!(result.is_err());

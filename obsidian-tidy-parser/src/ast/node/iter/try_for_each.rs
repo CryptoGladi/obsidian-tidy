@@ -16,13 +16,14 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{HeadingLevel, NodeKind, Parser};
+    use crate::prelude::{Document, HeadingLevel, NodeKind};
     use std::ops::ControlFlow;
 
     #[test]
     fn try_for_each_while_visits_in_pre_order() {
-        let document = "# Heading **super**";
-        let ast = Parser::new(document).ast();
+        let text = "# Heading **super**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut order = Vec::new();
         let break_node = ast.try_for_each(|node| {
@@ -44,8 +45,9 @@ mod tests {
     fn try_for_each_while_with_hashmap() {
         use std::collections::HashMap;
 
-        let document = "# H1\n## H2\n### H3\n## H2 again";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3\n## H2 again";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut level_counts = HashMap::new();
         ast.try_for_each::<_, ()>(|node| {
@@ -65,8 +67,9 @@ mod tests {
 
     #[test]
     fn try_for_each_while_with_unit_accumulator() {
-        let document = "# Hello";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let result = ast.try_for_each::<_, ()>(|_| ControlFlow::Continue(()));
         assert!(result.is_ok());
@@ -74,8 +77,9 @@ mod tests {
 
     #[test]
     fn try_for_each_while_immediate_break() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut visited = 0;
         let result = ast.try_for_each(|_| {
@@ -89,8 +93,9 @@ mod tests {
 
     #[test]
     fn try_for_each_while_never_breaks() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut visited = 0;
         let _ = ast.try_for_each::<_, ()>(|_| {

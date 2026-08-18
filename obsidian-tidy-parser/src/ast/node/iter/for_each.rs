@@ -14,12 +14,13 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{HeadingLevel, NodeKind, Parser};
+    use crate::prelude::{Document, HeadingLevel, NodeKind};
 
     #[test]
     fn for_each_while_visits_in_pre_order() {
-        let document = "# Heading";
-        let ast = Parser::new(document).ast();
+        let text = "# Heading";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut order = Vec::new();
         ast.for_each(|node| {
@@ -41,8 +42,9 @@ mod tests {
     fn for_each_while_with_hashmap() {
         use std::collections::HashMap;
 
-        let document = "# H1\n## H2\n### H3\n## H2 again";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3\n## H2 again";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut level_counts = HashMap::new();
         ast.for_each(|node| {

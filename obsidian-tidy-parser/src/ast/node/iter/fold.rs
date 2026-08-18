@@ -18,12 +18,13 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{HeadingLevel, NodeKind, Parser, TextContent};
+    use crate::prelude::{Document, HeadingLevel, NodeKind, TextContent};
 
     #[test]
     fn fold_counts_all_nodes() {
-        let document = "# Hello\nWorld";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello\nWorld";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let count = ast.fold(0usize, |acc, _| acc + 1);
 
@@ -33,8 +34,9 @@ mod tests {
 
     #[test]
     fn fold_on_empty_document() {
-        let document = "";
-        let ast = Parser::new(document).ast();
+        let text = "";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let count = ast.fold(0usize, |acc, _| acc + 1);
 
@@ -44,8 +46,9 @@ mod tests {
 
     #[test]
     fn fold_returns_initial_value_for_no_match() {
-        let document = "# Hello";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let result = ast.fold(
             42usize,
@@ -59,8 +62,9 @@ mod tests {
 
     #[test]
     fn fold_counts_headings() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let heading_count = ast.fold(0usize, |acc, node| {
             if node.kind().is_heading() {
@@ -77,8 +81,9 @@ mod tests {
 
     #[test]
     fn fold_collects_text_content() {
-        let document = "Hello world";
-        let ast = Parser::new(document).ast();
+        let text = "Hello world";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let text = ast.fold(String::new(), |mut acc, node| {
             if let NodeKind::Text(content) = node.kind() {
@@ -93,8 +98,9 @@ mod tests {
 
     #[test]
     fn fold_collects_heading_texts() {
-        let document = "# First\n## Second\n### Third";
-        let ast = Parser::new(document).ast();
+        let text = "# First\n## Second\n### Third";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let headings_text = ast.fold(String::new(), |mut acc, node| {
             if let Some(heading) = node.as_heading() {
@@ -115,8 +121,9 @@ mod tests {
 
     #[test]
     fn fold_collects_all_text_nodes() {
-        let document = "Hello **bold** world";
-        let ast = Parser::new(document).ast();
+        let text = "Hello **bold** world";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let texts = ast.fold(Vec::new(), |mut acc, node| {
             if let NodeKind::Text(content) = node.kind() {
@@ -131,8 +138,9 @@ mod tests {
 
     #[test]
     fn fold_visits_nodes_in_pre_order() {
-        let document = "# Heading";
-        let ast = Parser::new(document).ast();
+        let text = "# Heading";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let order = ast.fold(Vec::new(), |mut order, node| {
             let name = match node.kind() {
@@ -154,8 +162,9 @@ mod tests {
     fn fold_with_hashmap_accumulator() {
         use std::collections::HashMap;
 
-        let document = "# H1\n## H2\n### H3\n## H2 again";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3\n## H2 again";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let level_counts = ast.fold(HashMap::new(), |mut acc, node| {
             if let Some(heading) = node.as_heading() {
@@ -174,8 +183,9 @@ mod tests {
     #[test]
     // Не оптимальный код! Требуется остановка!
     fn fold_with_option_accumulator() {
-        let document = "# First heading\n## Second heading";
-        let ast = Parser::new(document).ast();
+        let text = "# First heading\n## Second heading";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let first_heading = ast.fold(None, |acc, node| {
             if acc.is_none() {
@@ -192,8 +202,9 @@ mod tests {
 
     #[test]
     fn fold_with_unit_accumulator() {
-        let document = "# Hello";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let result = ast.fold((), |_, _| {});
 
@@ -202,8 +213,9 @@ mod tests {
 
     #[test]
     fn fold_short_circuits_with_any_semantics() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut visited_count = 0;
         let found = ast.fold(None, |acc, node| {

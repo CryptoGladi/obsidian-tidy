@@ -1,0 +1,82 @@
+---
+source: obsidian-tidy-parser/src/token_stream/interceptor/callout_interceptor.rs
+expression: tokens
+---
+[
+    (
+        StartCallout(
+            Callout {
+                kind: "tip",
+                header_offset: 2..8,
+                foldable: None,
+            },
+        ),
+        0..18,
+    ),
+    (
+        Markdown(
+            Start(
+                Paragraph,
+            ),
+        ),
+        2..18,
+    ),
+    (
+        Markdown(
+            Text(
+                Borrowed(
+                    "[",
+                ),
+            ),
+        ),
+        2..3,
+    ),
+    (
+        Markdown(
+            Text(
+                Borrowed(
+                    "!tip",
+                ),
+            ),
+        ),
+        3..7,
+    ),
+    (
+        Markdown(
+            Text(
+                Borrowed(
+                    "]",
+                ),
+            ),
+        ),
+        7..8,
+    ),
+    (
+        Markdown(
+            SoftBreak,
+        ),
+        8..9,
+    ),
+    (
+        Markdown(
+            Text(
+                Borrowed(
+                    "Content",
+                ),
+            ),
+        ),
+        11..18,
+    ),
+    (
+        Markdown(
+            End(
+                Paragraph,
+            ),
+        ),
+        2..18,
+    ),
+    (
+        EndCallout,
+        0..18,
+    ),
+]

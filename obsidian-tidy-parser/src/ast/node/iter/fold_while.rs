@@ -62,13 +62,14 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{HeadingLevel, NodeKind, Parser, TextContent};
+    use crate::prelude::{Document, HeadingLevel, NodeKind, TextContent};
     use std::ops::ControlFlow;
 
     #[test]
     fn fold_while_counts_all_nodes() {
-        let document = "# Hello\nWorld";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello\nWorld";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let count = ast.fold_while(0usize, |acc, _| ControlFlow::Continue(acc + 1));
 
@@ -78,8 +79,9 @@ mod tests {
 
     #[test]
     fn fold_while_on_empty_document() {
-        let document = "";
-        let ast = Parser::new(document).ast();
+        let text = "";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let count = ast.fold_while(0usize, |acc, _| ControlFlow::Continue(acc + 1));
 
@@ -89,8 +91,9 @@ mod tests {
 
     #[test]
     fn fold_while_returns_initial_value() {
-        let document = "# Hello";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let result = ast.fold_while(42usize, |acc, _| ControlFlow::Continue(acc));
 
@@ -99,8 +102,9 @@ mod tests {
 
     #[test]
     fn fold_while_stops_on_break() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut visited_count = 0;
         let result = ast.fold_while(0usize, |acc, node| {
@@ -119,8 +123,9 @@ mod tests {
 
     #[test]
     fn find_via_fold_while() {
-        let document = "# First heading\n## Second heading";
-        let ast = Parser::new(document).ast();
+        let text = "# First heading\n## Second heading";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let first_heading = ast
             .fold_while(None, |acc, node| {
@@ -139,8 +144,9 @@ mod tests {
 
     #[test]
     fn any_via_fold_while() {
-        let document = "# Hello\nWorld";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello\nWorld";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let has_heading = ast.fold_while(false, |_acc, node| {
             if node.kind().is_heading() {
@@ -155,8 +161,9 @@ mod tests {
 
     #[test]
     fn all_via_fold_while() {
-        let document = "Just text, no headings";
-        let ast = Parser::new(document).ast();
+        let text = "Just text, no headings";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let all_text = ast.fold_while(true, |acc, node| {
             if node.kind().is_heading() {
@@ -171,8 +178,9 @@ mod tests {
 
     #[test]
     fn all_returns_false_on_counterexample() {
-        let document = "# Heading\nText";
-        let ast = Parser::new(document).ast();
+        let text = "# Heading\nText";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let all_text = ast.fold_while(true, |acc, node| {
             if node.kind().is_heading() {
@@ -187,8 +195,9 @@ mod tests {
 
     #[test]
     fn fold_while_collects_text() {
-        let document = "Hello world";
-        let ast = Parser::new(document).ast();
+        let text = "Hello world";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut text = String::new();
         ast.fold_while((), |_, node| {
@@ -204,8 +213,9 @@ mod tests {
 
     #[test]
     fn fold_while_stops_collecting_at_heading() {
-        let document = "Before heading\n\n# Heading\n\nAfter heading";
-        let ast = Parser::new(document).ast();
+        let text = "Before heading\n\n# Heading\n\nAfter heading";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let text = ast.fold_while(String::new(), |mut acc, node| {
             if node.kind().is_heading() {
@@ -225,8 +235,9 @@ mod tests {
 
     #[test]
     fn fold_while_visits_in_pre_order() {
-        let document = "# Heading";
-        let ast = Parser::new(document).ast();
+        let text = "# Heading";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut order = Vec::new();
         let _ = ast.fold_while((), |_, node| {
@@ -249,8 +260,9 @@ mod tests {
     fn fold_while_with_hashmap() {
         use std::collections::HashMap;
 
-        let document = "# H1\n## H2\n### H3\n## H2 again";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3\n## H2 again";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let level_counts = ast.fold_while(HashMap::new(), |mut acc, node| {
             if let Some(heading) = node.as_heading() {
@@ -268,8 +280,9 @@ mod tests {
 
     #[test]
     fn fold_while_with_unit_accumulator() {
-        let document = "# Hello";
-        let ast = Parser::new(document).ast();
+        let text = "# Hello";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let result = ast.fold_while((), |_, _| ControlFlow::Continue(()));
 
@@ -278,8 +291,9 @@ mod tests {
 
     #[test]
     fn fold_while_immediate_break() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut visited = 0;
         let result = ast.fold_while(0usize, |acc, _node| {
@@ -293,8 +307,9 @@ mod tests {
 
     #[test]
     fn fold_while_never_breaks() {
-        let document = "# H1\n## H2\n### H3";
-        let ast = Parser::new(document).ast();
+        let text = "# H1\n## H2\n### H3";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut visited = 0;
         let _ = ast.fold_while((), |_, _node| {

@@ -10,12 +10,13 @@ impl Node<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::Parser;
+    use crate::prelude::Document;
 
     #[test]
     fn count_empty() {
-        let document = "";
-        let ast = Parser::new(document).ast();
+        let text = "";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         // Root only
         assert_eq!(ast.node_count(), 1);
@@ -23,8 +24,9 @@ mod tests {
 
     #[test]
     fn count_text() {
-        let document = "# Define\n**Super** text";
-        let ast = Parser::new(document).ast();
+        let text = "# Define\n**Super** text";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         // Root + Heading + Text + SoftBreak + (Storng + Text) + Text = 7
         assert_eq!(ast.node_count(), 7);

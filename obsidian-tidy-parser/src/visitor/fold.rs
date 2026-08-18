@@ -31,7 +31,7 @@ impl<'a> FoldVisitorExt<'a> for Node<'a> {
 mod tests {
     use super::*;
     use crate::prelude::*;
-    use std::{borrow::Cow, ops::ControlFlow, range::Range};
+    use std::{ops::ControlFlow, range::Range};
 
     #[derive(Debug, Default)]
     struct CountWord {
@@ -39,7 +39,7 @@ mod tests {
     }
 
     impl Visitor<'_> for CountWord {
-        fn visit_text(&mut self, text: &Cow<'_, str>, _offset: Range<usize>) -> ControlFlow<()> {
+        fn visit_text(&mut self, text: &str, _offset: Range<usize>) -> ControlFlow<()> {
             self.count += text.split_whitespace().count();
             ControlFlow::Continue(())
         }
@@ -55,8 +55,8 @@ mod tests {
 
     #[test]
     fn visit_node() {
-        let document = "# Hello world everyone!";
-        let ast = Parser::new(&document).ast();
+        let document = Document::new("# Hello world everyone!");
+        let ast = document.ast();
 
         let count_word = CountWord::default();
         let result = ast.fold_visitor(count_word);

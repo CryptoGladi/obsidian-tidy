@@ -22,12 +22,13 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{NodeKind, Parser, TextContent};
+    use crate::prelude::{Document, NodeKind, TextContent};
 
     #[test]
     fn find_map_not_item() {
-        let document = "# Document header\nText";
-        let ast = Parser::new(document).ast();
+        let text = "# Document header\nText";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let found = ast.find_map(|node| node.kind().is_strong().then(|| node));
         assert!(found.is_none());
@@ -35,8 +36,9 @@ mod tests {
 
     #[test]
     fn find_map_with_duplicate() {
-        let document = "# Header 1\n# Header 2";
-        let ast = Parser::new(document).ast();
+        let text = "# Header 1\n# Header 2";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let found = ast.find_map(|node| node.kind().is_heading().then(|| node));
         assert!(found.is_some());
@@ -44,8 +46,9 @@ mod tests {
 
     #[test]
     fn find_map_heading() {
-        let document = "# Header 1\n# Header 2";
-        let ast = Parser::new(document).ast();
+        let text = "# Header 1\n# Header 2";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let heading = ast
             .find_map(|node| {

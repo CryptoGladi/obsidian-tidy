@@ -22,12 +22,13 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{Parser, TextContent};
+    use crate::prelude::{Document, TextContent};
 
     #[test]
     fn collect_strong() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let strongs: Vec<_> = ast.collect(|node| node.kind().is_strong());
         let text_strongs: Vec<_> = strongs
@@ -40,8 +41,9 @@ mod tests {
 
     #[test]
     fn collect_use_mut_fn() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut var_mut = 0;
 
@@ -61,8 +63,9 @@ mod tests {
 
     #[test]
     fn collect_empty() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let headings: Vec<_> = ast.collect(|node| node.kind().is_heading());
         assert!(headings.is_empty());

@@ -60,8 +60,7 @@ super::impl_node_as!(Heading);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::node::TextContent;
-    use crate::prelude::Parser;
+    use crate::prelude::{Document, TextContent};
 
     #[test]
     fn display_all_variants() {
@@ -102,8 +101,9 @@ mod tests {
 
     #[test]
     fn parse() {
-        let document = "# Definition\nRust is one of the memory-safe programming languages";
-        let ast = Parser::new(document).ast();
+        let text = "# Definition\nRust is one of the memory-safe programming languages";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         assert_eq!(ast.count(|node| node.kind().is_heading()), 1);
         insta::assert_json_snapshot!(ast);
@@ -111,8 +111,9 @@ mod tests {
 
     #[test]
     fn parse_with_format() {
-        let document = "# **Super** `Definition`\nSimple text";
-        let ast = Parser::new(document).ast();
+        let text = "# **Super** `Definition`\nSimple text";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         assert_eq!(ast.count(|node| node.kind().is_heading()), 1);
         insta::assert_json_snapshot!(ast);
@@ -120,8 +121,8 @@ mod tests {
 
     #[test]
     fn as_plain_text() {
-        let document = "# Simple heading";
-        let ast = Parser::new(document).ast();
+        let document = Document::new("# Simple heading");
+        let ast = document.ast();
 
         let heading: Vec<_> = ast.collect_map(|node| node.as_heading());
 

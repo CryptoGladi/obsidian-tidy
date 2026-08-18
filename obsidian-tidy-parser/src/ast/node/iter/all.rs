@@ -13,13 +13,13 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::NodeKind;
-    use crate::prelude::Parser;
+    use crate::prelude::{Document, NodeKind};
 
     #[test]
     fn all_positive() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         assert!(ast.all(|node| {
             match node.kind() {
@@ -35,16 +35,18 @@ mod tests {
 
     #[test]
     fn all_negative() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         assert!(!ast.all(|node| node.kind().is_heading()));
     }
 
     #[test]
     fn any_use_mut_fn() {
-        let document = "My **super** document with `code` and **Rust**";
-        let ast = Parser::new(document).ast();
+        let text = "My **super** document with `code` and **Rust**";
+        let document = Document::new(text);
+        let ast = document.ast();
 
         let mut var_mut = 0;
 

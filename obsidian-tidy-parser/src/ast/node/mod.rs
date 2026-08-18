@@ -4,7 +4,6 @@ mod heading;
 mod iter;
 pub(crate) mod macros;
 mod paragraph;
-mod range_serde;
 mod root;
 mod strong;
 mod text_content;
@@ -64,7 +63,7 @@ pub struct Node<'a> {
     #[serde(flatten)]
     kind: NodeKind<'a>,
 
-    #[serde(with = "range_serde")]
+    #[serde(with = "crate::__private::range_serde")]
     offset: Range<usize>,
 }
 

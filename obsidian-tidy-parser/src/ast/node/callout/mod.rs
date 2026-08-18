@@ -1,5 +1,8 @@
 mod kind;
 
+// TODO у нас теперь парсинг в TokenStream!
+// Так что здесь примитивная работа с AST!
+
 pub use kind::CalloutKind;
 
 use super::BlockQuote;
@@ -224,6 +227,7 @@ impl<'ast> Tag<'ast, Callout> {
 
 super::impl_node_as!(Callout);
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -368,3 +372,4 @@ mod tests {
         assert_eq!(callout.foldable(), CalloutFoldable::None);
     }
 }
+*/

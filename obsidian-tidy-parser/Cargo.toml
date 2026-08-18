@@ -12,6 +12,7 @@ pastey.workspace = true
 serde.workspace = true
 strum.workspace = true
 tracing.workspace = true
+ouroboros.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
