@@ -13,11 +13,11 @@ impl<'guard, I, const N: usize> LookaheadGuard<'guard, I, N>
 where
     I: Iterator,
 {
-    pub fn new(data: [MaybeUninit<I::Item>; N], lookahead: &'guard mut Lookahead<I>) -> Self {
+    pub const fn new(data: [MaybeUninit<I::Item>; N], lookahead: &'guard mut Lookahead<I>) -> Self {
         Self { data, lookahead }
     }
 
-    pub fn data(&self) -> &[I::Item; N] {
+    pub const fn data(&self) -> &[I::Item; N] {
         // SAFETY:
         // - MaybeUninit<T> has the same layout and alignment as T
         // - All N elements are guaranteed initialized by peek_many
@@ -126,7 +126,7 @@ impl<I> Lookahead<I>
 where
     I: Iterator,
 {
-    pub fn new(inner: I) -> Self {
+    pub const fn new(inner: I) -> Self {
         Self {
             inner,
             buffer: VecDeque::new(),

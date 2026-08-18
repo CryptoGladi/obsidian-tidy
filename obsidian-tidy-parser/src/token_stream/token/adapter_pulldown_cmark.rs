@@ -17,6 +17,7 @@ impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
             MarkEvent::SoftBreak => Token::SoftBreak,
             MarkEvent::HardBreak => Token::HardBreak,
             MarkEvent::Code(lang) => Token::Code(lang.into()),
+            MarkEvent::Rule => Token::Rule,
             _ => todo!("{event:?}"),
         }
     }

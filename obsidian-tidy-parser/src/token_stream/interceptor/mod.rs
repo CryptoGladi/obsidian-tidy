@@ -20,6 +20,7 @@ pub trait Interceptor<'input> {
 
 static_assertions::assert_obj_safe!(Interceptor);
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InterceptorEnum {
     CalloutInterceptor(callout_interceptor::CalloutInterceptor),
 }
@@ -47,7 +48,7 @@ macro_rules! vec_interceptor {
         }
     };
 
-    [ $( $variant:ident => $struct:expr ),* $(,)? ] => {
+    [ $( $struct:expr ),* $(,)? ] => {
         {
             // Generate [ (), (), (), ... ].len()
             // It is zero const
@@ -55,7 +56,7 @@ macro_rules! vec_interceptor {
 
             let mut v = Vec::with_capacity(capacity);
 
-            $(v.push($crate::token_stream::interceptor::InterceptorEnum::$variant($struct));)*
+            $(v.push($crate::token_stream::interceptor::InterceptorEnum::from($struct));)*
 
             v
         }
@@ -64,10 +65,9 @@ macro_rules! vec_interceptor {
     (@replace $any:expr) => { () };
 }
 
+#[must_use]
 pub fn get_all_interceptors() -> Vec<InterceptorEnum> {
-    vec_interceptor![
-        CalloutInterceptor => CalloutInterceptor::default()
-    ]
+    vec_interceptor![CalloutInterceptor::default()]
 }
 
 #[cfg(test)]
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn vec_interceptor_with_one_element() {
         let my_interceptor = CalloutInterceptor::new();
-        let interceptors = vec_interceptor![CalloutInterceptor => my_interceptor];
+        let interceptors = vec_interceptor![my_interceptor];
 
         assert_eq!(interceptors.len(), 1);
     }
@@ -95,11 +95,7 @@ mod tests {
         let interceptor2 = CalloutInterceptor::new();
         let interceptor3 = CalloutInterceptor::new();
 
-        let interceptors = vec_interceptor![
-            CalloutInterceptor => interceptor1,
-            CalloutInterceptor => interceptor2,
-            CalloutInterceptor => interceptor3
-        ];
+        let interceptors = vec_interceptor![interceptor1, interceptor2, interceptor3];
 
         assert_eq!(interceptors.len(), 3);
     }
@@ -111,9 +107,9 @@ mod tests {
         let interceptor3 = CalloutInterceptor::new();
 
         let interceptors = vec_interceptor![
-            CalloutInterceptor => interceptor1,
-            CalloutInterceptor => interceptor2,
-            CalloutInterceptor => interceptor3, // trailing comma
+            interceptor1,
+            interceptor2,
+            interceptor3, // trailing comma
         ];
 
         assert_eq!(interceptors.len(), 3);

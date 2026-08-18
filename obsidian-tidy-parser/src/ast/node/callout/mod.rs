@@ -61,6 +61,7 @@ pub struct Callout<'ast> {
 }
 
 impl<'ast> Callout<'ast> {
+    #[must_use]
     pub fn new(
         kind: Cow<'ast, str>,
         header_offset: Range<usize>,
@@ -77,7 +78,7 @@ impl<'ast> Callout<'ast> {
 impl<'ast> From<&crate::token_stream::token::Callout<'ast>> for Callout<'ast> {
     fn from(callout: &crate::token_stream::token::Callout<'ast>) -> Self {
         // It is Cow!
-        // Clone is very fast!
+        // Clone is fast!
         Self::new(
             callout.kind.clone(),
             callout.header_offset,
@@ -108,7 +109,7 @@ impl<'ast> Tag<'ast, Callout<'ast>> {
     }
 
     #[must_use]
-    pub fn callout_kind(&self) -> &CalloutKind<'ast> {
+    pub const fn callout_kind(&self) -> &CalloutKind<'ast> {
         &self.kind.kind
     }
 
@@ -143,10 +144,10 @@ impl<'ast> Tag<'ast, Callout<'ast>> {
         let first_content = &children[content_start];
         let text = first_content.as_text()?;
 
-        let text = if !self.kind.foldable.is_none() {
-            text.strip_prefix(['+', '-'])?
-        } else {
+        let text = if self.kind.foldable.is_none() {
             text
+        } else {
+            text.strip_prefix(['+', '-'])?
         };
 
         let trimmed = text.trim();
@@ -156,22 +157,25 @@ impl<'ast> Tag<'ast, Callout<'ast>> {
 
 super::impl_node_as!(Callout, Callout<'_>);
 
-/*
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::{Parser, TextContent};
+    use crate::prelude::{ASTBuildExt, Node, TextContent, TokenStreamBuilder};
     use tracing_test::traced_test;
+
+    fn get_ast(source: &str) -> Node<'_> {
+        TokenStreamBuilder::default().build(source).build_ast()
+    }
 
     #[test]
     #[traced_test]
     fn without_title() {
-        let document = "> [!tip]\nText";
-        let ast = Parser::new(document).ast();
+        let source = "> [!tip]\nText";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.foldable(), CalloutFoldable::None);
-        assert_eq!(callout.kind(), CalloutKind::Tip);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Tip);
 
         // Skip SoftBreak
         assert_eq!(callout.title(), None);
@@ -184,8 +188,8 @@ mod tests {
     #[test]
     #[traced_test]
     fn many_space() {
-        let document = ">  [!tip] Text";
-        let ast = Parser::new(document).ast();
+        let source = ">  [!tip] Text";
+        let ast = get_ast(source);
 
         assert!(ast.find_map(|node| node.as_callout()).is_none());
     }
@@ -193,12 +197,12 @@ mod tests {
     #[test]
     #[traced_test]
     fn zero_space() {
-        let document = ">[!example]+ Text\n> Other Data";
-        let ast = Parser::new(document).ast();
+        let source = ">[!example]+ Text\n> Other Data";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.foldable(), CalloutFoldable::Expanded);
-        assert_eq!(callout.kind(), CalloutKind::Example);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Example);
 
         assert_eq!(callout.title().unwrap(), "Text");
         assert_eq!(
@@ -210,12 +214,12 @@ mod tests {
     #[test]
     #[traced_test]
     fn without_text() {
-        let document = "> [!warning]";
-        let ast = Parser::new(document).ast();
+        let source = "> [!warning]";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.foldable(), CalloutFoldable::None);
-        assert_eq!(callout.kind(), CalloutKind::Warning);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Warning);
 
         assert_eq!(callout.title(), None);
         assert_eq!(callout.content().next(), None);
@@ -224,14 +228,14 @@ mod tests {
     #[test]
     #[traced_test]
     fn hard_bread() {
-        let document = "> [!warning]  \n> Te";
-        let ast = Parser::new(document).ast();
+        let source = "> [!warning]  \n> Te";
+        let ast = get_ast(source);
 
         assert!(ast.find(|node| node.kind().is_hard_break()).is_some());
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.foldable(), CalloutFoldable::None);
-        assert_eq!(callout.kind(), CalloutKind::Warning);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Warning);
 
         // Skip Hard
         assert_eq!(callout.title(), None);
@@ -243,62 +247,61 @@ mod tests {
 
     #[test]
     fn title_with_text() {
-        let document = "> [!tip] Important note\nContent";
-        let ast = Parser::new(document).ast();
+        let source = "> [!tip] Important note\nContent";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.title(), Some("Important note"));
 
-        assert_eq!(callout.kind(), CalloutKind::Tip);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Tip);
         assert_eq!(callout.foldable(), CalloutFoldable::None);
     }
 
     #[test]
     fn title_trimmed() {
-        let document = "> [!tip]   Spaced title   \nContent";
-        let ast = Parser::new(document).ast();
+        let source = "> [!tip]   Spaced title   \nContent";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.title(), Some("Spaced title"));
 
-        assert_eq!(callout.kind(), CalloutKind::Tip);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Tip);
         assert_eq!(callout.foldable(), CalloutFoldable::None);
     }
 
     #[test]
     fn title_empty_after_trim() {
-        let document = "> [!tip]   \nContent";
-        let ast = Parser::new(document).ast();
+        let source = "> [!tip]   \nContent";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.title(), None);
 
-        assert_eq!(callout.kind(), CalloutKind::Tip);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Tip);
         assert_eq!(callout.foldable(), CalloutFoldable::None);
     }
 
     #[test]
     fn title_with_foldable() {
-        let document = "> [!tip]+ Folded title\nContent";
-        let ast = Parser::new(document).ast();
+        let source = "> [!tip]+ Folded title\nContent";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.title(), Some("Folded title"));
 
-        assert_eq!(callout.kind(), CalloutKind::Tip);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Tip);
         assert_eq!(callout.foldable(), CalloutFoldable::Expanded);
     }
 
     #[test]
     fn title_no_content() {
-        let document = "> [!tip]";
-        let ast = Parser::new(document).ast();
+        let source = "> [!tip]";
+        let ast = get_ast(source);
 
         let callout = ast.find_map(|node| node.as_callout()).unwrap();
         assert_eq!(callout.title(), None);
 
-        assert_eq!(callout.kind(), CalloutKind::Tip);
+        assert_eq!(callout.callout_kind(), &CalloutKind::Tip);
         assert_eq!(callout.foldable(), CalloutFoldable::None);
     }
 }
-*/

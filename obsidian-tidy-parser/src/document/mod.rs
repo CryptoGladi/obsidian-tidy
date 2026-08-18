@@ -1,7 +1,4 @@
-use crate::ast::ASTBuildExt;
-use crate::ast::node::Node;
-use crate::markdown_lexer::MarkdownLexerBuilder;
-use crate::token_stream::TokenStream;
+use crate::prelude::{ASTBuildExt, Node, TokenStream, TokenStreamBuilder};
 use ouroboros::self_referencing;
 use std::sync::OnceLock;
 
@@ -36,11 +33,15 @@ impl Document {
         self.inner.borrow_source()
     }
 
-    pub fn ast<'ast>(&'ast self) -> &'ast Node<'ast> {
+    pub fn token_stream(&self) -> TokenStream<'_> {
+        self.inner
+            .with_source(|source| TokenStreamBuilder::default().build(source))
+    }
+
+    pub fn ast(&self) -> &Node<'_> {
         self.inner.with(|fields| {
             fields.ast.get_or_init(|| {
-                let lexer = MarkdownLexerBuilder::default().build(fields.source);
-                let token_stream = TokenStream::new_with_all_interceptors(fields.source, lexer);
+                let token_stream = TokenStreamBuilder::default().build(fields.source);
 
                 token_stream.build_ast()
             })

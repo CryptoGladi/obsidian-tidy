@@ -6,7 +6,8 @@ pub struct List {
 }
 
 impl List {
-    pub fn new(number_item: Option<u64>) -> Self {
+    #[must_use]
+    pub const fn new(number_item: Option<u64>) -> Self {
         Self { number_item }
     }
 }

@@ -1,6 +1,7 @@
 use super::MarkdownLexer;
 use pulldown_cmark::Options as MarkOptions;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MarkdownLexerBuilder {
     options: MarkOptions,
 }
@@ -26,6 +27,9 @@ impl MarkdownLexerBuilder {
         // Мы сделали свою реализацию callout
         options.set(MarkOptions::ENABLE_GFM, false);
 
+        // Эта ломает парсинг и замедляет работу
+        options.set(MarkOptions::ENABLE_SMART_PUNCTUATION, false);
+
         Self { options }
     }
 
@@ -48,14 +52,6 @@ impl MarkdownLexerBuilder {
     }
 
     #[must_use]
-    pub fn smart_punctuation(mut self, enable: bool) -> Self {
-        self.options
-            .set(MarkOptions::ENABLE_SMART_PUNCTUATION, enable);
-
-        self
-    }
-
-    #[must_use]
     pub fn frontmatter(mut self, enable: bool) -> Self {
         self.options
             .set(MarkOptions::ENABLE_YAML_STYLE_METADATA_BLOCKS, enable);
@@ -72,12 +68,6 @@ impl MarkdownLexerBuilder {
     #[must_use]
     pub fn math(mut self, enable: bool) -> Self {
         self.options.set(MarkOptions::ENABLE_MATH, enable);
-        self
-    }
-
-    #[must_use]
-    pub fn gfm(mut self, enable: bool) -> Self {
-        self.options.set(MarkOptions::ENABLE_GFM, enable);
         self
     }
 

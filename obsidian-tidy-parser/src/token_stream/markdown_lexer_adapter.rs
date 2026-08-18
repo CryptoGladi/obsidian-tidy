@@ -7,7 +7,7 @@ pub struct MarkdownLexerAdapter<'input> {
 }
 
 impl<'input> MarkdownLexerAdapter<'input> {
-    pub fn new(inner: MarkdownLexer<'input>) -> Self {
+    pub const fn new(inner: MarkdownLexer<'input>) -> Self {
         Self { inner }
     }
 }

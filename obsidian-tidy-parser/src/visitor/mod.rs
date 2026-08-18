@@ -21,22 +21,23 @@ define_visitor! {
     }
     empty {
         SoftBreak,
-        HardBreak
+        HardBreak,
+        Rule
     }
 }
 
 static_assertions::assert_obj_safe!(Visitor);
 
-pub trait VisitExt<'a> {
-    fn visit<V>(&'a self, visitor: &mut V)
+pub trait VisitExt<'ast> {
+    fn visit<V>(&'ast self, visitor: &mut V)
     where
-        V: Visitor<'a>;
+        V: Visitor<'ast>;
 }
 
-impl<'a> VisitExt<'a> for Node<'a> {
-    fn visit<V>(&'a self, visitor: &mut V)
+impl<'ast> VisitExt<'ast> for Node<'ast> {
+    fn visit<V>(&'ast self, visitor: &mut V)
     where
-        V: Visitor<'a>,
+        V: Visitor<'ast>,
     {
         let _ = visitor.visit_node(self);
     }

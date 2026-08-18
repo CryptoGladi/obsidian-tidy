@@ -60,7 +60,6 @@ where
                     callout.header_offset,
                     callout.foldable,
                 );
-                let callout = Callout::from(callout);
                 let tag = Tag::new(callout, frame.children().into());
 
                 stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
@@ -84,13 +83,14 @@ where
                 Token::Start(tag) => stack.push(Frame::new(tag, offset, Vec::new())),
                 Token::End(tag_end) => Self::process_tag_end(tag_end, &mut stack, offset),
                 Token::Text(text) => {
-                    stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
+                    stack.push_parent(Node::new(NodeKind::Text(text), offset));
                 }
                 Token::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
                 Token::HardBreak => stack.push_parent(Node::new(NodeKind::HardBreak, offset)),
                 Token::Code(text) => {
-                    stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
+                    stack.push_parent(Node::new(NodeKind::InlineCode(text), offset));
                 }
+                Token::Rule => stack.push_parent(Node::new(NodeKind::Rule, offset)),
             }
         }
 

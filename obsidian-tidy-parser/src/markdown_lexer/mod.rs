@@ -11,6 +11,7 @@ pub struct MarkdownLexer<'input> {
 }
 
 impl<'input> MarkdownLexer<'input> {
+    #[must_use]
     pub fn new(text: &'input str, options: MarkOptions) -> Self {
         let inner = MarkParser::new_ext(text, options);
 

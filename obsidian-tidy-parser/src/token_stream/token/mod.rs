@@ -16,6 +16,7 @@ pub enum Token<'input> {
     Code(Cow<'input, str>),
     SoftBreak,
     HardBreak,
+    Rule,
 }
 
 macro_rules! impl_token_as {
@@ -39,3 +40,11 @@ impl_token_as!(Start, Tag<'_>);
 impl_token_as!(End, TagEnd);
 impl_token_as!(Text, Cow<'_, str>);
 impl_token_as!(Code, Cow<'_, str>);
+
+impl Token<'_> {
+    #[must_use]
+    #[inline]
+    pub const fn is_break(&self) -> bool {
+        self.is_hard_break() || self.is_soft_break()
+    }
+}

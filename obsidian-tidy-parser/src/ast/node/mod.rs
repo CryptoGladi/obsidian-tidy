@@ -56,6 +56,7 @@ pub enum NodeKind<'ast> {
     InlineCode(Cow<'ast, str>),
     SoftBreak,
     HardBreak,
+    Rule,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

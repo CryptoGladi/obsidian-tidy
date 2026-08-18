@@ -1,8 +1,10 @@
+mod builder;
 pub mod interceptor;
 pub mod lookahead;
 mod markdown_lexer_adapter;
 pub mod token;
 
+pub use builder::TokenStreamBuilder;
 pub use token::Token;
 
 use crate::markdown_lexer::MarkdownLexer;
@@ -32,6 +34,7 @@ impl<'input> TokenStream<'input> {
         }
     }
 
+    #[must_use]
     pub fn new_with_all_interceptors(source: &'input str, lexer: MarkdownLexer<'input>) -> Self {
         let interceptors = get_all_interceptors();
 

@@ -1,4 +1,4 @@
-use super::{InterceptResult, Interceptor};
+use super::{InterceptResult, Interceptor, InterceptorEnum};
 use crate::token_stream::Token;
 use crate::token_stream::lookahead::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
@@ -6,34 +6,38 @@ use crate::token_stream::token::{Callout, CalloutFoldable, Tag, TagEnd};
 use std::borrow::Cow;
 use std::range::Range;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Call {
     BlockQuote,
     Callout,
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct CalloutInterceptor {
     stack: Vec<Call>,
+}
+
+impl From<CalloutInterceptor> for InterceptorEnum {
+    fn from(interceptor: CalloutInterceptor) -> Self {
+        InterceptorEnum::CalloutInterceptor(interceptor)
+    }
 }
 
 fn get_ascii_at_offset(s: &str, offset: usize) -> Option<char> {
     s.as_bytes()
         .get(offset)
         .copied()
-        .filter(|b| b.is_ascii())
+        .filter(u8::is_ascii)
         .map(|b| b as char)
 }
 
 impl CalloutInterceptor {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self { stack: Vec::new() }
     }
 
-    fn parse_foldable<'input>(
-        bracket_close_range: Range<usize>,
-        source: &'input str,
-    ) -> Option<CalloutFoldable> {
+    fn parse_foldable(bracket_close_range: Range<usize>, source: &str) -> Option<CalloutFoldable> {
         let offset_foldable = bracket_close_range.start + 1;
         if !source.is_char_boundary(offset_foldable) {
             return None;
@@ -43,12 +47,10 @@ impl CalloutInterceptor {
         Some(CalloutFoldable::from(char))
     }
 
-    fn check_bracket_open<'input>(bracket_open_token: &Token<'input>) -> Option<()> {
-        let Token::Text(text) = bracket_open_token else {
-            return None;
-        };
+    fn check_bracket_open(bracket_open_token: &Token<'_>) -> Option<()> {
+        let text = bracket_open_token.as_text()?;
 
-        if text.as_ref() != "[" {
+        if text != "[" {
             return None;
         }
 
@@ -56,11 +58,9 @@ impl CalloutInterceptor {
     }
 
     fn check_bracket_close(bracket_close_token: &Token<'_>) -> Option<()> {
-        let Token::Text(text) = bracket_close_token else {
-            return None;
-        };
+        let text = bracket_close_token.as_text()?;
 
-        if text.as_ref() != "]" {
+        if text != "]" {
             return None;
         }
 
@@ -72,9 +72,8 @@ impl CalloutInterceptor {
         kind_range: Range<usize>,
         source: &'input str,
     ) -> Option<&'input str> {
-        let Token::Text(text) = kind_token else {
-            return None;
-        };
+        let text = kind_token.as_text()?;
+
         let kind_str = {
             text.as_ref().strip_prefix('!')?;
 
@@ -97,7 +96,6 @@ impl CalloutInterceptor {
     }
 
     fn parse_start_callout<'input>(
-        &self,
         block_quote: Range<usize>,
         source: &'input str,
         lexer: &mut Lookahead<LexerAdapter<'input>>,
@@ -115,6 +113,11 @@ impl CalloutInterceptor {
         let Token::Start(Tag::Paragraph) = paragraph_token else {
             return None;
         };
+
+        // Check space
+        if bracket_open_range.start - block_quote.start > 2 {
+            return None;
+        }
 
         // Check Text("[")
         Self::check_bracket_open(bracket_open_token)?;
@@ -169,7 +172,7 @@ impl<'input> Interceptor<'input> for CalloutInterceptor {
         let current_range = current.1;
 
         if let Some(Tag::BlockQuote) = current_token.as_start() {
-            if let Some(result) = self.parse_start_callout(current_range, source, lexer) {
+            if let Some(result) = Self::parse_start_callout(current_range, source, lexer) {
                 self.stack.push(Call::Callout);
                 return Some(result);
             }
@@ -197,18 +200,13 @@ impl<'input> Interceptor<'input> for CalloutInterceptor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::markdown_lexer::MarkdownLexerBuilder;
-    use crate::token_stream::TokenStream;
-    use crate::vec_interceptor;
+    use crate::token_stream::{TokenStream, TokenStreamBuilder};
     use proptest::prelude::*;
 
     fn make_token_stream<'input>(source: &'input str) -> TokenStream<'input> {
-        let lexer = MarkdownLexerBuilder::default().build(source);
-        let interceptors = vec_interceptor![
-            CalloutInterceptor => CalloutInterceptor::default()
-        ];
-
-        TokenStream::new(source, lexer, interceptors)
+        TokenStreamBuilder::new()
+            .add_interceptor(CalloutInterceptor::default())
+            .build(source)
     }
 
     fn collect_tokens<'input>(source: &'input str) -> Vec<(Token<'input>, Range<usize>)> {
@@ -327,15 +325,70 @@ mod tests {
     }
 
     #[test]
+    fn callout_with_break() {
+        let source = "> [!no\nte]- Hidden content";
+        let tokens = collect_tokens(source);
+
+        assert_eq!(count_callout_block(&tokens), 0);
+        assert_eq!(count_markdown_blockquote(&tokens), 1);
+    }
+
+    #[test]
+    fn many_space() {
+        let source = ">  [!tip] Text";
+        let tokens = collect_tokens(source);
+
+        assert_eq!(count_callout_block(&tokens), 0);
+        assert_eq!(count_markdown_blockquote(&tokens), 1);
+    }
+
+    #[test]
+    fn one_space() {
+        let source = ">[!tip] Text";
+        let tokens = collect_tokens(source);
+
+        let callouts = find_callout_starts(&tokens);
+
+        assert_eq!(callouts.len(), 1);
+        assert_eq!(callouts[0].kind, "tip");
+        assert_eq!(callouts[0].foldable, CalloutFoldable::None);
+
+        assert_eq!(count_callout_block(&tokens), 1);
+        assert_eq!(count_markdown_blockquote(&tokens), 0);
+    }
+
+    #[test]
     fn callout_all_kinds() {
-        // BUG Если я дам `--a`, то будет ошибка
-        // Значит пока каждый kind должен является только английскими буквами
-        // После исправления заставить proptest проверить наш синтаксис для любого
-        // Или же это не ошибка? Можно ссылаться на правила приоритета Markdown
         let kinds = [
-            "tip", "note", "warning", "danger", "info", "example", "quote", "bug", "abstract",
-            "todo", "success", "question", "failure",
+            "tip",
+            "note",
+            "warning",
+            "danger",
+            "info",
+            "example",
+            "quote",
+            "bug",
+            "abstract",
+            "todo",
+            "success",
+            "question",
+            "failure",
+            "test-example",
         ];
+
+        for kind in kinds {
+            let source = format!("> [!{}]", kind);
+            let tokens = collect_tokens(&source);
+            let callouts = find_callout_starts(&tokens);
+
+            assert_eq!(callouts.len(), 1, "should parse callout for kind: {}", kind);
+            assert_eq!(callouts[0].kind, kind, "kind mismatch for: {}", kind);
+        }
+    }
+
+    #[test]
+    fn callout_unicode_kinds() {
+        let kinds = ["tip", "заметка", "注意", "предупреждение", "SUPER-BUG"];
 
         for kind in kinds {
             let source = format!("> [!{}]", kind);
@@ -349,13 +402,26 @@ mod tests {
 
     proptest! {
         #[test]
-        fn prop_callout_all_kinds(kind in "[A-Za-z ]{3,10}") {
+        fn prop_callout_all_kinds(kind in r"[ \d\p{L}-]{1,10}") {
             let kind = &kind;
             let source = format!("> [!{}]", kind);
             let tokens = collect_tokens(&source);
             let callouts = find_callout_starts(&tokens);
 
             prop_assert_eq!(callouts.len(), 1, "should parse callout for kind: {}", kind);
+            prop_assert_eq!(callouts[0].kind.as_ref(), kind, "kind mismatch for: {}", kind);
+        }
+
+        // TODO replace text to ".*" ALL UNICODE
+        #[test]
+        fn prop_omega(space_count in 0..=1usize, kind in r"[ \d\p{L}-]{1,10}", text in r"[\p{L} \n]*") {
+            let kind = &kind;
+            let source = format!(">{:<n$}[!{}]{}", "", kind, text, n = space_count);
+
+            let tokens = collect_tokens(&source);
+            let callouts = find_callout_starts(&tokens);
+
+            prop_assert_eq!(callouts.len(), 1, "should parse callout for source: `{}`", source);
             prop_assert_eq!(callouts[0].kind.as_ref(), kind, "kind mismatch for: {}", kind);
         }
     }
