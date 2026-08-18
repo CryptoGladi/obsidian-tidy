@@ -3,132 +3,146 @@ source: obsidian-tidy-parser/src/token_stream/interceptor/callout_interceptor.rs
 expression: tokens
 ---
 [
-    (
-        StartCallout(
-            Callout {
-                kind: "tip",
-                header_offset: 2..8,
-                foldable: None,
-            },
-        ),
-        0..32,
-    ),
-    (
-        Markdown(
-            Start(
-                Paragraph,
-            ),
-        ),
-        2..32,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "[",
-                ),
-            ),
-        ),
-        2..3,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "!tip",
-                ),
-            ),
-        ),
-        3..7,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "]",
-                ),
-            ),
-        ),
-        7..8,
-    ),
-    (
-        Markdown(
-            SoftBreak,
-        ),
-        8..9,
-    ),
-    (
-        Markdown(
-            Start(
-                Strong,
-            ),
-        ),
-        11..19,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "Bold",
-                ),
-            ),
-        ),
-        13..17,
-    ),
-    (
-        Markdown(
-            End(
-                Strong,
-            ),
-        ),
-        11..19,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    " and ",
-                ),
-            ),
-        ),
-        19..24,
-    ),
-    (
-        Markdown(
-            Start(
-                Emphasis,
-            ),
-        ),
-        24..32,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "italic",
-                ),
-            ),
-        ),
-        25..31,
-    ),
-    (
-        Markdown(
-            End(
-                Emphasis,
-            ),
-        ),
-        24..32,
-    ),
-    (
-        Markdown(
-            End(
-                Paragraph,
-            ),
-        ),
-        2..32,
-    ),
-    (
-        EndCallout,
-        0..32,
-    ),
+  [
+    {
+      "Start": {
+        "Callout": {
+          "kind": "tip",
+          "header_offset": {
+            "start": 2,
+            "end": 8
+          },
+          "foldable": "None"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Text": "["
+    },
+    {
+      "start": 2,
+      "end": 3
+    }
+  ],
+  [
+    {
+      "Text": "!tip"
+    },
+    {
+      "start": 3,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Text": "]"
+    },
+    {
+      "start": 7,
+      "end": 8
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 8,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Start": "Strong"
+    },
+    {
+      "start": 11,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "Text": "Bold"
+    },
+    {
+      "start": 13,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "End": "Strong"
+    },
+    {
+      "start": 11,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "Text": " and "
+    },
+    {
+      "start": 19,
+      "end": 24
+    }
+  ],
+  [
+    {
+      "Start": "Emphasis"
+    },
+    {
+      "start": 24,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Text": "italic"
+    },
+    {
+      "start": 25,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "End": "Emphasis"
+    },
+    {
+      "start": 24,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "End": "Callout"
+    },
+    {
+      "start": 0,
+      "end": 32
+    }
+  ]
 ]

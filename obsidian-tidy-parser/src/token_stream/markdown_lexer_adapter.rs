@@ -18,7 +18,7 @@ impl<'input> Iterator for MarkdownLexerAdapter<'input> {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner
             .next()
-            .map(|(event, range)| (Token::Markdown(event), range))
+            .map(|(event, range)| (Token::from(event), range))
     }
 }
 
@@ -27,22 +27,7 @@ mod tests {
     use super::*;
     use crate::markdown_lexer::MarkdownLexerBuilder;
     use proptest::prelude::*;
-
-    #[test]
-    fn always_token_markdown() {
-        let markdowns = ["123", "**bold** text", "# Header\nText"];
-
-        for markdown in markdowns {
-            let lexer = MarkdownLexerBuilder::default().build(markdown);
-            let adapter = MarkdownLexerAdapter::new(lexer);
-
-            assert!(
-                adapter.into_iter().any(|(token, _)| token.is_markdown()),
-                "Error parse markdown: `{}`",
-                markdown
-            );
-        }
-    }
+    use pulldown_cmark::Event as MarkEvent;
 
     #[test]
     fn empty_text() {
@@ -52,30 +37,50 @@ mod tests {
         assert!(adapter.next().is_none())
     }
 
+    type AdapterWithRange<'input> = (Token<'input>, Range<usize>);
+    type LexerWithRange<'input> = (MarkEvent<'input>, Range<usize>);
+
+    #[track_caller]
+    fn impl_eq_adapter_and_original<'input>(
+        markdown: &'input str,
+    ) -> Option<(AdapterWithRange<'input>, LexerWithRange<'input>)> {
+        let adapter = {
+            let lexer = MarkdownLexerBuilder::default().build(markdown);
+            MarkdownLexerAdapter::new(lexer)
+        };
+
+        let lexer = MarkdownLexerBuilder::default().build(markdown);
+
+        let adapter_collect: Vec<_> = adapter.into_iter().collect();
+        let lexer_collect: Vec<_> = lexer.collect();
+
+        for (adapter, lexer) in adapter_collect.into_iter().zip(lexer_collect) {
+            let (token, range_token) = adapter.clone();
+            let (mark_event, range_mark_event) = lexer.clone();
+
+            let any = token == mark_event.into()
+                && range_token.start == range_mark_event.start
+                && range_token.end == range_mark_event.end;
+
+            if !any {
+                return Some((adapter, lexer));
+            }
+        }
+
+        None
+    }
+
     #[test]
     fn eq_adapter_and_original() {
         let markdowns = ["123", "**bold** text", "# Header\nText"];
 
         for markdown in markdowns {
-            let adapter = {
-                let lexer = MarkdownLexerBuilder::default().build(markdown);
-                MarkdownLexerAdapter::new(lexer)
-            };
-
-            let lexer = MarkdownLexerBuilder::default().build(markdown);
-
-            let adapter_collect: Vec<_> = adapter
-                .into_iter()
-                .map(|(token, event)| (token.as_markdown().unwrap().clone(), event))
-                .collect();
-
-            let lexer_collect: Vec<_> = lexer.collect();
-
-            assert_eq!(
-                adapter_collect, lexer_collect,
-                "Error markdown: `{}`",
-                markdown
-            );
+            if let Some((token, adapter)) = impl_eq_adapter_and_original(markdown) {
+                panic!(
+                    "Error markdown: `{}`: token`{:?}`, adapter: `{:?}`",
+                    markdown, token, adapter
+                );
+            }
         }
     }
 
@@ -97,30 +102,13 @@ mod tests {
 
     proptest! {
         #[test]
-        fn prop_always_token_markdown(markdown in markdown()) {
-            let lexer = MarkdownLexerBuilder::default().build(&markdown);
-            let adapter = MarkdownLexerAdapter::new(lexer);
-
-            prop_assert!(adapter.into_iter().any(|(token, _)| token.is_markdown()));
-        }
-
-        #[test]
         fn prop_eq_adapter_and_original(markdown in markdown()) {
-            let adapter = {
-                let lexer = MarkdownLexerBuilder::default().build(&markdown);
-                MarkdownLexerAdapter::new(lexer)
-            };
-
-            let lexer = MarkdownLexerBuilder::default().build(&markdown);
-
-            let adapter_collect: Vec<_> = adapter
-                .into_iter()
-                .map(|(token, event)| (token.as_markdown().unwrap().clone(), event))
-                .collect();
-
-            let lexer_collect: Vec<_> = lexer.collect();
-
-            prop_assert_eq!(adapter_collect, lexer_collect);
+            if let Some((token, adapter)) = impl_eq_adapter_and_original(&markdown) {
+                prop_assert!(false,
+                    "Error markdown: `{}`: token`{:?}`, adapter: `{:?}`",
+                    markdown, token, adapter
+                );
+            }
         }
     }
 }

@@ -25,6 +25,8 @@ define_visitor! {
     }
 }
 
+static_assertions::assert_obj_safe!(Visitor);
+
 pub trait VisitExt<'a> {
     fn visit<V>(&'a self, visitor: &mut V)
     where

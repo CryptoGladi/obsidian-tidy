@@ -22,7 +22,7 @@ where
         // - MaybeUninit<T> has the same layout and alignment as T
         // - All N elements are guaranteed initialized by peek_many
         // - The reference is valid for the lifetime of self
-        unsafe { &*(self.data.as_ptr() as *const [I::Item; N]) }
+        unsafe { &*(self.data.as_ptr().cast::<[I::Item; N]>()) }
     }
 
     /// Commits the transaction and advances the buffer with new items.
@@ -87,7 +87,8 @@ where
     pub fn commit_into(self) -> [I::Item; N] {
         let this = ManuallyDrop::new(self);
 
-        unsafe { std::ptr::read(this.data.as_ptr() as *const [I::Item; N]) }
+        // SAFETY: all elements are initialized
+        unsafe { std::ptr::read(this.data.as_ptr().cast::<[I::Item; N]>()) }
     }
 }
 
@@ -132,10 +133,12 @@ where
         }
     }
 
+    #[expect(clippy::elidable_lifetime_names)]
     pub fn peek<'guard>(&'guard mut self) -> Option<LookaheadGuard<'guard, I, 1>> {
         self.peek_many::<1>()
     }
 
+    #[expect(clippy::elidable_lifetime_names)]
     pub fn peek_many<'guard, const N: usize>(
         &'guard mut self,
     ) -> Option<LookaheadGuard<'guard, I, N>> {

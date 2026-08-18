@@ -16,6 +16,8 @@ pub enum CalloutFoldable {
     None,
 }
 
+static_assertions::assert_impl_all!(CalloutFoldable: Copy);
+
 impl From<char> for CalloutFoldable {
     fn from(value: char) -> Self {
         match value {
@@ -34,30 +36,4 @@ pub struct Callout<'input> {
     pub header_offset: Range<usize>,
 
     pub foldable: CalloutFoldable,
-}
-
-#[derive(Debug, Clone, PartialEq, IsVariant, Serialize)]
-pub enum Token<'input> {
-    Markdown(pulldown_cmark::Event<'input>),
-
-    StartCallout(Callout<'input>),
-    EndCallout,
-}
-
-impl<'input> Token<'input> {
-    pub fn as_markdown(&self) -> Option<&pulldown_cmark::Event<'input>> {
-        if let Token::Markdown(markdown) = self {
-            return Some(markdown);
-        }
-
-        None
-    }
-
-    pub fn as_start_callout(&self) -> Option<&Callout<'input>> {
-        if let Token::StartCallout(callout) = self {
-            return Some(callout);
-        }
-
-        None
-    }
 }

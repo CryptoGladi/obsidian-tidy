@@ -1,58 +1,15 @@
 mod kind;
 
-// TODO у нас теперь парсинг в TokenStream!
-// Так что здесь примитивная работа с AST!
-
+use crate::{
+    prelude::{Node, NodeKind, Tag},
+    token_stream::token::CalloutFoldable,
+};
 pub use kind::CalloutKind;
-
-use super::BlockQuote;
-use crate::prelude::{Node, NodeKind, Tag};
-use derive_more::IsVariant;
 use serde::Serialize;
-use std::{borrow::Cow, iter::Peekable, range::Range};
+use std::borrow::Cow;
+use std::range::Range;
 
-const EXCEPT_MESSAGE: &str = "Callout::parse should have validated structure";
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, IsVariant, Serialize)]
-pub enum CalloutFoldable {
-    /// `[!tip]+` — развёрнутый
-    Expanded,
-
-    /// `[!tip]-` — свёрнутый
-    Collapsed,
-
-    /// `[!tip]` — обычный
-    #[default]
-    None,
-}
-
-impl From<char> for CalloutFoldable {
-    fn from(value: char) -> Self {
-        match value {
-            '+' => CalloutFoldable::Expanded,
-            '-' => CalloutFoldable::Collapsed,
-            _ => CalloutFoldable::None,
-        }
-    }
-}
-
-impl CalloutFoldable {
-    fn from_paragraph_iter<'ast, I>(paragraph_iter: &mut Peekable<I>) -> Option<Self>
-    where
-        I: Iterator<Item = &'ast Node<'ast>>,
-    {
-        let text = paragraph_iter.peek()?;
-        let char = text.as_text()?.chars().next()?;
-
-        let foldable = CalloutFoldable::from(char);
-
-        if !foldable.is_none() {
-            paragraph_iter.next();
-        }
-
-        Some(foldable)
-    }
-}
+const EXCEPT_MESSAGE: &str = "Callout should have validated structure";
 
 pub struct CalloutContentIter<'ast> {
     iter: std::slice::Iter<'ast, Node<'ast>>,
@@ -95,59 +52,41 @@ impl<'ast> Iterator for CalloutContentIter<'ast> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct Callout {
+pub struct Callout<'ast> {
     pub foldable: CalloutFoldable,
+    pub kind: CalloutKind<'ast>,
+
+    #[serde(with = "crate::__private::range_serde")]
+    pub header_offset: Range<usize>,
 }
 
-impl Callout {
-    pub(crate) fn parse<'ast>(
-        block_quote: &Tag<'ast, BlockQuote>,
-        offset: Range<usize>,
-    ) -> Option<Tag<'ast, Self>> {
-        let first_child = block_quote.children().first()?;
-        let paragraph = first_child.as_paragraph()?;
-        let paragraph_offset = first_child.offset();
-
-        let whitespace_after_marker = paragraph_offset.start - offset.start;
-        if whitespace_after_marker > 2 {
-            return None;
+impl<'ast> Callout<'ast> {
+    pub fn new(
+        kind: Cow<'ast, str>,
+        header_offset: Range<usize>,
+        foldable: CalloutFoldable,
+    ) -> Self {
+        Self {
+            foldable,
+            kind: CalloutKind::from(kind),
+            header_offset,
         }
-
-        let mut paragraph_iter = paragraph.children().iter().peekable();
-
-        // Text("[") + Text("!tip") + Text("]")) + Text("+ ...")
-        paragraph_iter
-            .next()?
-            .as_text()
-            .filter(|text| *text == "[")?;
-
-        // For check iterator
-        CalloutKind::from_paragraph_iter(&mut paragraph_iter)?;
-
-        paragraph_iter
-            .next()?
-            .as_text()
-            .filter(|text| text.starts_with(']'))?;
-
-        if let Some(node) = paragraph_iter.peek() {
-            match node.kind() {
-                NodeKind::Text(text) if text.starts_with([' ', '+', '-']) => {}
-                NodeKind::SoftBreak | NodeKind::HardBreak => {}
-                _ => return None,
-            }
-        }
-
-        let foldable =
-            CalloutFoldable::from_paragraph_iter(&mut paragraph_iter).unwrap_or_default();
-
-        let tag = Callout { foldable };
-        let callout = Tag::new(tag, block_quote.children().into());
-
-        Some(callout)
     }
 }
 
-impl<'ast> Tag<'ast, Callout> {
+impl<'ast> From<&crate::token_stream::token::Callout<'ast>> for Callout<'ast> {
+    fn from(callout: &crate::token_stream::token::Callout<'ast>) -> Self {
+        // It is Cow!
+        // Clone is very fast!
+        Self::new(
+            callout.kind.clone(),
+            callout.header_offset,
+            callout.foldable,
+        )
+    }
+}
+
+impl<'ast> Tag<'ast, Callout<'ast>> {
     #[expect(
         clippy::expect_used,
         clippy::missing_panics_doc,
@@ -168,19 +107,9 @@ impl<'ast> Tag<'ast, Callout> {
         CalloutContentIter::new(paragraph_iter, skip_first_char)
     }
 
-    #[expect(
-        clippy::expect_used,
-        clippy::missing_panics_doc,
-        reason = "Callout::parse should have validated structure"
-    )]
     #[must_use]
-    pub fn kind(&'ast self) -> CalloutKind<'ast> {
-        let first_child = self.children().first().expect(EXCEPT_MESSAGE);
-        let paragraph = first_child.as_paragraph().expect(EXCEPT_MESSAGE);
-        let mut paragraph_iter = paragraph.children().iter().peekable();
-
-        paragraph_iter.next(); // Ignore '['
-        CalloutKind::from_paragraph_iter(&mut paragraph_iter).expect(EXCEPT_MESSAGE)
+    pub fn callout_kind(&self) -> &CalloutKind<'ast> {
+        &self.kind.kind
     }
 
     #[must_use]
@@ -225,7 +154,7 @@ impl<'ast> Tag<'ast, Callout> {
     }
 }
 
-super::impl_node_as!(Callout);
+super::impl_node_as!(Callout, Callout<'_>);
 
 /*
 #[cfg(test)]

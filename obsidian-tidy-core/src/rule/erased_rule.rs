@@ -53,10 +53,11 @@ where
     }
 }
 
-// Dont delete ErasedSerialize!
+// Don't delete ErasedSerialize!
 pub trait ErasedRule: ErasedRuleRunner + RuleMetadata + ErasedSerialize {}
 
 static_assertions::assert_obj_safe!(ErasedRuleRunner, ErasedRule);
+static_assertions::assert_trait_sub_all!(ErasedRule: ErasedRuleRunner, RuleMetadata, ErasedSerialize);
 
 erased_serde::serialize_trait_object!(ErasedRule);
 

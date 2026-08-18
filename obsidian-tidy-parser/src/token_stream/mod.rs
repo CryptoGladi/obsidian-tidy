@@ -1,7 +1,7 @@
-mod interceptor;
-mod lookahead;
+pub mod interceptor;
+pub mod lookahead;
 mod markdown_lexer_adapter;
-mod token;
+pub mod token;
 
 pub use token::Token;
 
@@ -46,8 +46,10 @@ impl<'input> Iterator for TokenStream<'input> {
         let current = self.lexer.next()?;
 
         for interceptor in &mut self.interceptors {
-            if let Some(d) = interceptor.try_intercept(self.source, &mut self.lexer, &current) {
-                return Some(d);
+            if let Some(replaced) =
+                interceptor.try_intercept(self.source, &mut self.lexer, &current)
+            {
+                return Some(replaced);
             }
         }
 

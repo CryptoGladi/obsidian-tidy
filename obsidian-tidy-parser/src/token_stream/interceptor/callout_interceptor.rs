@@ -2,20 +2,19 @@ use super::{InterceptResult, Interceptor};
 use crate::token_stream::Token;
 use crate::token_stream::lookahead::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
-use crate::token_stream::token::{Callout, CalloutFoldable};
-use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
+use crate::token_stream::token::{Callout, CalloutFoldable, Tag, TagEnd};
 use std::borrow::Cow;
 use std::range::Range;
 
 #[derive(Debug, PartialEq, Eq)]
-enum Tag {
+enum Call {
     BlockQuote,
     Callout,
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct CalloutInterceptor {
-    stack: Vec<Tag>,
+    stack: Vec<Call>,
 }
 
 fn get_ascii_at_offset(s: &str, offset: usize) -> Option<char> {
@@ -45,7 +44,7 @@ impl CalloutInterceptor {
     }
 
     fn check_bracket_open<'input>(bracket_open_token: &Token<'input>) -> Option<()> {
-        let Token::Markdown(MarkEvent::Text(text)) = bracket_open_token else {
+        let Token::Text(text) = bracket_open_token else {
             return None;
         };
 
@@ -56,8 +55,8 @@ impl CalloutInterceptor {
         Some(())
     }
 
-    fn check_bracket_close<'input>(bracket_close_token: &Token<'input>) -> Option<()> {
-        let Token::Markdown(MarkEvent::Text(text)) = bracket_close_token else {
+    fn check_bracket_close(bracket_close_token: &Token<'_>) -> Option<()> {
+        let Token::Text(text) = bracket_close_token else {
             return None;
         };
 
@@ -73,7 +72,7 @@ impl CalloutInterceptor {
         kind_range: Range<usize>,
         source: &'input str,
     ) -> Option<&'input str> {
-        let Token::Markdown(MarkEvent::Text(text)) = kind_token else {
+        let Token::Text(text) = kind_token else {
             return None;
         };
         let kind_str = {
@@ -98,7 +97,7 @@ impl CalloutInterceptor {
     }
 
     fn parse_start_callout<'input>(
-        &mut self,
+        &self,
         block_quote: Range<usize>,
         source: &'input str,
         lexer: &mut Lookahead<LexerAdapter<'input>>,
@@ -113,7 +112,7 @@ impl CalloutInterceptor {
         ] = guard.data();
 
         // Check Start(Paragraph)
-        let Token::Markdown(MarkEvent::Start(MarkTag::Paragraph)) = paragraph_token else {
+        let Token::Start(Tag::Paragraph) = paragraph_token else {
             return None;
         };
 
@@ -145,7 +144,7 @@ impl CalloutInterceptor {
                 foldable,
             };
 
-            let token = Token::StartCallout(callout);
+            let token = Token::Start(Tag::Callout(callout));
 
             (token, block_quote)
         };
@@ -169,28 +168,23 @@ impl<'input> Interceptor<'input> for CalloutInterceptor {
         let current_token = &current.0;
         let current_range = current.1;
 
-        if let Some(MarkEvent::Start(MarkTag::BlockQuote(quote))) = current_token.as_markdown() {
-            // Мы отключили опцию, чтобы не портить парсинг
-            debug_assert!(quote.is_none());
-
+        if let Some(Tag::BlockQuote) = current_token.as_start() {
             if let Some(result) = self.parse_start_callout(current_range, source, lexer) {
-                self.stack.push(Tag::Callout);
+                self.stack.push(Call::Callout);
                 return Some(result);
-            } else {
-                self.stack.push(Tag::BlockQuote);
             }
+
+            self.stack.push(Call::BlockQuote);
         }
 
-        if let Some(MarkEvent::End(MarkTagEnd::BlockQuote(quote))) = current_token.as_markdown() {
-            // Мы отключили опцию, чтобы не портить парсинг
-            debug_assert!(quote.is_none());
-
+        if let Some(TagEnd::BlockQuote) = current_token.as_end() {
             // Теги обязаны быть сбалансированными!
+            #[expect(clippy::expect_used)]
             let current = self.stack.pop().expect("unbalanced tags");
 
             let token = match current {
-                Tag::BlockQuote => Token::Markdown(MarkEvent::End(MarkTagEnd::BlockQuote(None))),
-                Tag::Callout => Token::EndCallout,
+                Call::BlockQuote => Token::End(TagEnd::BlockQuote),
+                Call::Callout => Token::End(TagEnd::Callout),
             };
 
             return Some((token, current_range));
@@ -207,8 +201,6 @@ mod tests {
     use crate::token_stream::TokenStream;
     use crate::vec_interceptor;
     use proptest::prelude::*;
-
-    // TODO написать тест
 
     fn make_token_stream<'input>(source: &'input str) -> TokenStream<'input> {
         let lexer = MarkdownLexerBuilder::default().build(source);
@@ -230,7 +222,7 @@ mod tests {
         tokens
             .iter()
             .filter_map(|(token, _)| match token {
-                Token::StartCallout(callout) => Some(callout),
+                Token::Start(Tag::Callout(callout)) => Some(callout),
                 _ => None,
             })
             .collect()
@@ -239,7 +231,10 @@ mod tests {
     fn count_end_callouts(tokens: &[(Token, Range<usize>)]) -> usize {
         tokens
             .iter()
-            .filter(|(token, _)| token.is_end_callout())
+            .filter(|(token, _)| match token {
+                Token::End(TagEnd::Callout) => true,
+                _ => false,
+            })
             .count()
     }
 
@@ -256,25 +251,26 @@ mod tests {
     fn count_markdown_blockquote_start(tokens: &[(Token, Range<usize>)]) -> usize {
         tokens
             .iter()
-            .filter(|(token, _)| {
-                matches!(
-                    token,
-                    Token::Markdown(MarkEvent::Start(MarkTag::BlockQuote(_)))
-                )
-            })
+            .filter(|(token, _)| matches!(token, Token::Start(Tag::BlockQuote)))
             .count()
     }
 
     fn count_markdown_blockquote_ends(tokens: &[(Token, Range<usize>)]) -> usize {
         tokens
             .iter()
-            .filter(|(token, _)| {
-                matches!(
-                    token,
-                    Token::Markdown(MarkEvent::End(MarkTagEnd::BlockQuote(_)))
-                )
-            })
+            .filter(|(token, _)| matches!(token, Token::End(TagEnd::BlockQuote)))
             .count()
+    }
+
+    macro_rules! assert_json_snapshot {
+        ($tokens:ident) => {{
+            let tokens: Vec<_> = $tokens
+                .into_iter()
+                .map(|(token, range)| (token, std::ops::Range::from(range)))
+                .collect();
+
+            insta::assert_json_snapshot!(tokens);
+        }};
     }
 
     #[track_caller]
@@ -301,7 +297,7 @@ mod tests {
         assert_eq!(count_callout_block(&tokens), 1);
         assert_eq!(count_markdown_blockquote(&tokens), 0);
 
-        insta::assert_debug_snapshot!(tokens);
+        assert_json_snapshot!(tokens);
     }
 
     #[test]
@@ -315,7 +311,7 @@ mod tests {
         assert_eq!(callouts[0].kind, "warning");
         assert_eq!(callouts[0].foldable, CalloutFoldable::Expanded);
 
-        insta::assert_debug_snapshot!(tokens);
+        assert_json_snapshot!(tokens);
     }
 
     #[test]
@@ -420,7 +416,7 @@ mod tests {
         assert_eq!(count_callout_block(&tokens), 1);
         assert_eq!(count_markdown_blockquote(&tokens), 2);
 
-        insta::assert_debug_snapshot!(tokens);
+        assert_json_snapshot!(tokens);
     }
 
     #[test]
@@ -444,7 +440,7 @@ mod tests {
         );
         assert_eq!(callout_starts, 2);
 
-        insta::assert_debug_snapshot!(tokens);
+        assert_json_snapshot!(tokens);
     }
 
     proptest! {
@@ -524,7 +520,7 @@ mod tests {
         assert_eq!(callouts.len(), 1);
         assert_eq!(callouts[0].kind, "tip");
 
-        insta::assert_debug_snapshot!(tokens);
+        assert_json_snapshot!(tokens);
     }
 
     #[test]
@@ -535,7 +531,7 @@ mod tests {
         let callouts = find_callout_starts(&tokens);
         assert_eq!(callouts.len(), 1);
 
-        insta::assert_debug_snapshot!(tokens);
+        assert_json_snapshot!(tokens);
     }
 
     #[test]
@@ -545,7 +541,7 @@ mod tests {
 
         let (_, range) = tokens
             .iter()
-            .find(|(t, _)| matches!(t, Token::StartCallout(_)))
+            .find(|(token, _)| matches!(token, Token::Start(Tag::Callout(_))))
             .expect("should find StartCallout");
 
         assert!(range.start < range.end, "range should be valid");

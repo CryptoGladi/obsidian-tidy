@@ -3,172 +3,180 @@ source: obsidian-tidy-parser/src/token_stream/interceptor/callout_interceptor.rs
 expression: tokens
 ---
 [
-    (
-        StartCallout(
-            Callout {
-                kind: "tip",
-                header_offset: 2..8,
-                foldable: None,
-            },
-        ),
-        0..78,
-    ),
-    (
-        Markdown(
-            Start(
-                Paragraph,
-            ),
-        ),
-        2..16,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "[",
-                ),
-            ),
-        ),
-        2..3,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "!tip",
-                ),
-            ),
-        ),
-        3..7,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "]",
-                ),
-            ),
-        ),
-        7..8,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    " Start!",
-                ),
-            ),
-        ),
-        8..15,
-    ),
-    (
-        Markdown(
-            End(
-                Paragraph,
-            ),
-        ),
-        2..16,
-    ),
-    (
-        Markdown(
-            Start(
-                BlockQuote(
-                    None,
-                ),
-            ),
-        ),
-        18..78,
-    ),
-    (
-        Markdown(
-            Start(
-                BlockQuote(
-                    None,
-                ),
-            ),
-        ),
-        20..78,
-    ),
-    (
-        Markdown(
-            Start(
-                Paragraph,
-            ),
-        ),
-        22..78,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "Super quote",
-                ),
-            ),
-        ),
-        22..33,
-    ),
-    (
-        Markdown(
-            SoftBreak,
-        ),
-        33..34,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "End one quote",
-                ),
-            ),
-        ),
-        38..51,
-    ),
-    (
-        Markdown(
-            SoftBreak,
-        ),
-        51..52,
-    ),
-    (
-        Markdown(
-            Text(
-                Borrowed(
-                    "But we still in Callout!",
-                ),
-            ),
-        ),
-        54..78,
-    ),
-    (
-        Markdown(
-            End(
-                Paragraph,
-            ),
-        ),
-        22..78,
-    ),
-    (
-        Markdown(
-            End(
-                BlockQuote(
-                    None,
-                ),
-            ),
-        ),
-        20..78,
-    ),
-    (
-        Markdown(
-            End(
-                BlockQuote(
-                    None,
-                ),
-            ),
-        ),
-        18..78,
-    ),
-    (
-        EndCallout,
-        0..78,
-    ),
+  [
+    {
+      "Start": {
+        "Callout": {
+          "kind": "tip",
+          "header_offset": {
+            "start": 2,
+            "end": 8
+          },
+          "foldable": "None"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 16
+    }
+  ],
+  [
+    {
+      "Text": "["
+    },
+    {
+      "start": 2,
+      "end": 3
+    }
+  ],
+  [
+    {
+      "Text": "!tip"
+    },
+    {
+      "start": 3,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Text": "]"
+    },
+    {
+      "start": 7,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "Text": " Start!"
+    },
+    {
+      "start": 8,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 16
+    }
+  ],
+  [
+    {
+      "Start": "BlockQuote"
+    },
+    {
+      "start": 18,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Start": "BlockQuote"
+    },
+    {
+      "start": 20,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 22,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Text": "Super quote"
+    },
+    {
+      "start": 22,
+      "end": 33
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 33,
+      "end": 34
+    }
+  ],
+  [
+    {
+      "Text": "End one quote"
+    },
+    {
+      "start": 38,
+      "end": 51
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 51,
+      "end": 52
+    }
+  ],
+  [
+    {
+      "Text": "But we still in Callout!"
+    },
+    {
+      "start": 54,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 22,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "BlockQuote"
+    },
+    {
+      "start": 20,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "BlockQuote"
+    },
+    {
+      "start": 18,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "Callout"
+    },
+    {
+      "start": 0,
+      "end": 78
+    }
+  ]
 ]

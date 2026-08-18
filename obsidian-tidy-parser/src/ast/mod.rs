@@ -1,9 +1,8 @@
 pub mod node;
 pub mod stack;
 
-use crate::token_stream::Token;
-use node::{BlockQuote, Callout, Heading, Node, NodeKind, Paragraph, Root, Strong, Tag};
-use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
+use crate::token_stream::token::{Tag as TokenTag, TagEnd, Token};
+use node::{BlockQuote, Callout, Node, NodeKind, Paragraph, Root, Strong, Tag};
 use stack::{Frame, Stack};
 use std::range::Range;
 use tracing::instrument;
@@ -22,61 +21,51 @@ impl<'ast, I> ASTBuilder<I>
 where
     I: Iterator<Item = (Token<'ast>, Range<usize>)>,
 {
-    fn process_tag_end(tag_end: MarkTagEnd, stack: &mut Stack<'ast>, offset: Range<usize>) {
+    fn process_tag_end(tag_end: TagEnd, stack: &mut Stack<'ast>, offset: Range<usize>) {
         #[expect(
             clippy::expect_used,
             reason = "библиотека гарантирует, что это невозможно"
         )]
         let frame = stack.pop().expect("unbalanced tags");
 
+        debug_assert_eq!(tag_end, frame.tag.to_end());
+
         match frame.tag {
-            MarkTag::Heading { level, .. } => {
-                let heading = Heading::new(level.into());
+            TokenTag::Heading(heading) => {
                 let tag = Tag::new(heading, frame.children().into());
 
                 stack.push_parent(Node::new(NodeKind::Heading(tag), offset));
             }
-            MarkTag::Paragraph => {
+            TokenTag::Paragraph => {
                 let paragraph = Paragraph::new();
                 let tag = Tag::new(paragraph, frame.children().into());
 
                 stack.push_parent(Node::new(NodeKind::Paragraph(tag), offset));
             }
-            MarkTag::Strong => {
+            TokenTag::Strong => {
                 let strong = Strong::new();
                 let tag = Tag::new(strong, frame.children().into());
 
                 stack.push_parent(Node::new(NodeKind::Strong(tag), offset));
             }
-            MarkTag::BlockQuote(_) => {
+            TokenTag::BlockQuote => {
                 let block_quote = BlockQuote::new();
                 let tag = Tag::new(block_quote, frame.children().into());
 
                 stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
             }
+            TokenTag::Callout(ref callout) => {
+                let callout = Callout::new(
+                    callout.kind.clone(),
+                    callout.header_offset,
+                    callout.foldable,
+                );
+                let callout = Callout::from(callout);
+                let tag = Tag::new(callout, frame.children().into());
+
+                stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
+            }
             _ => todo!("{:?}", frame.tag),
-        }
-
-        debug_assert_eq!(tag_end, frame.tag.to_end());
-    }
-
-    fn process_token_markdown(
-        markdown: MarkEvent<'ast>,
-        stack: &mut Stack<'ast>,
-        offset: Range<usize>,
-    ) {
-        match markdown {
-            MarkEvent::Start(tag) => stack.push(Frame::new(tag, offset, Vec::new())),
-            MarkEvent::End(tag_end) => Self::process_tag_end(tag_end, stack, offset),
-            MarkEvent::Text(text) => {
-                stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
-            }
-            MarkEvent::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
-            MarkEvent::HardBreak => stack.push_parent(Node::new(NodeKind::HardBreak, offset)),
-            MarkEvent::Code(text) => {
-                stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
-            }
-            _ => todo!("{:?}", markdown),
         }
     }
 
@@ -92,10 +81,16 @@ where
             tracing::trace!(?token, ?offset, "building AST");
 
             match token {
-                Token::Markdown(markdown) => {
-                    Self::process_token_markdown(markdown, &mut stack, offset)
+                Token::Start(tag) => stack.push(Frame::new(tag, offset, Vec::new())),
+                Token::End(tag_end) => Self::process_tag_end(tag_end, &mut stack, offset),
+                Token::Text(text) => {
+                    stack.push_parent(Node::new(NodeKind::Text(text.into()), offset));
                 }
-                _ => todo!("{:?}", token),
+                Token::SoftBreak => stack.push_parent(Node::new(NodeKind::SoftBreak, offset)),
+                Token::HardBreak => stack.push_parent(Node::new(NodeKind::HardBreak, offset)),
+                Token::Code(text) => {
+                    stack.push_parent(Node::new(NodeKind::InlineCode(text.into()), offset));
+                }
             }
         }
 

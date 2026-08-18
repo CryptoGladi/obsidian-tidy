@@ -1,4 +1,3 @@
-use crate::prelude::Node;
 use derive_more::IsVariant;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -46,6 +45,12 @@ pub enum CalloutKind<'ast> {
 // Не могу std::str::FromStr из-за lifetime
 impl<'ast> From<&'ast str> for CalloutKind<'ast> {
     fn from(raw: &'ast str) -> Self {
+        CalloutKind::from(Cow::<'ast, str>::Borrowed(raw))
+    }
+}
+
+impl<'ast> From<Cow<'ast, str>> for CalloutKind<'ast> {
+    fn from(raw: Cow<'ast, str>) -> Self {
         let lower = raw.to_ascii_lowercase();
 
         match lower.as_str() {
@@ -62,20 +67,8 @@ impl<'ast> From<&'ast str> for CalloutKind<'ast> {
             "bug" => Self::Bug,
             "example" => Self::Example,
             "quote" | "cite" => Self::Quote,
-            _ => Self::Other(Cow::Borrowed(raw)),
+            _ => Self::Other(raw),
         }
-    }
-}
-
-impl<'ast> CalloutKind<'ast> {
-    pub(crate) fn from_paragraph_iter<I>(paragraph_iter: &mut I) -> Option<Self>
-    where
-        I: Iterator<Item = &'ast Node<'ast>>,
-    {
-        let text = paragraph_iter.next()?.as_text()?;
-        let raw = text.strip_prefix('!')?;
-
-        Some(Self::from(raw))
     }
 }
 

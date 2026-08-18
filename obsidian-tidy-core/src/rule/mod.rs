@@ -44,6 +44,8 @@ pub trait Rule: RuleRunner + RuleMetadata {}
 
 impl<R> Rule for R where R: RuleRunner + RuleMetadata {}
 
+static_assertions::assert_trait_sub_all!(Rule: RuleRunner, RuleMetadata);
+
 impl<E> Debug for dyn Rule<Error = E>
 where
     E: std::error::Error,

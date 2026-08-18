@@ -3,9 +3,9 @@
 
 pub mod ast;
 pub mod document;
-pub(crate) mod markdown_lexer;
+pub mod markdown_lexer;
 pub mod prelude;
-pub(crate) mod token_stream;
+pub mod token_stream;
 pub mod visitor;
 
 mod __private;

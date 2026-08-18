@@ -18,6 +18,8 @@ pub trait Interceptor<'input> {
     ) -> InterceptResult<'input>;
 }
 
+static_assertions::assert_obj_safe!(Interceptor);
+
 pub enum InterceptorEnum {
     CalloutInterceptor(callout_interceptor::CalloutInterceptor),
 }

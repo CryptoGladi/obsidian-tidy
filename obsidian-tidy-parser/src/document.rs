@@ -18,10 +18,10 @@ pub struct Document {
     inner: InnerDocument,
 }
 
+static_assertions::assert_impl_all!(Document: Send, Sync);
+
 impl Document {
     pub fn new(source: impl Into<String>) -> Self {
-        let source = source.into();
-
         let inner = InnerDocumentBuilder {
             source: source.into(),
             ast_builder: |_| OnceLock::new(),

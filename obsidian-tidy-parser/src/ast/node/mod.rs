@@ -10,13 +10,13 @@ mod text_content;
 
 pub use block_quote::BlockQuote;
 pub use callout::Callout;
-pub use heading::{Heading, HeadingLevel};
 pub(crate) use macros::impl_node_as;
 pub use paragraph::Paragraph;
 pub use root::Root;
 pub use strong::Strong;
 pub use text_content::TextContent;
 
+use crate::token_stream::token::Heading;
 use derive_more::IsVariant;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -50,7 +50,7 @@ pub enum NodeKind<'ast> {
     Heading(Tag<'ast, Heading>),
     Strong(Tag<'ast, Strong>),
     BlockQuote(Tag<'ast, BlockQuote>),
-    Callout(Tag<'ast, Callout>),
+    Callout(Tag<'ast, Callout<'ast>>),
 
     Text(Cow<'ast, str>),
     InlineCode(Cow<'ast, str>),
