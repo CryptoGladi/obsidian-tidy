@@ -4,6 +4,13 @@ version = "0.0.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+no_std = ["dep:spin"]
+wasm = ["dep:wasm-bindgen"]
+
 [dependencies]
 pulldown-cmark = { version = "0.13", default-features = false }
 derive_more.workspace = true
@@ -13,6 +20,10 @@ strum.workspace = true
 tracing.workspace = true
 ouroboros.workspace = true
 static_assertions.workspace = true
+spin = { version = "0.12", default-features = false, features = [
+    "once",
+], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
 
 [dev-dependencies]
 insta.workspace = true

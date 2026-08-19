@@ -24,8 +24,8 @@ impl From<MarkHeadingLevel> for HeadingLevel {
     }
 }
 
-impl std::fmt::Display for HeadingLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for HeadingLevel {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "H{}", *self as u8)
     }
 }

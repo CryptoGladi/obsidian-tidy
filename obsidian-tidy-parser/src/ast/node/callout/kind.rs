@@ -1,6 +1,6 @@
 use derive_more::IsVariant;
 use serde::Serialize;
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, IsVariant, strum::Display)]
 pub enum CalloutKind<'ast> {

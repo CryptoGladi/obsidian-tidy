@@ -1,6 +1,6 @@
 use super::Token;
 use crate::markdown_lexer::MarkdownLexer;
-use std::range::Range;
+use core::range::Range;
 
 pub struct MarkdownLexerAdapter<'input> {
     inner: MarkdownLexer<'input>,
@@ -26,6 +26,8 @@ impl<'input> Iterator for MarkdownLexerAdapter<'input> {
 mod tests {
     use super::*;
     use crate::markdown_lexer::MarkdownLexerBuilder;
+    use alloc::string::String;
+    use alloc::vec::Vec;
     use proptest::prelude::*;
     use pulldown_cmark::Event as MarkEvent;
 

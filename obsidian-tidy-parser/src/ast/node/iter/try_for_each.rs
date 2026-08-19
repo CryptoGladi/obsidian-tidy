@@ -1,5 +1,5 @@
 use crate::prelude::Node;
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 impl<'ast> Node<'ast> {
     #[inline]
@@ -17,7 +17,7 @@ impl<'ast> Node<'ast> {
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Document, HeadingLevel, NodeKind};
-    use std::ops::ControlFlow;
+    use core::ops::ControlFlow;
 
     #[test]
     fn try_for_each_while_visits_in_pre_order() {

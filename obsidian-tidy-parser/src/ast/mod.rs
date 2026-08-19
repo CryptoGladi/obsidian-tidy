@@ -2,9 +2,10 @@ pub mod node;
 pub mod stack;
 
 use crate::token_stream::token::{Tag as TokenTag, TagEnd, Token};
+use alloc::vec::Vec;
+use core::range::Range;
 use node::{BlockQuote, Callout, Node, NodeKind, Paragraph, Root, Strong, Tag};
 use stack::{Frame, Stack};
-use std::range::Range;
 use tracing::instrument;
 
 pub struct ASTBuilder<I> {
@@ -132,10 +133,9 @@ where
 mod tests {
     use super::*;
     use crate::{markdown_lexer::MarkdownLexerBuilder, token_stream::TokenStream};
-    use tracing_test::traced_test;
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn empty() {
         let document = "";
         let lexer = MarkdownLexerBuilder::default().build(document);

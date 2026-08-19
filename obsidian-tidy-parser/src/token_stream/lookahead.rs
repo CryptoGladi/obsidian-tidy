@@ -1,5 +1,5 @@
-use std::collections::VecDeque;
-use std::mem::{ManuallyDrop, MaybeUninit};
+use alloc::collections::VecDeque;
+use core::mem::{ManuallyDrop, MaybeUninit};
 
 pub struct LookaheadGuard<'guard, I, const N: usize>
 where
@@ -65,7 +65,7 @@ where
         let mut items_iter = items.into_iter();
         let first = items_iter.next();
 
-        let mut this = std::mem::ManuallyDrop::new(self);
+        let mut this = ManuallyDrop::new(self);
 
         for item in &mut this.data {
             // SAFETY: all elements are initialized
@@ -89,7 +89,7 @@ where
         let this = ManuallyDrop::new(self);
 
         // SAFETY: all elements are initialized
-        unsafe { std::ptr::read(this.data.as_ptr().cast::<[I::Item; N]>()) }
+        unsafe { core::ptr::read(this.data.as_ptr().cast::<[I::Item; N]>()) }
     }
 }
 
@@ -102,7 +102,7 @@ where
             unsafe {
                 // SAFETY: all elements are initialized
                 let item =
-                    std::mem::replace(&mut self.data[i], MaybeUninit::uninit()).assume_init();
+                    core::mem::replace(&mut self.data[i], MaybeUninit::uninit()).assume_init();
 
                 self.lookahead.buffer.push_front(item);
             }
@@ -143,7 +143,7 @@ where
     pub fn peek_many<'guard, const N: usize>(
         &'guard mut self,
     ) -> Option<LookaheadGuard<'guard, I, N>> {
-        let mut data: [MaybeUninit<I::Item>; N] = std::array::from_fn(|_| MaybeUninit::uninit());
+        let mut data: [MaybeUninit<I::Item>; N] = core::array::from_fn(|_| MaybeUninit::uninit());
 
         for i in 0..N {
             if let Some(item) = self.buffer.pop_front() {
@@ -155,7 +155,7 @@ where
                     // SAFETY: all elements are initialized
                     unsafe {
                         let item =
-                            std::mem::replace(&mut data[j], MaybeUninit::uninit()).assume_init();
+                            core::mem::replace(&mut data[j], MaybeUninit::uninit()).assume_init();
 
                         self.buffer.push_front(item);
                     }
@@ -187,19 +187,20 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::rc::Rc;
+    use alloc::rc::Rc;
+    use alloc::vec;
 
-    struct PanickingIntoIterator<T>(std::marker::PhantomData<T>);
+    struct PanickingIntoIterator<T>(core::marker::PhantomData<T>);
 
     impl<T> PanickingIntoIterator<T> {
         fn new() -> Self {
-            Self(std::marker::PhantomData)
+            Self(core::marker::PhantomData)
         }
     }
 
     impl<T> IntoIterator for PanickingIntoIterator<T> {
         type Item = T;
-        type IntoIter = std::vec::IntoIter<T>;
+        type IntoIter = alloc::vec::IntoIter<T>;
 
         #[track_caller]
         fn into_iter(self) -> Self::IntoIter {
@@ -207,11 +208,11 @@ mod tests {
         }
     }
 
-    struct PanickingIterator<T>(std::marker::PhantomData<T>);
+    struct PanickingIterator<T>(core::marker::PhantomData<T>);
 
     impl<T> PanickingIterator<T> {
         fn new() -> Self {
-            Self(std::marker::PhantomData)
+            Self(core::marker::PhantomData)
         }
     }
 

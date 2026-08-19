@@ -1,5 +1,5 @@
 use crate::prelude::Node;
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 impl<'ast> Node<'ast> {
     #[inline]

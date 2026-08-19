@@ -1,7 +1,7 @@
+use alloc::borrow::Cow;
+use core::range::Range;
 use derive_more::IsVariant;
 use serde::Serialize;
-use std::borrow::Cow;
-use std::range::Range;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, IsVariant, Serialize)]
 pub enum CalloutFoldable {

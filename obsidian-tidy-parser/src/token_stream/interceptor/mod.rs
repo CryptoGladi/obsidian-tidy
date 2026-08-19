@@ -5,7 +5,8 @@ pub use callout_interceptor::CalloutInterceptor;
 use super::Token;
 use crate::token_stream::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
-use std::range::Range;
+use alloc::vec::Vec;
+use core::range::Range;
 
 pub type InterceptResult<'input> = Option<(Token<'input>, Range<usize>)>;
 
@@ -44,7 +45,7 @@ impl<'input> Interceptor<'input> for InterceptorEnum {
 macro_rules! vec_interceptor {
     [] => {
         {
-            Vec::<$crate::token_stream::interceptor::InterceptorEnum>::new()
+            ::alloc::vec::Vec::<$crate::token_stream::interceptor::InterceptorEnum>::new()
         }
     };
 
@@ -54,7 +55,7 @@ macro_rules! vec_interceptor {
             // It is zero const
             let capacity = [ $( vec_interceptor!(@replace $struct) ),* ].len();
 
-            let mut v = Vec::with_capacity(capacity);
+            let mut v = ::alloc::vec::Vec::with_capacity(capacity);
 
             $(v.push($crate::token_stream::interceptor::InterceptorEnum::from($struct));)*
 

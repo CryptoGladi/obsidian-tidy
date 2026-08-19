@@ -3,9 +3,9 @@ pub mod tag;
 
 pub use tag::*;
 
+use alloc::borrow::Cow;
 use derive_more::IsVariant;
 use serde::Serialize;
-use std::borrow::Cow;
 
 #[derive(Debug, Clone, PartialEq, IsVariant, Serialize)]
 #[non_exhaustive]
@@ -22,10 +22,10 @@ pub enum Token<'input> {
 macro_rules! impl_token_as {
     ($field:ident, $for_return:path) => {
         ::pastey::paste! {
-            impl $crate::prelude::Token<'_> {
+            impl $crate::token_stream::token::Token<'_> {
                 #[must_use]
                 pub const fn [<as_ $field:snake>](&self) -> Option<&$for_return> {
-                    if let $crate::prelude::Token::$field(data) = self {
+                    if let $crate::token_stream::token::Token::$field(data) = self {
                         return Some(data);
                     }
 

@@ -1,5 +1,5 @@
+use core::range::Range;
 use serde::{Serialize, Serializer};
-use std::range::Range;
 
 #[derive(Serialize)]
 struct RangeRef<'a, T> {

@@ -15,10 +15,9 @@ super::impl_node_as!(Paragraph);
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Document, TextContent};
-    use tracing_test::traced_test;
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     #[cfg_attr(miri, ignore)]
     fn check_have_paragraph() {
         let document = Document::new("Super text");
@@ -29,7 +28,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn as_plain_text() {
         let document = Document::new("# Heading\nSimple text");
         let ast = document.ast();

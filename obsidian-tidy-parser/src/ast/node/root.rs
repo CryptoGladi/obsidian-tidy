@@ -15,10 +15,9 @@ super::impl_node_as!(Root);
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Document, TextContent};
-    use tracing_test::traced_test;
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn as_plain_text() {
         let document = Document::new("Simple text");
         let ast = document.ast();
@@ -27,7 +26,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn as_plain_text_with_formatting() {
         let document = Document::new("My **super** text");
         let ast = document.ast();

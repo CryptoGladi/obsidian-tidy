@@ -12,7 +12,7 @@ impl<'ast> Node<'ast> {
 
         self.for_each(|node| {
             if let Some(data) = predicate(node) {
-                acc.extend(std::iter::once(data));
+                acc.extend(core::iter::once(data));
             }
         });
 

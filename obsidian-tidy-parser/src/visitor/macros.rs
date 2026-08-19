@@ -32,8 +32,8 @@ macro_rules! define_visitor {
                 /// Called before [`Self::visit_node`]
                 ///
                 /// Return `ControlFlow::Break(())` to stop traversal.
-                fn pre_visit_node(&mut self, node: &'ast $crate::prelude::Node<'ast>) -> ::std::ops::ControlFlow<()> {
-                    ::std::ops::ControlFlow::Continue(())
+                fn pre_visit_node(&mut self, node: &'ast $crate::prelude::Node<'ast>) -> ::core::ops::ControlFlow<()> {
+                    ::core::ops::ControlFlow::Continue(())
                 }
 
                 /// Called after [`Self::visit_node`]
@@ -45,7 +45,7 @@ macro_rules! define_visitor {
                 /// and calls the corresponding `visit_*` method.
                 ///
                 /// Return `ControlFlow::Break(())` to stop traversal.
-                fn visit_node(&mut self, node: &'ast $crate::prelude::Node<'ast>) -> ::std::ops::ControlFlow<()> {
+                fn visit_node(&mut self, node: &'ast $crate::prelude::Node<'ast>) -> ::core::ops::ControlFlow<()> {
                     self.pre_visit_node(node)?;
 
                     match &node.kind() {
@@ -64,7 +64,7 @@ macro_rules! define_visitor {
                     }
 
                     self.post_visit_node(node);
-                    ::std::ops::ControlFlow::Continue(())
+                    ::core::ops::ControlFlow::Continue(())
                 }
 
                 $(
@@ -86,8 +86,8 @@ macro_rules! define_visitor {
                     )]
                     #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
                     fn [<pre_visit_ $variant:snake>](&mut self, tag: &'ast $crate::prelude::Tag<'ast, $inner>,
-                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
-                        ::std::ops::ControlFlow::Continue(())
+                        offset: ::core::range::Range<usize>) -> ::core::ops::ControlFlow<()> {
+                        ::core::ops::ControlFlow::Continue(())
                     }
 
                     #[doc = concat!(
@@ -107,7 +107,7 @@ macro_rules! define_visitor {
                         ")."
                     )]
                     fn [<post_visit_ $variant:snake>](&mut self, tag: &'ast $crate::prelude::Tag<'ast, $inner>,
-                        offset: ::std::range::Range<usize>) { }
+                        offset: ::core::range::Range<usize>) { }
 
                     #[doc = concat!(
                         "Visits `",
@@ -129,7 +129,7 @@ macro_rules! define_visitor {
                     #[doc = "responsible for calling these hooks yourself if needed"]
                     #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
                     fn [<visit_ $variant:snake>](&mut self, tag: &'ast $crate::prelude::Tag<'ast, $inner>,
-                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
+                        offset: ::core::range::Range<usize>) -> ::core::ops::ControlFlow<()> {
                         self.[<pre_visit_ $variant:snake>](tag, offset)?;
 
                         for child in tag.children() {
@@ -137,7 +137,7 @@ macro_rules! define_visitor {
                         }
 
                         self.[<post_visit_ $variant:snake>](tag, offset);
-                        ::std::ops::ControlFlow::Continue(())
+                        ::core::ops::ControlFlow::Continue(())
                     }
                 )*
 
@@ -152,8 +152,8 @@ macro_rules! define_visitor {
                     )]
                     #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
                     fn [<visit_ $data_variant:snake>](&mut self, data: &'ast $data_type,
-                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
-                        ::std::ops::ControlFlow::Continue(())
+                        offset: ::core::range::Range<usize>) -> ::core::ops::ControlFlow<()> {
+                        ::core::ops::ControlFlow::Continue(())
                     }
                 )*
 
@@ -168,8 +168,8 @@ macro_rules! define_visitor {
                     )]
                     #[doc = "Return `ControlFlow::Break(())` to stop traversal."]
                     fn [<visit_ $empty_variant:snake>](&mut self,
-                        offset: ::std::range::Range<usize>) -> ::std::ops::ControlFlow<()> {
-                        ::std::ops::ControlFlow::Continue(())
+                        offset: ::core::range::Range<usize>) -> ::core::ops::ControlFlow<()> {
+                        ::core::ops::ControlFlow::Continue(())
                     }
                 )*
             }

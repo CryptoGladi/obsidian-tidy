@@ -8,10 +8,11 @@ pub use builder::TokenStreamBuilder;
 pub use token::Token;
 
 use crate::markdown_lexer::MarkdownLexer;
+use alloc::vec::Vec;
+use core::range::Range;
 use interceptor::{Interceptor, InterceptorEnum, get_all_interceptors};
 use lookahead::Lookahead;
 use markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
-use std::range::Range;
 
 pub struct TokenStream<'input> {
     lexer: Lookahead<LexerAdapter<'input>>,

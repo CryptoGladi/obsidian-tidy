@@ -3,8 +3,9 @@ use crate::token_stream::Token;
 use crate::token_stream::lookahead::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
 use crate::token_stream::token::{Callout, CalloutFoldable, Tag, TagEnd};
-use std::borrow::Cow;
-use std::range::Range;
+use alloc::borrow::Cow;
+use alloc::vec::Vec;
+use core::range::Range;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Call {

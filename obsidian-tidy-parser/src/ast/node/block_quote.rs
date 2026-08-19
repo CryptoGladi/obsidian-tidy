@@ -15,10 +15,9 @@ super::impl_node_as!(BlockQuote);
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Document, TextContent};
-    use tracing_test::traced_test;
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     #[cfg_attr(miri, ignore)]
     fn ast() {
         let text = "# Define\n>My **super** quote";
@@ -30,7 +29,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     #[cfg_attr(miri, ignore)]
     fn nested_ast() {
         let text = "# Define\n>My **super** quote\n>> Quote by quote";
@@ -42,7 +41,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn as_plain_text() {
         let text = "# Define\n> My quote";
         let document = Document::new(text);
@@ -53,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn as_plain_text_with_formatting() {
         let text = "# Define\n> My **super** quote";
         let document = Document::new(text);

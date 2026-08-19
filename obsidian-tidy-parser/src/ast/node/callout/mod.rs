@@ -4,20 +4,21 @@ use crate::{
     prelude::{Node, NodeKind, Tag},
     token_stream::token::CalloutFoldable,
 };
+use alloc::borrow::Cow;
+use alloc::string::ToString;
+use core::range::Range;
 pub use kind::CalloutKind;
 use serde::Serialize;
-use std::borrow::Cow;
-use std::range::Range;
 
 const EXCEPT_MESSAGE: &str = "Callout should have validated structure";
 
 pub struct CalloutContentIter<'ast> {
-    iter: std::slice::Iter<'ast, Node<'ast>>,
+    iter: core::slice::Iter<'ast, Node<'ast>>,
     skip_first_char: bool,
 }
 
 impl<'ast> CalloutContentIter<'ast> {
-    const fn new(iter: std::slice::Iter<'ast, Node<'ast>>, skip_first_char: bool) -> Self {
+    const fn new(iter: core::slice::Iter<'ast, Node<'ast>>, skip_first_char: bool) -> Self {
         Self {
             iter,
             skip_first_char,
@@ -161,14 +162,13 @@ super::impl_node_as!(Callout, Callout<'_>);
 mod tests {
     use super::*;
     use crate::prelude::{ASTBuildExt, Node, TextContent, TokenStreamBuilder};
-    use tracing_test::traced_test;
 
     fn get_ast(source: &str) -> Node<'_> {
         TokenStreamBuilder::default().build(source).build_ast()
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn without_title() {
         let source = "> [!tip]\nText";
         let ast = get_ast(source);
@@ -186,7 +186,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn many_space() {
         let source = ">  [!tip] Text";
         let ast = get_ast(source);
@@ -195,7 +195,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn zero_space() {
         let source = ">[!example]+ Text\n> Other Data";
         let ast = get_ast(source);
@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn without_text() {
         let source = "> [!warning]";
         let ast = get_ast(source);
@@ -226,7 +226,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn hard_bread() {
         let source = "> [!warning]  \n> Te";
         let ast = get_ast(source);

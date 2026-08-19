@@ -2,6 +2,7 @@ use super::TokenStream;
 use crate::markdown_lexer::MarkdownLexerBuilder;
 use crate::token_stream::InterceptorEnum;
 use crate::token_stream::interceptor::get_all_interceptors;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TokenStreamBuilder {

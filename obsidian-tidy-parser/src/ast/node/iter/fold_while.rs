@@ -1,5 +1,5 @@
 use crate::prelude::{Fold, FoldVisitorExt, Node, Visitor};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 const PANIC_MESSAGE: &str = "check the initialization `FoldVisitor`";
 
@@ -89,7 +89,7 @@ impl<'ast> Node<'ast> {
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Document, HeadingLevel, Node, NodeKind, TextContent};
-    use std::ops::ControlFlow;
+    use core::ops::ControlFlow;
 
     #[test]
     fn fold_while_not_sized() {

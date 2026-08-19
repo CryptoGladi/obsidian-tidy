@@ -1,6 +1,12 @@
 use crate::prelude::{ASTBuildExt, Node, TokenStream, TokenStreamBuilder};
+use alloc::string::String;
 use ouroboros::self_referencing;
-use std::sync::OnceLock;
+
+#[cfg(not(feature = "no_std"))]
+pub use std::sync::OnceLock;
+
+#[cfg(feature = "no_std")]
+pub use spin::Once as OnceLock;
 
 #[self_referencing]
 struct InnerDocument {
@@ -38,9 +44,21 @@ impl Document {
             .with_source(|source| TokenStreamBuilder::default().build(source))
     }
 
+    #[cfg(not(feature = "no_std"))]
     pub fn ast(&self) -> &Node<'_> {
         self.inner.with(|fields| {
             fields.ast.get_or_init(|| {
+                let token_stream = TokenStreamBuilder::default().build(fields.source);
+
+                token_stream.build_ast()
+            })
+        })
+    }
+
+    #[cfg(feature = "no_std")]
+    pub fn ast(&self) -> &Node<'_> {
+        self.inner.with(|fields| {
+            fields.ast.call_once(|| {
                 let token_stream = TokenStreamBuilder::default().build(fields.source);
 
                 token_stream.build_ast()

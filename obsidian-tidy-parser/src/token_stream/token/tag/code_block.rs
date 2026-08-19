@@ -1,5 +1,5 @@
+use alloc::borrow::Cow;
 use serde::Serialize;
-use std::borrow::Cow;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct CodeBlock<'input> {

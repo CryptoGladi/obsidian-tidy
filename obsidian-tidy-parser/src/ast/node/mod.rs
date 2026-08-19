@@ -17,10 +17,11 @@ pub use strong::Strong;
 pub use text_content::TextContent;
 
 use crate::token_stream::token::Heading;
+use alloc::borrow::Cow;
+use alloc::boxed::Box;
+use core::range::Range;
 use derive_more::IsVariant;
 use serde::Serialize;
-use std::borrow::Cow;
-use std::range::Range;
 use strum::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -68,8 +69,8 @@ pub struct Node<'a> {
     offset: Range<usize>,
 }
 
-impl std::fmt::Display for Node<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for Node<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.kind.fmt(f)
     }
 }

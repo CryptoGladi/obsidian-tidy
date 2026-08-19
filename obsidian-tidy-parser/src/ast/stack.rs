@@ -1,6 +1,7 @@
 use crate::prelude::Node;
 use crate::token_stream::token::Tag;
-use std::range::Range;
+use alloc::vec::Vec;
+use core::range::Range;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Frame<'input> {
