@@ -15,6 +15,7 @@ mod tests {
     use crate::prelude::{Document, TextContent};
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn parse() {
         let text = "# Definition\nRust is one of the memory-safe programming languages";
         let document = Document::new(text);
@@ -25,6 +26,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn parse_with_format() {
         let text = "# **Super** `Definition`\nSimple text";
         let document = Document::new(text);

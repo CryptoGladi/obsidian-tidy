@@ -168,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn without_title() {
         let source = "> [!tip]\nText";
         let ast = get_ast(source);
@@ -186,7 +186,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn many_space() {
         let source = ">  [!tip] Text";
         let ast = get_ast(source);
@@ -195,7 +195,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn zero_space() {
         let source = ">[!example]+ Text\n> Other Data";
         let ast = get_ast(source);
@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn without_text() {
         let source = "> [!warning]";
         let ast = get_ast(source);
@@ -226,7 +226,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn hard_bread() {
         let source = "> [!warning]  \n> Te";
         let ast = get_ast(source);

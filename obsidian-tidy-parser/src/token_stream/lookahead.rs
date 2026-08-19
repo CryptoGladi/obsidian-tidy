@@ -34,8 +34,8 @@ where
         T: IntoIterator<Item = I::Item>,
         T::IntoIter: DoubleEndedIterator,
     {
-        let mut this = ManuallyDrop::new(self);
         let items = items.into_iter(); // If panic, then call drop
+        let mut this = ManuallyDrop::new(self);
 
         for item in &mut this.data {
             // SAFETY: all elements are initialized
@@ -62,8 +62,8 @@ where
         T: IntoIterator<Item = I::Item>,
         T::IntoIter: DoubleEndedIterator,
     {
-        let mut this = std::mem::ManuallyDrop::new(self);
         let mut items_iter = items.into_iter();
+        let mut this = std::mem::ManuallyDrop::new(self);
 
         for item in &mut this.data {
             // SAFETY: all elements are initialized
@@ -264,9 +264,8 @@ mod tests {
 
         assert!(result.is_err());
 
-        assert_eq!(lookahead.next(), Some("D"));
-        assert_eq!(lookahead.next(), Some("E"));
-        assert_eq!(lookahead.next(), None);
+        assert_eq!(lookahead.next(), Some("A"));
+        assert_eq!(lookahead.next(), Some("B"));
     }
 
     #[test]
@@ -344,9 +343,8 @@ mod tests {
 
         assert!(result.is_err());
 
-        assert_eq!(lookahead.next(), Some("D"));
-        assert_eq!(lookahead.next(), Some("E"));
-        assert_eq!(lookahead.next(), None);
+        assert_eq!(lookahead.next(), Some("A"));
+        assert_eq!(lookahead.next(), Some("B"));
     }
 
     #[test]

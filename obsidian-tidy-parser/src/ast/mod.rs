@@ -135,7 +135,7 @@ mod tests {
     use tracing_test::traced_test;
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn empty() {
         let document = "";
         let lexer = MarkdownLexerBuilder::default().build(document);

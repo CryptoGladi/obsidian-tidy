@@ -282,6 +282,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn simple_callout_tip() {
         let source = "> [!tip]\n> Content";
         let tokens = collect_tokens(source);
@@ -299,6 +300,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn callout_with_expanded_foldable() {
         let source = "> [!warning]+ Custom Title";
         let tokens = collect_tokens(source);
@@ -402,6 +404,7 @@ mod tests {
 
     proptest! {
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn prop_callout_all_kinds(kind in r"[ \d\p{L}-]{1,10}") {
             let kind = &kind;
             let source = format!("> [!{}]", kind);
@@ -414,6 +417,7 @@ mod tests {
 
         // TODO replace text to ".*" ALL UNICODE
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn prop_omega(space_count in 0..=1usize, kind in r"[ \d\p{L}-]{1,10}", text in r"[\p{L} \n]*") {
             let kind = &kind;
             let source = format!(">{:<n$}[!{}]{}", "", kind, text, n = space_count);
@@ -467,6 +471,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn nested_blockquotes_counter_example() {
         let source = r#"> [!tip] Start!
 > > > Super quote
@@ -486,6 +491,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn tags_are_balanced() {
         let source = r#"> [!tip]
 > Content 1
@@ -511,6 +517,7 @@ mod tests {
 
     proptest! {
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn prop_tags_are_balanced(kind in "[A-Za-z ]{3,10}") {
             let source = format!("> [!{}]\n> Content\n", kind);
             let tokens = collect_tokens(&source);
@@ -578,6 +585,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn callout_with_markdown_inside() {
         let source = "> [!tip]\n> **Bold** and *italic*";
         let tokens = collect_tokens(source);
@@ -590,6 +598,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn callout_with_code_inside() {
         let source = "> [!tip]\n> Use `println!` macro";
         let tokens = collect_tokens(source);

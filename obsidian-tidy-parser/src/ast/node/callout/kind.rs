@@ -173,6 +173,7 @@ mod tests {
 
     proptest! {
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn infallible_error_type(s in "[a-z]{1,10}") {
             let s_ref = s.as_str();
             let result = CalloutKind::try_from(s_ref);
@@ -181,6 +182,7 @@ mod tests {
         }
 
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn parse_all_known_types_case_insensitive(
             (input, expected) in callout_input_strategy()
         ) {

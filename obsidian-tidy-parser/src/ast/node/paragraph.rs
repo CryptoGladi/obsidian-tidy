@@ -18,7 +18,8 @@ mod tests {
     use tracing_test::traced_test;
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
+    #[cfg_attr(miri, ignore)]
     fn check_have_paragraph() {
         let document = Document::new("Super text");
         let ast = document.ast();
@@ -28,7 +29,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn as_plain_text() {
         let document = Document::new("# Heading\nSimple text");
         let ast = document.ast();

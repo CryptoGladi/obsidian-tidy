@@ -46,6 +46,7 @@ mod tests {
 
     proptest! {
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn serializing(start: usize, end: usize) {
             let range = TestStruct::new(start, end);
             let json = serde_json::to_string(&range).unwrap();

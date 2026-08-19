@@ -102,6 +102,7 @@ mod tests {
 
     proptest! {
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn prop_eq_adapter_and_original(markdown in markdown()) {
             if let Some((token, adapter)) = impl_eq_adapter_and_original(&markdown) {
                 prop_assert!(false,

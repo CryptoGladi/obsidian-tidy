@@ -18,7 +18,7 @@ mod tests {
     use tracing_test::traced_test;
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn as_plain_text() {
         let document = Document::new("Simple text");
         let ast = document.ast();
@@ -27,7 +27,7 @@ mod tests {
     }
 
     #[test]
-    #[traced_test]
+    #[cfg_attr(not(miri), traced_test)]
     fn as_plain_text_with_formatting() {
         let document = Document::new("My **super** text");
         let ast = document.ast();
