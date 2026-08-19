@@ -42,6 +42,16 @@
           ];
         };
 
+        rust-nightly = pkgs.rust-bin.selectLatestNightlyWith (
+          toolchain:
+          toolchain.default.override {
+            extensions = [
+              "miri"
+              "rust-src"
+            ];
+          }
+        );
+
         craneLib = (crane.mkLib pkgs).overrideToolchain (p: rust);
 
         src = craneLib.cleanCargoSource ./.;
@@ -113,7 +123,7 @@
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
-            rust
+            rust-nightly
             gungraun-runner
 
             pkgs.taplo
@@ -127,7 +137,8 @@
             echo "Active nix develop"
           '';
 
-          RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+          RUST_SRC_PATH = "${rust-nightly}/lib/rustlib/src/rust/library";
+          RUSTUP_TOOLCHAIN = "nightly";
           VALGRIND = "${pkgs.valgrind}/bin/valgrind";
         };
       }
