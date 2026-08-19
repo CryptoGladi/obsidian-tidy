@@ -63,6 +63,8 @@ where
         T::IntoIter: DoubleEndedIterator,
     {
         let mut items_iter = items.into_iter();
+        let first = items_iter.next();
+
         let mut this = std::mem::ManuallyDrop::new(self);
 
         for item in &mut this.data {
@@ -72,12 +74,11 @@ where
             }
         }
 
-        let first = items_iter.next()?;
         for item in items_iter.rev() {
             this.lookahead.buffer.push_front(item);
         }
 
-        Some(first)
+        first
     }
 
     pub fn commit(self) {
@@ -188,21 +189,45 @@ mod tests {
     use super::*;
     use std::rc::Rc;
 
-    struct PanickingIterable<T>(std::marker::PhantomData<T>);
+    struct PanickingIntoIterator<T>(std::marker::PhantomData<T>);
 
-    impl<T> PanickingIterable<T> {
+    impl<T> PanickingIntoIterator<T> {
         fn new() -> Self {
             Self(std::marker::PhantomData)
         }
     }
 
-    impl<T> IntoIterator for PanickingIterable<T> {
+    impl<T> IntoIterator for PanickingIntoIterator<T> {
         type Item = T;
         type IntoIter = std::vec::IntoIter<T>;
 
         #[track_caller]
         fn into_iter(self) -> Self::IntoIter {
-            panic!("panic in PanickingIterable()!");
+            panic!("panic in PanickingIntoIterator!");
+        }
+    }
+
+    struct PanickingIterator<T>(std::marker::PhantomData<T>);
+
+    impl<T> PanickingIterator<T> {
+        fn new() -> Self {
+            Self(std::marker::PhantomData)
+        }
+    }
+
+    impl<T> Iterator for PanickingIterator<T> {
+        type Item = T;
+
+        #[track_caller]
+        fn next(&mut self) -> Option<Self::Item> {
+            panic!("panic in PanickingIterator!");
+        }
+    }
+
+    impl<T> DoubleEndedIterator for PanickingIterator<T> {
+        #[track_caller]
+        fn next_back(&mut self) -> Option<Self::Item> {
+            panic!("panic in PanickingIterator!");
         }
     }
 
@@ -247,7 +272,7 @@ mod tests {
     }
 
     #[test]
-    fn commit_with_but_panic() {
+    fn commit_with_but_panic_in_iter_into() {
         let source = vec!["A", "B", "C", "D", "E"].into_iter();
         let mut lookahead = Lookahead::new(source);
 
@@ -259,7 +284,7 @@ mod tests {
         assert_eq!(tokens[2], "C");
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            guard.commit_with(PanickingIterable::new());
+            guard.commit_with(PanickingIntoIterator::new());
         }));
 
         assert!(result.is_err());
@@ -326,7 +351,7 @@ mod tests {
     }
 
     #[test]
-    fn commit_returning_first_but_panic() {
+    fn commit_returning_first_but_panic_with_into_iter() {
         let source = vec!["A", "B", "C", "D", "E"].into_iter();
         let mut lookahead = Lookahead::new(source);
 
@@ -338,7 +363,29 @@ mod tests {
         assert_eq!(tokens[2], "C");
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            guard.commit_returning_first(PanickingIterable::new());
+            guard.commit_returning_first(PanickingIntoIterator::new());
+        }));
+
+        assert!(result.is_err());
+
+        assert_eq!(lookahead.next(), Some("A"));
+        assert_eq!(lookahead.next(), Some("B"));
+    }
+
+    #[test]
+    fn commit_returning_first_but_panic_with_iter() {
+        let source = vec!["A", "B", "C", "D", "E"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<3>().unwrap();
+        let tokens = guard.data();
+
+        assert_eq!(tokens[0], "A");
+        assert_eq!(tokens[1], "B");
+        assert_eq!(tokens[2], "C");
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            guard.commit_returning_first(PanickingIterator::new());
         }));
 
         assert!(result.is_err());
@@ -532,7 +579,7 @@ mod tests {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let guard = lookahead.peek_many::<1>().unwrap();
 
-            let panic_iter = PanickingIterable::new();
+            let panic_iter = PanickingIntoIterator::new();
             guard.commit_with(panic_iter);
         }));
 
@@ -549,7 +596,7 @@ mod tests {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let guard = lookahead.peek_many::<1>().unwrap();
 
-            let panic_iter = PanickingIterable::new();
+            let panic_iter = PanickingIntoIterator::new();
             guard.commit_returning_first(panic_iter);
         }));
 

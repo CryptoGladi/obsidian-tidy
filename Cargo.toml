@@ -6,7 +6,7 @@ authors = ["CryptoGladi <dam.almaev@gmail.com>"]
 description = "Blazingly fast Obsidian vault linter"
 repository = "https://github.com/CryptoGladi/obsidian-tidy"
 documentation = "https://docs.rs/obsidian-tidy/latest/obsidian_tidy"
-license = "MIT"
+license = "GPL-3.0-or-later"
 keywords = ["obsidian", "vault", "linter", "tidy", "knowledge-graph", "graph"]
 categories = ["parser-implementations", "data-structures"]
 

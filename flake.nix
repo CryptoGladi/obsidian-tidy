@@ -130,6 +130,7 @@
             pkgs.ast-grep
             pkgs.just
             pkgs.cargo-insta
+            pkgs.cargo-deny
             pkgs.valgrind
           ];
 

@@ -1,12 +1,11 @@
 [package]
 name = "obsidian-tidy-parser"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
-pulldown-cmark = { version = "0.13", default-features = false, features = [
-    "serde",
-] }
+pulldown-cmark = { version = "0.13", default-features = false }
 derive_more.workspace = true
 pastey.workspace = true
 serde.workspace = true
