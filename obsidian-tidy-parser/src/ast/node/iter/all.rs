@@ -7,6 +7,26 @@ impl<'ast> Node<'ast> {
         F: FnMut(&'ast Node<'ast>) -> bool,
     {
         let mut predicate = predicate;
+
+        // Test optimization: use `dyn FnMut` in an inner function
+        // to erase the closure type and prevent code bloat.
+        self.all_inner(&mut predicate)
+    }
+
+    #[cfg(debug_assertions)]
+    #[doc(hidden)]
+    #[inline(never)]
+    fn all_inner(&'ast self, predicate: &mut dyn FnMut(&'ast Node<'ast>) -> bool) -> bool {
+        self.find(|node| !predicate(node)).is_none()
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[doc(hidden)]
+    #[inline]
+    fn all_inner<F>(&'ast self, mut predicate: F) -> bool
+    where
+        F: FnMut(&'ast Node<'ast>) -> bool,
+    {
         self.find(|node| !predicate(node)).is_none()
     }
 }

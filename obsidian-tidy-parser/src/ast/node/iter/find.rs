@@ -9,6 +9,36 @@ impl<'ast> Node<'ast> {
     {
         let mut predicate = predicate;
 
+        // Test optimization: use `dyn FnMut` in an inner function
+        // to erase the closure type and prevent code bloat.
+        self.find_inner(&mut predicate)
+    }
+
+    #[cfg(debug_assertions)]
+    #[doc(hidden)]
+    #[inline(never)]
+    fn find_inner(
+        &'ast self,
+        predicate: &mut dyn FnMut(&'ast Node<'ast>) -> bool,
+    ) -> Option<&'ast Node<'ast>> {
+        self.fold_while(None, |acc, node| {
+            debug_assert!(acc.is_none());
+
+            if predicate(node) {
+                ControlFlow::Break(Some(node))
+            } else {
+                ControlFlow::Continue(None)
+            }
+        })
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[doc(hidden)]
+    #[inline]
+    fn find_inner<F>(&'ast self, mut predicate: F) -> Option<&'ast Node<'ast>>
+    where
+        F: FnMut(&'ast Node<'ast>) -> bool,
+    {
         self.fold_while(None, |acc, node| {
             debug_assert!(acc.is_none());
 

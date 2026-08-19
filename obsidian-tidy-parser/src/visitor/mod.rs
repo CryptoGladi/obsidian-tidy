@@ -28,17 +28,35 @@ define_visitor! {
 
 static_assertions::assert_obj_safe!(Visitor);
 
+#[cfg(not(debug_assertions))]
 pub trait VisitExt<'ast> {
     fn visit<V>(&'ast self, visitor: &mut V)
     where
-        V: Visitor<'ast>;
+        V: Visitor<'ast> + ?Sized;
 }
 
+#[cfg(not(debug_assertions))]
 impl<'ast> VisitExt<'ast> for Node<'ast> {
+    #[inline]
     fn visit<V>(&'ast self, visitor: &mut V)
     where
-        V: Visitor<'ast>,
+        V: Visitor<'ast> + ?Sized,
     {
+        let _ = visitor.visit_node(self);
+    }
+}
+
+/// Test optimization: switch to `dyn Visitor` (dynamic dispatch)
+/// to prevent monomorphization of a large trait and reduce compile times.
+#[cfg(debug_assertions)]
+pub trait VisitExt<'ast> {
+    fn visit(&'ast self, visitor: &mut dyn Visitor<'ast>);
+}
+
+#[cfg(debug_assertions)]
+impl<'ast> VisitExt<'ast> for Node<'ast> {
+    #[inline(never)]
+    fn visit(&'ast self, visitor: &mut dyn Visitor<'ast>) {
         let _ = visitor.visit_node(self);
     }
 }
@@ -82,6 +100,18 @@ mod tests {
         let mut count_word = CountWord::default();
         ast.visit(&mut count_word);
 
+        assert_eq!(count_word.count, 3);
+    }
+
+    #[test]
+    fn visit_ext_not_sized() {
+        let document = Document::new("# Hello world everyone!");
+        let ast = document.ast();
+
+        let mut count_word = CountWord::default();
+        let dyn_count_word: &mut dyn Visitor = &mut count_word;
+
+        ast.visit(dyn_count_word);
         assert_eq!(count_word.count, 3);
     }
 

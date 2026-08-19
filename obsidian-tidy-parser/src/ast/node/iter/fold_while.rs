@@ -55,6 +55,32 @@ impl<'ast> Node<'ast> {
     where
         F: FnMut(B, &'ast Node<'ast>) -> ControlFlow<B, B>,
     {
+        let mut predicate = predicate;
+
+        // Test optimization: use `dyn FnMut` in an inner function
+        // to erase the closure type and prevent code bloat.
+        self.fold_while_inner(init, &mut predicate)
+    }
+
+    #[cfg(debug_assertions)]
+    #[doc(hidden)]
+    #[inline(never)]
+    fn fold_while_inner<B>(
+        &'ast self,
+        init: B,
+        predicate: &mut dyn FnMut(B, &'ast Node<'ast>) -> ControlFlow<B, B>,
+    ) -> B {
+        let visitor = FoldWhileVisitor::new(init, predicate);
+        self.fold_visitor(visitor)
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[doc(hidden)]
+    #[inline]
+    fn fold_while_inner<B, F>(&'ast self, init: B, predicate: F) -> B
+    where
+        F: FnMut(B, &'ast Node<'ast>) -> ControlFlow<B, B>,
+    {
         let visitor = FoldWhileVisitor::new(init, predicate);
         self.fold_visitor(visitor)
     }
@@ -62,8 +88,23 @@ impl<'ast> Node<'ast> {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{Document, HeadingLevel, NodeKind, TextContent};
+    use crate::prelude::{Document, HeadingLevel, Node, NodeKind, TextContent};
     use std::ops::ControlFlow;
+
+    #[test]
+    fn fold_while_not_sized() {
+        let text = "# Hello\nWorld";
+        let document = Document::new(text);
+        let ast = document.ast();
+
+        let predicate: &mut dyn FnMut(usize, &Node) -> ControlFlow<usize, usize> =
+            &mut |acc, _| ControlFlow::Continue(acc + 1);
+
+        let count = ast.fold_while(0usize, predicate);
+
+        // Root + Heading + Text + Paragraph + Text
+        assert_eq!(count, 5);
+    }
 
     #[test]
     fn fold_while_counts_all_nodes() {
