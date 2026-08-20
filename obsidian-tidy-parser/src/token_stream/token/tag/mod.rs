@@ -9,10 +9,10 @@ pub use code_block::CodeBlock;
 pub use heading::{Heading, HeadingLevel};
 use impl_enum_tag::impl_enum_tag;
 pub use list::List;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 impl_enum_tag! {
-    #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     #[non_exhaustive]
     pub enum Tag<'input> {
         Paragraph,
@@ -28,7 +28,7 @@ impl_enum_tag! {
         Item
     }
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
     #[non_exhaustive]
     pub enum TagEnd { ... }
 }

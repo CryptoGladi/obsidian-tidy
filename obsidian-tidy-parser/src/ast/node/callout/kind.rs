@@ -1,8 +1,8 @@
-use derive_more::IsVariant;
-use serde::Serialize;
 use alloc::borrow::Cow;
+use derive_more::IsVariant;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, IsVariant, strum::Display)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, IsVariant, strum::Display)]
 pub enum CalloutKind<'ast> {
     /// Aliases: `summary`, `tldr`
     Abstract,

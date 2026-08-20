@@ -37,6 +37,10 @@
         gungraun-runner = pkgs.callPackage ./nix/gungraun-runner.nix { };
 
         rust = pkgs.rust-bin.stable.latest.default.override {
+          targets = [
+            "wasm32-unknown-unknown"
+          ];
+
           extensions = [
             "rust-src"
           ];
@@ -45,6 +49,10 @@
         rust-nightly = pkgs.rust-bin.selectLatestNightlyWith (
           toolchain:
           toolchain.default.override {
+            targets = [
+              "wasm32-unknown-unknown"
+            ];
+
             extensions = [
               "miri"
               "rust-src"

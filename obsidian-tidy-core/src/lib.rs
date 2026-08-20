@@ -27,7 +27,7 @@
 //! use obsidian_tidy_core::rule::{Content, Violation};
 //! use obsidian_tidy_core::Note;
 //! use std::convert::Infallible;
-//! use serde::Serialize;
+//! use serde::{Serialize, Deserialize};
 //!
 //! // 1. Define a rule
 //! #[derive(Debug, Default, Serialize)]

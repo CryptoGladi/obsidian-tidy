@@ -1,9 +1,9 @@
 use alloc::borrow::Cow;
 use core::range::Range;
 use derive_more::IsVariant;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, IsVariant, Serialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, IsVariant, Serialize, Deserialize)]
 pub enum CalloutFoldable {
     /// `[!tip]+` — развёрнутый
     Expanded,
@@ -28,7 +28,7 @@ impl From<char> for CalloutFoldable {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Callout<'input> {
     pub kind: Cow<'input, str>,
 

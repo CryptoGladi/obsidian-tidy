@@ -1,7 +1,7 @@
 use alloc::borrow::Cow;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CodeBlock<'input> {
     fenced: Option<Cow<'input, str>>,
 }

@@ -21,7 +21,7 @@ members = [
   "obsidian-tidy-cli",
   "obsidian-tidy-config",
   "obsidian-tidy-macros",
-  "obsidian-tidy-parser",
+  "obsidian-tidy-parser", "obsidian-tidy-parser-wasm",
 ]
 
 [workspace.dependencies]

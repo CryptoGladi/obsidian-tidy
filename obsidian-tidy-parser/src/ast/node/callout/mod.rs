@@ -8,7 +8,7 @@ use alloc::borrow::Cow;
 use alloc::string::ToString;
 use core::range::Range;
 pub use kind::CalloutKind;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 const EXCEPT_MESSAGE: &str = "Callout should have validated structure";
 
@@ -52,7 +52,7 @@ impl<'ast> Iterator for CalloutContentIter<'ast> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Callout<'ast> {
     pub foldable: CalloutFoldable,
     pub kind: CalloutKind<'ast>,

@@ -5,9 +5,9 @@ pub use tag::*;
 
 use alloc::borrow::Cow;
 use derive_more::IsVariant;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, IsVariant, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Token<'input> {
     Start(Tag<'input>),

@@ -17,7 +17,7 @@ mod private {
 
 use crate::{loader::ConfigLoader, saver::ConfigSaver, template::Template};
 use obsidian_tidy_core::rule::{RuleFactoryRegistry, Rules};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::instrument;
 
 /// The main configuration struct for obsidian-tidy.

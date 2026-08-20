@@ -1,5 +1,5 @@
 use crate::rule::{ErasedRule, RuleFactory};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 /// Erased version [`RuleFactory`]
 pub trait ErasedRuleFactory {

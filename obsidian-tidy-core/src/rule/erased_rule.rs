@@ -3,7 +3,7 @@ use crate::{
     rule::{Category, Content, Rule, RuleMetadata, RuleRunner, Violation},
 };
 use erased_serde::Serialize as ErasedSerialize;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::fmt::Debug;
 
 /// Type erasing for [`Rule`]

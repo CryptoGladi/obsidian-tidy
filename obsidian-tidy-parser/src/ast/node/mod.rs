@@ -21,10 +21,10 @@ use alloc::borrow::Cow;
 use alloc::boxed::Box;
 use core::range::Range;
 use derive_more::IsVariant;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum::Display;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tag<'a, T> {
     #[serde(flatten)]
     kind: T,
@@ -42,7 +42,7 @@ impl<'a, T> Tag<'a, T> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize, Display)]
+#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize, Deserialize, Display)]
 #[non_exhaustive]
 pub enum NodeKind<'ast> {
     Root(Tag<'ast, Root>),
@@ -60,7 +60,7 @@ pub enum NodeKind<'ast> {
     Rule,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Node<'a> {
     #[serde(flatten)]
     kind: NodeKind<'a>,
