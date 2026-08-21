@@ -55,9 +55,14 @@ pub enum NodeKind<'ast> {
 
     Text(Cow<'ast, str>),
     InlineCode(Cow<'ast, str>),
+
     SoftBreak,
     HardBreak,
+
     Rule,
+
+    InlineMath(Cow<'ast, str>),
+    DisplayMath(Cow<'ast, str>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -28,6 +28,7 @@ impl From<char> for CalloutFoldable {
     }
 }
 
+/// Only for interceptor
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Callout<'input> {
     pub kind: Cow<'input, str>,

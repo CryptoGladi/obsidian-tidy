@@ -173,6 +173,19 @@ mod tests {
     }
 
     #[test]
+    fn auto_generated_into_methods() {
+        let text = "println!(\"Hello\");";
+        let tag = MyTag::CodeBlock(CodeBlock(text));
+        let cloned_tag = tag.clone();
+
+        let code_ref = tag.into_code_block();
+        assert!(code_ref.is_some());
+        assert_eq!(code_ref.unwrap(), CodeBlock(text));
+
+        assert!(cloned_tag.as_heading().is_none());
+    }
+
+    #[test]
     fn test_derive_more_integration() {
         let tag = MyTag::BlockQuote;
 

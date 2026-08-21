@@ -16,3 +16,6 @@ impl<'input> From<pulldown_cmark::CodeBlockKind<'input>> for CodeBlock<'input> {
         CodeBlock { fenced }
     }
 }
+
+#[cfg(test)]
+mod tests {}

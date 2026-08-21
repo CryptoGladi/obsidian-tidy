@@ -18,6 +18,8 @@ impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
             MarkEvent::HardBreak => Token::HardBreak,
             MarkEvent::Code(lang) => Token::Code(lang.into()),
             MarkEvent::Rule => Token::Rule,
+            MarkEvent::InlineMath(text) => Token::InlineMath(text.into()),
+            MarkEvent::DisplayMath(text) => Token::DisplayMath(text.into()),
             _ => todo!("{event:?}"),
         }
     }

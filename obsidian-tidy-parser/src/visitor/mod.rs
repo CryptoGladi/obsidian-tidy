@@ -17,7 +17,10 @@ define_visitor! {
     }
     leaf {
         Text: str,
-        InlineCode: str
+        InlineCode: str,
+
+        InlineMath: str,
+        DisplayMath: str
     }
     empty {
         SoftBreak,

@@ -1,61 +1,58 @@
 mod adapter_pulldown_cmark;
+mod impl_enum_token;
 pub mod tag;
 
 pub use tag::*;
 
 use alloc::borrow::Cow;
-use derive_more::IsVariant;
+use impl_enum_token::impl_enum_token;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, IsVariant, Serialize, Deserialize)]
-#[non_exhaustive]
-pub enum Token<'input> {
-    Start(Tag<'input>),
-    End(TagEnd),
-    Text(Cow<'input, str>),
-    Code(Cow<'input, str>),
-    SoftBreak,
-    HardBreak,
-    Rule,
+impl_enum_token! {
+    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[non_exhaustive]
+    pub enum Token<'input> {
+        Start(Tag<'input>),
+        End(TagEnd),
+
+        Text(Cow<'input, str>),
+        Code(Cow<'input, str>),
+
+        SoftBreak,
+        HardBreak,
+
+        InlineMath(Cow<'input, str>),
+        DisplayMath(Cow<'input, str>),
+
+        Rule,
+    }
 }
 
-macro_rules! impl_token_as_and_into {
-    ($field:ident, $for_return:path) => {
-        ::pastey::paste! {
-            impl<'input> $crate::token_stream::token::Token<'input> {
-                #[must_use]
-                pub const fn [<as_ $field:snake>](&self) -> Option<&$for_return> {
-                    if let $crate::token_stream::token::Token::$field(data) = self {
-                        return Some(data);
-                    }
-
-                    None
-                }
-
-                #[must_use]
-                pub fn [<into_ $field:snake>](self) -> Option<$for_return> {
-                    if let $crate::token_stream::token::Token::$field(data) = self {
-                        return Some(data);
-                    }
-
-                    None
-                }
-            }
-        }
-    };
-}
-
-impl_token_as_and_into!(Start, Tag<'input>);
-impl_token_as_and_into!(End, TagEnd);
-
-// TODO fix to &str
-impl_token_as_and_into!(Text, Cow<'input, str>);
-impl_token_as_and_into!(Code, Cow<'input, str>);
-
-impl Token<'_> {
+impl<'input> Token<'input> {
     #[must_use]
     #[inline]
     pub const fn is_break(&self) -> bool {
         self.is_hard_break() || self.is_soft_break()
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn is_math(&self) -> bool {
+        self.is_display_math() || self.is_inline_math()
+    }
+
+    #[must_use]
+    pub fn as_math(&self) -> Option<&str> {
+        self.as_display_math()
+            .or(self.as_inline_math())
+            .map(Cow::as_ref)
+    }
+
+    #[must_use]
+    pub fn into_math(self) -> Option<Cow<'input, str>> {
+        match self {
+            Self::DisplayMath(text) | Self::InlineMath(text) => Some(text),
+            _ => None,
+        }
     }
 }

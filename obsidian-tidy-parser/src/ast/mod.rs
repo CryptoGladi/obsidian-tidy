@@ -92,6 +92,12 @@ where
                     stack.push_parent(Node::new(NodeKind::InlineCode(text), offset));
                 }
                 Token::Rule => stack.push_parent(Node::new(NodeKind::Rule, offset)),
+                Token::InlineMath(text) => {
+                    stack.push_parent(Node::new(NodeKind::InlineMath(text), offset));
+                }
+                Token::DisplayMath(text) => {
+                    stack.push_parent(Node::new(NodeKind::DisplayMath(text), offset));
+                }
             }
         }
 

@@ -4,6 +4,9 @@ version = "0.0.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 obsidian-tidy-parser.workspace = true
 serde.workspace = true
