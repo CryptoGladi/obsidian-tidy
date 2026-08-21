@@ -1,66 +1,11 @@
+mod interceptor;
+
+pub use interceptor::{TracingInterceptor, TracingInterceptorExt};
+
 use super::TokenStream;
-use crate::prelude::Token;
-use crate::token_stream::interceptor::{InterceptResult, Interceptor, InterceptorEnum};
-use crate::token_stream::lookahead::Lookahead;
-use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
-use alloc::string::{String, ToString};
+use crate::token_stream::interceptor::{Interceptor, InterceptorEnum};
 use alloc::vec::Vec;
-use core::range::Range;
 use tracing::{Span, trace_span};
-
-#[derive(Debug)]
-pub struct TracingInterceptor<I> {
-    inner: I,
-    span: Span,
-}
-
-impl<I> TracingInterceptor<I> {
-    pub fn new(inner: I, name: impl Into<String>) -> Self {
-        let name = name.into();
-        let span = trace_span!("interceptor", name = %name);
-
-        Self { inner, span }
-    }
-}
-
-impl<'input, I> Interceptor<'input> for TracingInterceptor<I>
-where
-    I: Interceptor<'input>,
-{
-    fn try_intercept(
-        &mut self,
-        source: &'input str,
-        lexer: &mut Lookahead<LexerAdapter<'input>>,
-        current: &(Token<'input>, Range<usize>),
-    ) -> InterceptResult<'input> {
-        let _guard = self.span.enter();
-
-        if let Some(replaced) = self.inner.try_intercept(source, lexer, current) {
-            tracing::debug!(?replaced, ?current, "REPLACED");
-
-            return Some(replaced);
-        }
-
-        None
-    }
-}
-
-pub trait TracingInterceptorExt<'input>: Interceptor<'input> + core::fmt::Display
-where
-    Self: Sized,
-{
-    fn with_tracing(self) -> TracingInterceptor<Self>;
-}
-
-impl<'input, I> TracingInterceptorExt<'input> for I
-where
-    I: Interceptor<'input> + core::fmt::Display,
-{
-    fn with_tracing(self) -> TracingInterceptor<Self> {
-        let name = self.to_string();
-        TracingInterceptor::new(self, name)
-    }
-}
 
 pub struct TracingTokenStream<'input, I = InterceptorEnum> {
     inner: TokenStream<'input, TracingInterceptor<I>>,
@@ -137,8 +82,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::prelude::{InterceptResult, Interceptor, Token};
     use crate::token_stream::TokenStreamBuilder;
+    use crate::token_stream::lookahead::Lookahead;
+    use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
     use alloc::borrow::Cow;
+    use alloc::string::{String, ToString};
+    use core::range::Range;
+    use proptest::prelude::*;
 
     #[derive(Debug)]
     struct MockPredictableInterceptor {
@@ -181,7 +132,20 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
-    fn test_interceptor_logs_replacement() {
+    fn tracing_emits_logs() {
+        let source = "# Hello World";
+        let stream = TokenStreamBuilder::default().build(source);
+        let mut traced_stream = stream.with_tracing();
+
+        while traced_stream.next().is_some() {}
+
+        assert!(logs_contain("Yielded token"));
+        assert!(logs_contain("Hello") || logs_contain("World"));
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn interceptor_logs_replacement() {
         let source = "some # hashtag";
 
         let interceptor = MockPredictableInterceptor::new(true);
@@ -189,11 +153,40 @@ mod tests {
             .add_interceptor(interceptor)
             .build(source);
 
-        let mut stream = stream.with_tracing();
+        let stream = stream.with_tracing();
 
-        while stream.next().is_some() {}
+        let tokens: Vec<_> = stream.collect();
+        let has_replaced = tokens
+            .iter()
+            .any(|(t, _)| matches!(t, Token::Text(cow) if cow == "replaced_by_mock"));
+        assert!(has_replaced, "Interceptor did not replace the token");
 
         assert!(logs_contain("Yielded token"));
-        assert!(logs_contain("REPLACED"));
+        assert!(logs_contain("REPLACED") && logs_contain("replaced_by_mock"));
+    }
+
+    #[test]
+    fn empty_stream_with_tracing() {
+        let source = "";
+        let stream = TokenStreamBuilder::default().build(source);
+        let mut traced_stream = stream.with_tracing();
+
+        assert!(traced_stream.next().is_none());
+    }
+
+    proptest! {
+        #[test]
+        #[cfg_attr(miri, ignore)]
+        fn proptest_tracing_stream_identity(
+            source in r#"[a-zA-Z0-9 #>*-]{0,150}"#
+        ) {
+            let original_stream = TokenStreamBuilder::default().build(&source);
+            let original_tokens: Vec<_> = original_stream.collect();
+
+            let traced_stream = TokenStreamBuilder::default().build(&source).with_tracing();
+            let traced_tokens: Vec<_> = traced_stream.collect();
+
+            prop_assert_eq!(original_tokens, traced_tokens);
+        }
     }
 }

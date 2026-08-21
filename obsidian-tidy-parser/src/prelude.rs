@@ -9,3 +9,6 @@ pub use crate::token_stream::interceptor::{
 pub use crate::token_stream::token::tag::*;
 pub use crate::token_stream::{Token, TokenStream, TokenStreamBuilder};
 pub use crate::visitor::{Fold, FoldVisitorExt, Visitor};
+
+#[cfg(feature = "tracing")]
+pub use crate::token_stream::tracing::*;

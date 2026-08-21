@@ -97,7 +97,7 @@ impl<I> TokenStreamBuilder<I> {
 
     #[must_use]
     pub fn add_interceptor(mut self, interceptor: I) -> Self {
-        self.interceptors.push(interceptor.into());
+        self.interceptors.push(interceptor);
         self
     }
 
