@@ -115,6 +115,7 @@ where
 /// Allows peeking N elements ahead without consuming them.
 /// If the transaction is not explicitly committed via [`LookaheadGuard::commit`],
 /// the peeked elements are automatically rolled back when the guard is dropped.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Lookahead<I>
 where
     I: Iterator,

@@ -5,12 +5,12 @@ use crate::token_stream::interceptor::get_all_interceptors;
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TokenStreamBuilder {
+pub struct TokenStreamBuilder<I = InterceptorEnum> {
     lexer: MarkdownLexerBuilder,
-    interceptors: Vec<InterceptorEnum>,
+    interceptors: Vec<I>,
 }
 
-impl Default for TokenStreamBuilder {
+impl Default for TokenStreamBuilder<InterceptorEnum> {
     fn default() -> Self {
         Self {
             interceptors: get_all_interceptors(),
@@ -19,12 +19,12 @@ impl Default for TokenStreamBuilder {
     }
 }
 
-impl TokenStreamBuilder {
+impl<I> TokenStreamBuilder<I> {
     #[must_use]
     pub fn new() -> Self {
         Self {
             interceptors: Vec::new(),
-            ..Default::default()
+            lexer: MarkdownLexerBuilder::default(),
         }
     }
 
@@ -42,7 +42,7 @@ impl TokenStreamBuilder {
 
     #[must_use]
     pub fn tasklists(mut self, enable: bool) -> Self {
-        self.lexer = self.lexer.strikethrough(enable);
+        self.lexer = self.lexer.tasklists(enable);
         self
     }
 
@@ -96,14 +96,14 @@ impl TokenStreamBuilder {
     }
 
     #[must_use]
-    pub fn add_interceptor(mut self, interceptor: impl Into<InterceptorEnum>) -> Self {
+    pub fn add_interceptor(mut self, interceptor: I) -> Self {
         self.interceptors.push(interceptor.into());
         self
     }
 
     #[must_use]
     #[expect(clippy::elidable_lifetime_names, reason = "чтобы было более понятно")]
-    pub fn build<'input>(self, source: &'input str) -> TokenStream<'input> {
+    pub fn build<'input>(self, source: &'input str) -> TokenStream<'input, I> {
         let lexer = self.lexer.build(source);
 
         TokenStream::new(source, lexer, self.interceptors)

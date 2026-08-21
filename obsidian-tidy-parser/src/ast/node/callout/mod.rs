@@ -10,7 +10,7 @@ use core::range::Range;
 pub use kind::CalloutKind;
 use serde::{Deserialize, Serialize};
 
-const EXCEPT_MESSAGE: &str = "Callout should have validated structure";
+const EXPECT_MESSAGE: &str = "Callout should have validated structure";
 
 pub struct CalloutContentIter<'ast> {
     iter: core::slice::Iter<'ast, Node<'ast>>,
@@ -96,8 +96,8 @@ impl<'ast> Tag<'ast, Callout<'ast>> {
     )]
     #[must_use]
     pub fn content(&'ast self) -> CalloutContentIter<'ast> {
-        let first_child = self.children().first().expect(EXCEPT_MESSAGE);
-        let paragraph = first_child.as_paragraph().expect(EXCEPT_MESSAGE);
+        let first_child = self.children().first().expect(EXPECT_MESSAGE);
+        let paragraph = first_child.as_paragraph().expect(EXPECT_MESSAGE);
         let mut paragraph_iter = paragraph.children().iter();
 
         // Skip Text("[")
@@ -132,8 +132,8 @@ impl<'ast> Tag<'ast, Callout<'ast>> {
     )]
     #[must_use]
     pub fn title(&'ast self) -> Option<&'ast str> {
-        let first_child = self.children().first().expect(EXCEPT_MESSAGE);
-        let paragraph = first_child.as_paragraph().expect(EXCEPT_MESSAGE);
+        let first_child = self.children().first().expect(EXPECT_MESSAGE);
+        let paragraph = first_child.as_paragraph().expect(EXPECT_MESSAGE);
         let children = paragraph.children();
 
         // Пропускаем Text[, !type, ]

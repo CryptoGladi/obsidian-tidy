@@ -11,3 +11,9 @@ impl List {
         Self { number_item }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn lol() {}
+}

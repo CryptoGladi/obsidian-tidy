@@ -51,6 +51,7 @@ impl<'ast> From<&'ast str> for CalloutKind<'ast> {
 
 impl<'ast> From<Cow<'ast, str>> for CalloutKind<'ast> {
     fn from(raw: Cow<'ast, str>) -> Self {
+        // Note: ASCII-only for performance. Unicode kinds go into Other.
         let lower = raw.to_ascii_lowercase();
 
         match lower.as_str() {

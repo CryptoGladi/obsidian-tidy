@@ -115,7 +115,8 @@ impl CalloutInterceptor {
             return None;
         };
 
-        // Check space
+        // A callout must follow `>` immediately or with a single space: `> [!tip]` or `>[!tip]`
+        // Two or more spaces mean it is not a callout
         if bracket_open_range.start - block_quote.start > 2 {
             return None;
         }
@@ -206,7 +207,7 @@ mod tests {
 
     fn make_token_stream<'input>(source: &'input str) -> TokenStream<'input> {
         TokenStreamBuilder::new()
-            .add_interceptor(CalloutInterceptor::default())
+            .add_interceptor(CalloutInterceptor::default().into())
             .build(source)
     }
 

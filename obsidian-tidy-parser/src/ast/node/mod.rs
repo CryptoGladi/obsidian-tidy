@@ -75,14 +75,14 @@ impl core::fmt::Display for Node<'_> {
     }
 }
 
-impl<'a> Node<'a> {
+impl<'ast> Node<'ast> {
     #[must_use]
-    pub const fn new(kind: NodeKind<'a>, offset: Range<usize>) -> Self {
+    pub const fn new(kind: NodeKind<'ast>, offset: Range<usize>) -> Self {
         Self { kind, offset }
     }
 
     #[must_use]
-    pub const fn kind(&self) -> &NodeKind<'a> {
+    pub const fn kind(&self) -> &NodeKind<'ast> {
         &self.kind
     }
 
@@ -92,9 +92,9 @@ impl<'a> Node<'a> {
     }
 
     #[must_use]
-    pub const fn as_text(&self) -> Option<&Cow<'a, str>> {
+    pub fn as_text(&'ast self) -> Option<&'ast str> {
         match &self.kind {
-            NodeKind::Text(text) => Some(text),
+            NodeKind::Text(text) => Some(text.as_ref()),
             _ => None,
         }
     }

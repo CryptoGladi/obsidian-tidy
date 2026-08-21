@@ -132,14 +132,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{markdown_lexer::MarkdownLexerBuilder, token_stream::TokenStream};
+    use crate::{
+        markdown_lexer::MarkdownLexerBuilder,
+        token_stream::{TokenStream, interceptor::InterceptorEnum},
+    };
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn empty() {
         let document = "";
         let lexer = MarkdownLexerBuilder::default().build(document);
-        let token_stream = TokenStream::new(document, lexer, []);
+        let token_stream = TokenStream::<InterceptorEnum>::new(document, lexer, []);
 
         let ast = token_stream.build_ast();
 

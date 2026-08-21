@@ -2,6 +2,7 @@ use super::Token;
 use crate::markdown_lexer::MarkdownLexer;
 use core::range::Range;
 
+#[derive(Debug)]
 pub struct MarkdownLexerAdapter<'input> {
     inner: MarkdownLexer<'input>,
 }

@@ -7,6 +7,7 @@ use crate::token_stream::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
 use alloc::vec::Vec;
 use core::range::Range;
+use derive_more::IsVariant;
 
 pub type InterceptResult<'input> = Option<(Token<'input>, Range<usize>)>;
 
@@ -21,7 +22,7 @@ pub trait Interceptor<'input> {
 
 static_assertions::assert_obj_safe!(Interceptor);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, IsVariant, strum::Display)]
 pub enum InterceptorEnum {
     CalloutInterceptor(callout_interceptor::CalloutInterceptor),
 }

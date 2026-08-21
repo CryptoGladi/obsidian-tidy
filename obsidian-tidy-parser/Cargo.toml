@@ -5,8 +5,9 @@ edition = "2024"
 license = "MIT OR Apache-2.0"
 
 [features]
-default = ["no_std"]
+default = ["no_std", "tracing"]
 no_std = ["dep:spin"]
+tracing = []
 
 [dependencies]
 pulldown-cmark = { version = "0.13", default-features = false }

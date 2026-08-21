@@ -4,6 +4,9 @@ pub mod lookahead;
 mod markdown_lexer_adapter;
 pub mod token;
 
+#[cfg(feature = "tracing")]
+pub mod tracing;
+
 pub use builder::TokenStreamBuilder;
 pub use token::Token;
 
@@ -14,16 +17,17 @@ use interceptor::{Interceptor, InterceptorEnum, get_all_interceptors};
 use lookahead::Lookahead;
 use markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
 
-pub struct TokenStream<'input> {
+#[derive(Debug)]
+pub struct TokenStream<'input, I = InterceptorEnum> {
     lexer: Lookahead<LexerAdapter<'input>>,
-    interceptors: Vec<InterceptorEnum>,
+    interceptors: Vec<I>,
     source: &'input str,
 }
 
-impl<'input> TokenStream<'input> {
-    pub fn new<I>(source: &'input str, lexer: MarkdownLexer<'input>, interceptors: I) -> Self
+impl<'input, I> TokenStream<'input, I> {
+    pub fn new<Iter>(source: &'input str, lexer: MarkdownLexer<'input>, interceptors: Iter) -> Self
     where
-        I: IntoIterator<Item = InterceptorEnum>,
+        Iter: IntoIterator<Item = I>,
     {
         let adapter = LexerAdapter::new(lexer);
         let lexer = Lookahead::new(adapter);
@@ -34,7 +38,9 @@ impl<'input> TokenStream<'input> {
             interceptors: interceptors.into_iter().collect(),
         }
     }
+}
 
+impl<'input> TokenStream<'input, InterceptorEnum> {
     #[must_use]
     pub fn new_with_all_interceptors(source: &'input str, lexer: MarkdownLexer<'input>) -> Self {
         let interceptors = get_all_interceptors();
@@ -43,7 +49,10 @@ impl<'input> TokenStream<'input> {
     }
 }
 
-impl<'input> Iterator for TokenStream<'input> {
+impl<'input, I> Iterator for TokenStream<'input, I>
+where
+    I: Interceptor<'input>,
+{
     type Item = (Token<'input>, Range<usize>);
 
     fn next(&mut self) -> Option<Self::Item> {
