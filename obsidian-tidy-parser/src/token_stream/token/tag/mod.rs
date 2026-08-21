@@ -8,7 +8,7 @@ pub use callout::{Callout, CalloutFoldable};
 pub use code_block::CodeBlock;
 pub use heading::{Heading, HeadingLevel};
 use impl_enum_tag::impl_enum_tag;
-pub use list::List;
+pub use list::{List, ListDelimiter};
 use serde::{Deserialize, Serialize};
 
 impl_enum_tag! {

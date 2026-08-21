@@ -202,13 +202,16 @@ impl<'input> Interceptor<'input> for CalloutInterceptor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token_stream::{TokenStream, TokenStreamBuilder};
+    use crate::prelude::{TokenStreamBuilder, TracingTokenStreamExt};
     use proptest::prelude::*;
 
-    fn make_token_stream<'input>(source: &'input str) -> TokenStream<'input> {
+    fn make_token_stream<'input>(
+        source: &'input str,
+    ) -> impl Iterator<Item = (Token<'input>, Range<usize>)> {
         TokenStreamBuilder::new()
-            .add_interceptor(CalloutInterceptor::default().into())
+            .add_interceptor(InterceptorEnum::from(CalloutInterceptor::default()))
             .build(source)
+            .with_tracing()
     }
 
     fn collect_tokens<'input>(source: &'input str) -> Vec<(Token<'input>, Range<usize>)> {

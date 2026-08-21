@@ -1,6 +1,8 @@
 mod callout_interceptor;
+mod list_interceptor;
 
 pub use callout_interceptor::CalloutInterceptor;
+pub use list_interceptor::ListInterceptor;
 
 use super::Token;
 use crate::token_stream::Lookahead;
@@ -24,7 +26,8 @@ static_assertions::assert_obj_safe!(Interceptor);
 
 #[derive(Debug, Clone, PartialEq, Eq, IsVariant, strum::Display)]
 pub enum InterceptorEnum {
-    CalloutInterceptor(callout_interceptor::CalloutInterceptor),
+    CalloutInterceptor(CalloutInterceptor),
+    ListInterceptor(ListInterceptor),
 }
 
 impl<'input> Interceptor<'input> for InterceptorEnum {
@@ -35,8 +38,11 @@ impl<'input> Interceptor<'input> for InterceptorEnum {
         current: &(Token<'input>, Range<usize>),
     ) -> InterceptResult<'input> {
         match self {
-            InterceptorEnum::CalloutInterceptor(callout_interceptor) => {
-                callout_interceptor.try_intercept(source, lexer, current)
+            InterceptorEnum::CalloutInterceptor(interceptor) => {
+                interceptor.try_intercept(source, lexer, current)
+            }
+            InterceptorEnum::ListInterceptor(interceptor) => {
+                interceptor.try_intercept(source, lexer, current)
             }
         }
     }
@@ -68,8 +74,21 @@ macro_rules! vec_interceptor {
 }
 
 #[must_use]
+#[cfg_attr(debug_assertions, track_caller)]
 pub fn get_all_interceptors() -> Vec<InterceptorEnum> {
-    vec_interceptor![CalloutInterceptor::default()]
+    let interceptors = vec_interceptor![CalloutInterceptor::default(), ListInterceptor];
+
+    debug_assert!(
+        {
+            use alloc::string::ToString;
+            let mut seen = alloc::collections::BTreeSet::new();
+
+            interceptors.iter().all(|i| seen.insert(i.to_string()))
+        },
+        "Duplicated found in get_all_interceptors!"
+    );
+
+    interceptors
 }
 
 #[cfg(test)]

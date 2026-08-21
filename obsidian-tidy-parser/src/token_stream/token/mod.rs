@@ -19,12 +19,21 @@ pub enum Token<'input> {
     Rule,
 }
 
-macro_rules! impl_token_as {
+macro_rules! impl_token_as_and_into {
     ($field:ident, $for_return:path) => {
         ::pastey::paste! {
-            impl $crate::token_stream::token::Token<'_> {
+            impl<'input> $crate::token_stream::token::Token<'input> {
                 #[must_use]
                 pub const fn [<as_ $field:snake>](&self) -> Option<&$for_return> {
+                    if let $crate::token_stream::token::Token::$field(data) = self {
+                        return Some(data);
+                    }
+
+                    None
+                }
+
+                #[must_use]
+                pub fn [<into_ $field:snake>](self) -> Option<$for_return> {
                     if let $crate::token_stream::token::Token::$field(data) = self {
                         return Some(data);
                     }
@@ -36,10 +45,12 @@ macro_rules! impl_token_as {
     };
 }
 
-impl_token_as!(Start, Tag<'_>);
-impl_token_as!(End, TagEnd);
-impl_token_as!(Text, Cow<'_, str>);
-impl_token_as!(Code, Cow<'_, str>);
+impl_token_as_and_into!(Start, Tag<'input>);
+impl_token_as_and_into!(End, TagEnd);
+
+// TODO fix to &str
+impl_token_as_and_into!(Text, Cow<'input, str>);
+impl_token_as_and_into!(Code, Cow<'input, str>);
 
 impl Token<'_> {
     #[must_use]
