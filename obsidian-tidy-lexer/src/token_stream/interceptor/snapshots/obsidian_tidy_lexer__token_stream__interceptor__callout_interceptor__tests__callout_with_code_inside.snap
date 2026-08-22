@@ -1,0 +1,112 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/interceptor/callout_interceptor.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Callout": {
+          "kind": "tip",
+          "header_offset": {
+            "start": 2,
+            "end": 8
+          },
+          "foldable": "None"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "Text": "["
+    },
+    {
+      "start": 2,
+      "end": 3
+    }
+  ],
+  [
+    {
+      "Text": "!tip"
+    },
+    {
+      "start": 3,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Text": "]"
+    },
+    {
+      "start": 7,
+      "end": 8
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 8,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Text": "Use "
+    },
+    {
+      "start": 11,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "Code": "println!"
+    },
+    {
+      "start": 15,
+      "end": 25
+    }
+  ],
+  [
+    {
+      "Text": " macro"
+    },
+    {
+      "start": 25,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "End": "Callout"
+    },
+    {
+      "start": 0,
+      "end": 31
+    }
+  ]
+]

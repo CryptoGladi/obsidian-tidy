@@ -1,0 +1,38 @@
+[package]
+name = "obsidian-tidy-ast"
+version = "0.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+
+[features]
+default = ["no_std", "tracing"]
+no_std = ["dep:spin"]
+tracing = ["dep:tracing"]
+
+[dependencies]
+obsidian-tidy-lexer.workspace = true
+tracing = { workspace = true, optional = true, features = ["attributes"] }
+derive_more = { workspace = true, features = ["is_variant"] }
+pastey.workspace = true
+serde = { workspace = true, features = ["derive", "alloc"] }
+strum = { workspace = true, features = ["derive"] }
+ouroboros.workspace = true
+static_assertions.workspace = true
+spin = { version = "0.12", default-features = false, features = [
+    "once",
+], optional = true }
+phf = { version = "0.14", default-features = false, features = [
+    "macros",
+    "unicase",
+] }
+unicase = { version = "2.9", default-features = false }
+memchr = { version = "2.8.3", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+insta.workspace = true
+serde_json = { workspace = true, features = ["std"] }
+proptest.workspace = true
+tracing-test.workspace = true
+
+[lints]
+workspace = true

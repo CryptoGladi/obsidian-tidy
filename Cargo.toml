@@ -21,8 +21,8 @@ members = [
   "obsidian-tidy-cli",
   "obsidian-tidy-config",
   "obsidian-tidy-macros",
-  "obsidian-tidy-parser",
-  "obsidian-tidy-parser-wasm",
+  "obsidian-tidy-lexer",
+  "obsidian-tidy-ast",
 ]
 
 [workspace.dependencies]
@@ -32,7 +32,8 @@ obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
 obsidian-tidy-config = { path = "./obsidian-tidy-config" }
 obsidian-tidy-cli = { path = "./obsidian-tidy-cli" }
 obsidian-tidy-macros = { path = "./obsidian-tidy-macros" }
-obsidian-tidy-parser = { path = "./obsidian-tidy-parser" }
+obsidian-tidy-lexer = { path = "./obsidian-tidy-lexer", default-features = false }
+obsidian-tidy-ast = { path = "./obsidian-tidy-ast", default-features = false }
 tokio = { version = "1.52", features = ["macros", "rt-multi-thread"] }
 futures = "0.3"
 tracing = { version = "0.1", default-features = false }

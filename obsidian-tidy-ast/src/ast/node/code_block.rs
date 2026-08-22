@@ -6,8 +6,8 @@ pub struct CodeBlock<'ast> {
     fenced: Option<Cow<'ast, str>>,
 }
 
-impl<'input> From<crate::token_stream::token::CodeBlock<'input>> for CodeBlock<'input> {
-    fn from(value: crate::token_stream::token::CodeBlock<'input>) -> Self {
+impl<'input> From<obsidian_tidy_lexer::CodeBlock<'input>> for CodeBlock<'input> {
+    fn from(value: obsidian_tidy_lexer::CodeBlock<'input>) -> Self {
         Self {
             fenced: value.fenced,
         }

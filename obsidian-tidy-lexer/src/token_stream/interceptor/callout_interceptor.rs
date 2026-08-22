@@ -2,7 +2,7 @@ use super::{InterceptResult, Interceptor, InterceptorEnum};
 use crate::token_stream::Token;
 use crate::token_stream::lookahead::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
-use crate::token_stream::token::{Callout, CalloutFoldable, Tag, TagEnd};
+use crate::{Callout, CalloutFoldable, Tag, TagEnd};
 use alloc::borrow::Cow;
 use alloc::vec::Vec;
 use core::range::Range;

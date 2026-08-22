@@ -1,12 +1,11 @@
 [package]
-name = "obsidian-tidy-parser"
+name = "obsidian-tidy-lexer"
 version = "0.0.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 
 [features]
-default = ["no_std", "tracing"]
-no_std = ["dep:spin"]
+default = ["tracing"]
 tracing = ["dep:tracing"]
 
 [dependencies]
@@ -16,22 +15,12 @@ tracing = ["dep:tracing"]
 pulldown-cmark = { git = "https://github.com/pulldown-cmark/pulldown-cmark", rev = "41bca7b3daf86358c32b6dc46aba50c926be5c8d", default-features = false, features = [
     "hashbrown",
 ] }
-tracing = { workspace = true, optional = true, features = ["attributes"] }
-derive_more = { workspace = true, features = ["is_variant"] }
-pastey.workspace = true
 serde = { workspace = true, features = ["derive", "alloc"] }
+derive_more = { workspace = true, features = ["is_variant"] }
 strum = { workspace = true, features = ["derive"] }
-ouroboros.workspace = true
+tracing = { workspace = true, optional = true }
 static_assertions.workspace = true
-spin = { version = "0.12", default-features = false, features = [
-    "once",
-], optional = true }
-phf = { version = "0.14", default-features = false, features = [
-    "macros",
-    "unicase",
-] }
-unicase = { version = "2.9", default-features = false }
-memchr = { version = "2.8.3", default-features = false, features = ["alloc"] }
+pastey.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

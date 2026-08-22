@@ -1,13 +1,13 @@
 pub mod node;
 pub mod stack;
 
-use crate::token_stream::token::{Tag as TokenTag, TagEnd, Token};
 use alloc::vec::Vec;
 use core::range::Range;
 use node::{
     BlockQuote, Callout, CodeBlock, Emphasis, HtmlBlock, Item, List, Node, NodeKind, Paragraph,
     Root, Strong, Tag,
 };
+use obsidian_tidy_lexer::{Tag as TokenTag, TagEnd, Token};
 use stack::{Frame, Stack};
 
 pub struct ASTBuilder<I> {
@@ -95,6 +95,9 @@ where
 
                 stack.push_parent(Node::new(NodeKind::Item(tag), offset));
             }
+            _ => {
+                debug_assert!(false, "UNSOPPORT");
+            }
         }
     }
 
@@ -127,6 +130,9 @@ where
                 }
                 Token::DisplayMath(text) => {
                     stack.push_parent(Node::new(NodeKind::DisplayMath(text), offset));
+                }
+                _ => {
+                    debug_assert!(false, "UNSOPPORT");
                 }
             }
         }
@@ -169,10 +175,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        markdown_lexer::MarkdownLexerBuilder,
-        token_stream::{TokenStream, interceptor::InterceptorEnum},
-    };
+    use obsidian_tidy_lexer::{InterceptorEnum, TokenStream};
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]

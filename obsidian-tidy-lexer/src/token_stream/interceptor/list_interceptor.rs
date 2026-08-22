@@ -1,7 +1,7 @@
 use super::{InterceptResult, Interceptor, InterceptorEnum};
 use crate::token_stream::lookahead::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
-use crate::token_stream::token::{ListDelimiter, Tag, Token};
+use crate::{ListDelimiter, Tag, Token};
 use core::range::Range;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -79,8 +79,8 @@ impl<'input> Interceptor<'input> for ListInterceptor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::List;
     use crate::prelude::{TokenStreamBuilder, TracingTokenStreamExt};
-    use crate::token_stream::token::List;
 
     #[test]
     fn impl_from_interceptor_enum() {

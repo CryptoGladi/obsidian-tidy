@@ -1,6 +1,6 @@
 mod adapter_pulldown_cmark;
 mod impl_enum_token;
-pub mod tag;
+mod tag;
 
 pub use tag::*;
 

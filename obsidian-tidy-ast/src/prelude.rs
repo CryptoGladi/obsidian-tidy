@@ -6,7 +6,7 @@ pub use crate::document::Document;
 pub use crate::token_stream::interceptor::{
     InterceptResult, Interceptor, InterceptorEnum, get_all_interceptors,
 };
-pub use crate::token_stream::token::tag::*;
+pub use obsidian_tidy_lexer::tag::*;
 pub use crate::token_stream::{Token, TokenStream, TokenStreamBuilder};
 pub use crate::visitor::{Fold, FoldVisitorExt, Visitor};
 

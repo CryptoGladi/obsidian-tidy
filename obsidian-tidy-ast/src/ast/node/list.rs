@@ -1,5 +1,5 @@
 use super::{Item, Tag};
-use crate::token_stream::token::{List as TokenList, ListDelimiter};
+use obsidian_tidy_lexer::{List as TokenList, ListDelimiter};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

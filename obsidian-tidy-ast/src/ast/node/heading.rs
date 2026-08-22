@@ -1,5 +1,7 @@
 use super::Tag;
-use crate::token_stream::token::{Heading, HeadingLevel};
+use obsidian_tidy_lexer::{Heading, HeadingLevel};
+
+// TODO
 
 impl Tag<'_, Heading> {
     #[must_use]

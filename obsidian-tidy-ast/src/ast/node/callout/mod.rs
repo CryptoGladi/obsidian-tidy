@@ -76,8 +76,8 @@ impl<'ast> Callout<'ast> {
     }
 }
 
-impl<'ast> From<crate::token_stream::token::Callout<'ast>> for Callout<'ast> {
-    fn from(callout: crate::token_stream::token::Callout<'ast>) -> Self {
+impl<'ast> From<obsidian_tidy_lexer::Callout<'ast>> for Callout<'ast> {
+    fn from(callout: obsidian_tidy_lexer::Callout<'ast>) -> Self {
         Self::new(callout.kind, callout.header_offset, callout.foldable)
     }
 }

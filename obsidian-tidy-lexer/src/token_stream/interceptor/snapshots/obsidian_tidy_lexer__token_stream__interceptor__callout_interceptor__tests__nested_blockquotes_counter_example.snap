@@ -1,0 +1,182 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/interceptor/callout_interceptor.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Callout": {
+          "kind": "tip",
+          "header_offset": {
+            "start": 2,
+            "end": 8
+          },
+          "foldable": "None"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 16
+    }
+  ],
+  [
+    {
+      "Text": "["
+    },
+    {
+      "start": 2,
+      "end": 3
+    }
+  ],
+  [
+    {
+      "Text": "!tip"
+    },
+    {
+      "start": 3,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Text": "]"
+    },
+    {
+      "start": 7,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "Text": " Start!"
+    },
+    {
+      "start": 8,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 16
+    }
+  ],
+  [
+    {
+      "Start": "BlockQuote"
+    },
+    {
+      "start": 18,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Start": "BlockQuote"
+    },
+    {
+      "start": 20,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 22,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "Text": "Super quote"
+    },
+    {
+      "start": 22,
+      "end": 33
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 33,
+      "end": 34
+    }
+  ],
+  [
+    {
+      "Text": "End one quote"
+    },
+    {
+      "start": 38,
+      "end": 51
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 51,
+      "end": 52
+    }
+  ],
+  [
+    {
+      "Text": "But we still in Callout!"
+    },
+    {
+      "start": 54,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 22,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "BlockQuote"
+    },
+    {
+      "start": 20,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "BlockQuote"
+    },
+    {
+      "start": 18,
+      "end": 78
+    }
+  ],
+  [
+    {
+      "End": "Callout"
+    },
+    {
+      "start": 0,
+      "end": 78
+    }
+  ]
+]

@@ -1,5 +1,5 @@
 use super::{Tag, TagEnd, Token};
-use crate::token_stream::token::{CodeBlock, Heading, HeadingLevel, List};
+use crate::{CodeBlock, Heading, HeadingLevel, List};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 
 impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {

@@ -1,5 +1,5 @@
 use crate::prelude::Node;
-use crate::token_stream::token::Tag;
+use obsidian_tidy_lexer::Tag;
 use alloc::vec::Vec;
 use core::range::Range;
 

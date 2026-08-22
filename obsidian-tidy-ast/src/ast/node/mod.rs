@@ -17,6 +17,7 @@ pub use block_quote::BlockQuote;
 pub use callout::Callout;
 pub use code_block::CodeBlock;
 pub use emphasis::Emphasis;
+pub use heading::Heading;
 pub use html_block::HtmlBlock;
 pub use item::Item;
 pub use list::List;
@@ -26,11 +27,11 @@ pub use root::Root;
 pub use strong::Strong;
 pub use text_content::TextContent;
 
-use crate::token_stream::token::Heading;
 use alloc::borrow::Cow;
 use alloc::boxed::Box;
 use core::range::Range;
 use derive_more::IsVariant;
+use obsidian_tidy_lexer::Heading;
 use serde::{Deserialize, Serialize};
 use strum::Display;
 
