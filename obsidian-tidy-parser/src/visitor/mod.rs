@@ -3,6 +3,7 @@ mod macros;
 
 pub use fold::{Fold, FoldVisitorExt};
 
+use crate::ast::node::{CodeBlock, Emphasis, HtmlBlock, Item, List};
 use crate::prelude::{BlockQuote, Callout, Heading, Node, Paragraph, Root, Strong};
 use macros::define_visitor;
 
@@ -12,8 +13,13 @@ define_visitor! {
         Paragraph: Paragraph,
         Heading: Heading,
         Strong: Strong,
+        Emphasis: Emphasis,
         BlockQuote: BlockQuote,
-        Callout: Callout
+        Callout: Callout,
+        CodeBlock: CodeBlock,
+        HtmlBlock: HtmlBlock,
+        List: List,
+        Item: Item
     }
     leaf {
         Text: str,

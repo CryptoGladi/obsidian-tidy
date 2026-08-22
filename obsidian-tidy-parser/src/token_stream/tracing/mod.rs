@@ -131,7 +131,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg(not(miri))]
+    #[tracing_test::traced_test]
     fn tracing_emits_logs() {
         let source = "# Hello World";
         let stream = TokenStreamBuilder::default().build(source);
@@ -144,7 +145,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg(not(miri))]
+    #[tracing_test::traced_test]
     fn interceptor_logs_replacement() {
         let source = "some # hashtag";
 

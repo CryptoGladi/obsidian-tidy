@@ -21,7 +21,8 @@ members = [
   "obsidian-tidy-cli",
   "obsidian-tidy-config",
   "obsidian-tidy-macros",
-  "obsidian-tidy-parser", "obsidian-tidy-parser-wasm",
+  "obsidian-tidy-parser",
+  "obsidian-tidy-parser-wasm",
 ]
 
 [workspace.dependencies]
@@ -34,21 +35,21 @@ obsidian-tidy-macros = { path = "./obsidian-tidy-macros" }
 obsidian-tidy-parser = { path = "./obsidian-tidy-parser" }
 tokio = { version = "1.52", features = ["macros", "rt-multi-thread"] }
 futures = "0.3"
-tracing = "0.1"
+tracing = { version = "0.1", default-features = false }
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
-serde = { version = "1", features = ["derive"] }
-thiserror = "2"
-serde_json = "1.0"
-tracing-test = "0.2"
-itertools = "0.14"
+serde = { version = "1", default-features = false }
+thiserror = { version = "2", default-features = false }
+serde_json = { version = "1.0", default-features = false }
+tracing-test = { version = "0.2", default-features = false }
+itertools = { version = "0.14", default-features = false }
 clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
 rayon = "1.11"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "ansi"] }
-erased-serde = "0.4.10"
-proptest = "1.11.0"
+erased-serde = { version = "0.4", default-features = false }
+proptest = "1.11"
 tempfile = "3.25"
-strum = { version = "0.28", features = ["derive"] }
-derive_more = { version = "2", features = ["is_variant"] }
+strum = { version = "0.28", default-features = false }
+derive_more = { version = "2", default-features = false }
 miette = { version = "7.6", features = ["fancy", "syntect-highlighter"] }
 serial_test = "3.4"
 gag = "1"

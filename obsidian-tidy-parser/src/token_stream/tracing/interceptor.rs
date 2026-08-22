@@ -121,7 +121,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg(not(miri))]
+    #[tracing_test::traced_test]
     fn test_tracing_interceptor_logs_on_replacement() {
         let mock = MockInterceptor::new(true);
         let mut tracing_interceptor = TracingInterceptor::new(mock, "test_replacement");
@@ -152,7 +153,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg(not(miri))]
+    #[tracing_test::traced_test]
     fn test_tracing_interceptor_silent_on_no_replacement() {
         let mock = MockInterceptor::new(false);
         let mut tracing_interceptor = TracingInterceptor::new(mock, "test_silent");
@@ -172,7 +174,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg(not(miri))]
+    #[tracing_test::traced_test]
     fn test_tracing_interceptor_ext_uses_display_name() {
         let mock = MockInterceptor::new(true);
 

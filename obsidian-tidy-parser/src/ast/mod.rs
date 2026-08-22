@@ -4,9 +4,11 @@ pub mod stack;
 use crate::token_stream::token::{Tag as TokenTag, TagEnd, Token};
 use alloc::vec::Vec;
 use core::range::Range;
-use node::{BlockQuote, Callout, Node, NodeKind, Paragraph, Root, Strong, Tag};
+use node::{
+    BlockQuote, Callout, CodeBlock, Emphasis, HtmlBlock, Item, List, Node, NodeKind, Paragraph,
+    Root, Strong, Tag,
+};
 use stack::{Frame, Stack};
-use tracing::instrument;
 
 pub struct ASTBuilder<I> {
     inner: I,
@@ -28,44 +30,71 @@ where
             reason = "библиотека гарантирует, что это невозможно"
         )]
         let frame = stack.pop().expect("unbalanced tags");
+        let children = frame.children().into();
 
         debug_assert_eq!(tag_end, frame.tag.to_end());
 
+        // TODO написать макрос
         match frame.tag {
             TokenTag::Heading(heading) => {
-                let tag = Tag::new(heading, frame.children().into());
+                let tag = Tag::new(heading, children);
 
                 stack.push_parent(Node::new(NodeKind::Heading(tag), offset));
             }
             TokenTag::Paragraph => {
                 let paragraph = Paragraph::new();
-                let tag = Tag::new(paragraph, frame.children().into());
+                let tag = Tag::new(paragraph, children);
 
                 stack.push_parent(Node::new(NodeKind::Paragraph(tag), offset));
             }
             TokenTag::Strong => {
                 let strong = Strong::new();
-                let tag = Tag::new(strong, frame.children().into());
+                let tag = Tag::new(strong, children);
 
                 stack.push_parent(Node::new(NodeKind::Strong(tag), offset));
             }
             TokenTag::BlockQuote => {
                 let block_quote = BlockQuote::new();
-                let tag = Tag::new(block_quote, frame.children().into());
+                let tag = Tag::new(block_quote, children);
 
                 stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
             }
-            TokenTag::Callout(ref callout) => {
-                let callout = Callout::new(
-                    callout.kind.clone(),
-                    callout.header_offset,
-                    callout.foldable,
-                );
-                let tag = Tag::new(callout, frame.children().into());
+            TokenTag::Callout(callout) => {
+                let callout = Callout::from(callout);
+                let tag = Tag::new(callout, children);
 
                 stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
             }
-            _ => todo!("{:?}", frame.tag),
+            TokenTag::CodeBlock(code_block) => {
+                let code_block = CodeBlock::from(code_block);
+                let tag = Tag::new(code_block, children);
+
+                stack.push_parent(Node::new(NodeKind::CodeBlock(tag), offset));
+            }
+            TokenTag::Emphasis => {
+                let emphasis = Emphasis;
+                let tag = Tag::new(emphasis, children);
+
+                stack.push_parent(Node::new(NodeKind::Emphasis(tag), offset));
+            }
+            TokenTag::HtmlBlock => {
+                let html_block = HtmlBlock;
+                let tag = Tag::new(html_block, children);
+
+                stack.push_parent(Node::new(NodeKind::HtmlBlock(tag), offset));
+            }
+            TokenTag::List(list) => {
+                let list = List::from(list);
+                let tag = Tag::new(list, children);
+
+                stack.push_parent(Node::new(NodeKind::List(tag), offset));
+            }
+            TokenTag::Item => {
+                let item = Item;
+                let tag = Tag::new(item, children);
+
+                stack.push_parent(Node::new(NodeKind::Item(tag), offset));
+            }
         }
     }
 
@@ -73,11 +102,12 @@ where
         clippy::missing_panics_doc,
         reason = "каждая строка — это валидный Markdown"
     )]
-    #[instrument(skip_all, level = "trace", fields(node_kind, child_count, parse_range))]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all, level = "trace"))]
     pub fn build(self) -> Node<'ast> {
         let mut stack = Stack::new();
 
         for (token, offset) in self.inner {
+            #[cfg(feature = "tracing")]
             tracing::trace!(?token, ?offset, "building AST");
 
             match token {
@@ -112,6 +142,7 @@ where
         let root = Tag::new(Root::new(), root);
         let root = Node::new(NodeKind::Root(root), (0..offset_end).into());
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             parse_range = ?root.offset(),
             node_count = root.node_count(),

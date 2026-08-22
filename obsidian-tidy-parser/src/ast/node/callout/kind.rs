@@ -1,6 +1,41 @@
 use alloc::borrow::Cow;
 use derive_more::IsVariant;
+use phf::phf_map;
 use serde::{Deserialize, Serialize};
+use unicase::UniCase;
+
+#[derive(Debug, Clone, Copy)]
+enum StaticKind {
+    Note,
+    Abstract,
+    Info,
+    Todo,
+    Tip,
+    Success,
+    Question,
+    Warning,
+    Failure,
+    Danger,
+    Bug,
+    Example,
+    Quote,
+}
+
+static CALLOUTS: phf::Map<UniCase<&'static str>, StaticKind> = phf_map! {
+    UniCase::ascii("note") => StaticKind::Note,
+    UniCase::ascii("abstract") | UniCase::ascii("summary") | UniCase::ascii("tldr") => StaticKind::Abstract,
+    UniCase::ascii("info") => StaticKind::Info,
+    UniCase::ascii("todo") => StaticKind::Todo,
+    UniCase::ascii("tip") | UniCase::ascii("hint") | UniCase::ascii("important") => StaticKind::Tip,
+    UniCase::ascii("success") | UniCase::ascii("check") | UniCase::ascii("done") => StaticKind::Success,
+    UniCase::ascii("question") | UniCase::ascii("help") | UniCase::ascii("faq") => StaticKind::Question,
+    UniCase::ascii("warning") | UniCase::ascii("caution") | UniCase::ascii("attention") => StaticKind::Warning,
+    UniCase::ascii("failure") | UniCase::ascii("fail") | UniCase::ascii("missing") => StaticKind::Failure,
+    UniCase::ascii("danger") | UniCase::ascii("error") => StaticKind::Danger,
+    UniCase::ascii("bug") => StaticKind::Bug,
+    UniCase::ascii("example") => StaticKind::Example,
+    UniCase::ascii("quote") | UniCase::ascii("cite") => StaticKind::Quote
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, IsVariant, strum::Display)]
 pub enum CalloutKind<'ast> {
@@ -42,6 +77,26 @@ pub enum CalloutKind<'ast> {
     Other(Cow<'ast, str>),
 }
 
+impl From<StaticKind> for CalloutKind<'_> {
+    fn from(static_kind: StaticKind) -> Self {
+        match static_kind {
+            StaticKind::Note => Self::Note,
+            StaticKind::Abstract => Self::Abstract,
+            StaticKind::Info => Self::Info,
+            StaticKind::Todo => Self::Todo,
+            StaticKind::Tip => Self::Tip,
+            StaticKind::Success => Self::Success,
+            StaticKind::Question => Self::Question,
+            StaticKind::Warning => Self::Warning,
+            StaticKind::Failure => Self::Failure,
+            StaticKind::Danger => Self::Danger,
+            StaticKind::Bug => Self::Bug,
+            StaticKind::Example => Self::Example,
+            StaticKind::Quote => Self::Quote,
+        }
+    }
+}
+
 // Не могу std::str::FromStr из-за lifetime
 impl<'ast> From<&'ast str> for CalloutKind<'ast> {
     fn from(raw: &'ast str) -> Self {
@@ -52,24 +107,10 @@ impl<'ast> From<&'ast str> for CalloutKind<'ast> {
 impl<'ast> From<Cow<'ast, str>> for CalloutKind<'ast> {
     fn from(raw: Cow<'ast, str>) -> Self {
         // Note: ASCII-only for performance. Unicode kinds go into Other.
-        let lower = raw.to_ascii_lowercase();
-
-        match lower.as_str() {
-            "note" => Self::Note,
-            "abstract" | "summary" | "tldr" => Self::Abstract,
-            "info" => Self::Info,
-            "todo" => Self::Todo,
-            "tip" | "hint" | "important" => Self::Tip,
-            "success" | "check" | "done" => Self::Success,
-            "question" | "help" | "faq" => Self::Question,
-            "warning" | "caution" | "attention" => Self::Warning,
-            "failure" | "fail" | "missing" => Self::Failure,
-            "danger" | "error" => Self::Danger,
-            "bug" => Self::Bug,
-            "example" => Self::Example,
-            "quote" | "cite" => Self::Quote,
-            _ => Self::Other(raw),
-        }
+        CALLOUTS.get(&UniCase::ascii(raw.as_ref())).map_or_else(
+            || Self::Other(raw),
+            |static_callout| Self::from(*static_callout),
+        )
     }
 }
 

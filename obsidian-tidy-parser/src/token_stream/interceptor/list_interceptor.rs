@@ -61,9 +61,11 @@ impl<'input> Interceptor<'input> for ListInterceptor {
         };
 
         if list.delimiter.is_some() {
+            #[cfg(feature = "tracing")]
             tracing::warn!(
                 "DELIMITER ALREADY EXISTS!\nCheck update pulldown-cmark and delete this interceptor"
             );
+
             return None;
         }
 

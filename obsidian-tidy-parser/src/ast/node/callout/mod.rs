@@ -76,15 +76,9 @@ impl<'ast> Callout<'ast> {
     }
 }
 
-impl<'ast> From<&crate::token_stream::token::Callout<'ast>> for Callout<'ast> {
-    fn from(callout: &crate::token_stream::token::Callout<'ast>) -> Self {
-        // It is Cow!
-        // Clone is fast!
-        Self::new(
-            callout.kind.clone(),
-            callout.header_offset,
-            callout.foldable,
-        )
+impl<'ast> From<crate::token_stream::token::Callout<'ast>> for Callout<'ast> {
+    fn from(callout: crate::token_stream::token::Callout<'ast>) -> Self {
+        Self::new(callout.kind, callout.header_offset, callout.foldable)
     }
 }
 

@@ -1,7 +1,12 @@
 mod block_quote;
 pub mod callout;
+mod code_block;
+mod emphasis;
 mod heading;
+mod html_block;
+mod item;
 mod iter;
+mod list;
 pub(crate) mod macros;
 mod paragraph;
 mod root;
@@ -10,6 +15,11 @@ mod text_content;
 
 pub use block_quote::BlockQuote;
 pub use callout::Callout;
+pub use code_block::CodeBlock;
+pub use emphasis::Emphasis;
+pub use html_block::HtmlBlock;
+pub use item::Item;
+pub use list::List;
 pub(crate) use macros::impl_node_as;
 pub use paragraph::Paragraph;
 pub use root::Root;
@@ -50,9 +60,13 @@ pub enum NodeKind<'ast> {
     Paragraph(Tag<'ast, Paragraph>),
     Heading(Tag<'ast, Heading>),
     Strong(Tag<'ast, Strong>),
+    Emphasis(Tag<'ast, Emphasis>),
     BlockQuote(Tag<'ast, BlockQuote>),
     Callout(Tag<'ast, Callout<'ast>>),
-
+    HtmlBlock(Tag<'ast, HtmlBlock>),
+    CodeBlock(Tag<'ast, CodeBlock<'ast>>),
+    List(Tag<'ast, List>),
+    Item(Tag<'ast, Item>),
     Text(Cow<'ast, str>),
     InlineCode(Cow<'ast, str>),
 

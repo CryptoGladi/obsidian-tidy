@@ -18,6 +18,8 @@ pub enum ListDelimiter {
     OneParen,
 }
 
+static_assertions::assert_impl_all!(ListDelimiter: Copy);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct List {
     pub start_number: Option<u64>,

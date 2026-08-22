@@ -65,9 +65,9 @@ mod tests {
         }
     }
 
-    #[cfg_attr(miri, ignore)]
     proptest! {
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn serializing(start: usize, end: usize) {
             let range = TestStruct::new(start, end);
             let json = serde_json::to_string(&range).unwrap();
@@ -77,6 +77,7 @@ mod tests {
         }
 
         #[test]
+        #[cfg_attr(miri, ignore)]
         fn deserializing(start: usize, end: usize) {
             let range = TestStruct::new(start, end);
             let json = format!(r#"{{"range":{{"start":{},"end":{}}}}}"#, start, end);
