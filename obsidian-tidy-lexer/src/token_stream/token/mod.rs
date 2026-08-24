@@ -50,9 +50,7 @@ impl<'input> Token<'input> {
 
     #[must_use]
     pub fn as_math(&self) -> Option<&str> {
-        self.as_display_math()
-            .or(self.as_inline_math())
-            .map(Cow::as_ref)
+        self.as_display_math().or(self.as_inline_math())
     }
 
     #[must_use]
@@ -61,5 +59,155 @@ impl<'input> Token<'input> {
             Self::DisplayMath(text) | Self::InlineMath(text) => Some(text),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{InterceptorEnum, Token, TokenStreamBuilder, TracingTokenStreamExt};
+    use core::range::Range;
+
+    fn token_stream(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
+        TokenStreamBuilder::<InterceptorEnum>::new()
+            .build(source)
+            .with_tracing()
+            .collect()
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_text() {
+        let source = "Simple text";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_text())
+            .collect();
+
+        assert_eq!(tokens, ["Simple text"]);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_code() {
+        let source = "Use `println!` macro";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_code())
+            .collect();
+
+        assert_eq!(tokens, ["println!"]);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_soft_break() {
+        let source = "Line 1\nLine 2";
+        let stream = token_stream(source);
+
+        let count = stream
+            .iter()
+            .filter(|(token, _)| token.is_soft_break())
+            .count();
+
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_hard_break() {
+        let source = "Line 1  \nLine 2";
+        let stream = token_stream(source);
+
+        let count = stream
+            .iter()
+            .filter(|(token, _)| token.is_hard_break())
+            .count();
+
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_inline_math() {
+        let source = "Formula $E=mc^2$ here";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_inline_math())
+            .collect();
+
+        assert_eq!(tokens, ["E=mc^2"]);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_display_math() {
+        let source = "Formula $$E=mc^2$$ here";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_display_math())
+            .collect();
+
+        assert_eq!(tokens, ["E=mc^2"]);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_html() {
+        let source = "<!-- Content -->";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_html())
+            .collect();
+
+        assert!(!tokens.is_empty());
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_inline_html() {
+        let source = "Text <span>inline</span> text";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_inline_html())
+            .collect();
+
+        assert_eq!(tokens.len(), 2);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_rule() {
+        let source = "Text\n\n---\n\nMore text";
+        let stream = token_stream(source);
+
+        let count = stream.iter().filter(|(token, _)| token.is_rule()).count();
+
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn token_footnote_reference() {
+        let source = "Text[^1] here";
+        let stream = token_stream(source);
+
+        let tokens: Vec<_> = stream
+            .iter()
+            .filter_map(|(token, _)| token.as_footnote_reference())
+            .collect();
+
+        assert_eq!(tokens, ["1"]);
     }
 }

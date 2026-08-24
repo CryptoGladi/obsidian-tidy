@@ -9,6 +9,7 @@
 #![cfg_attr(test, warn(clippy::todo))]
 
 #[cfg(test)]
+#[doc(hidden)]
 mod __test_requirements {
     #[cfg(any(not(feature = "serde"), not(feature = "tracing")))]
     compile_error!("Both the 'serde' and 'tracing' features are required to run the tests");

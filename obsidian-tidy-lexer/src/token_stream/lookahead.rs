@@ -120,12 +120,14 @@ where
     /// # Example
     /// ```ignore
     /// guard.commit_with_peeked(|[a, b, c]| {
-    ///     vec![new_item, a, b, c]  // No cloning!
+    ///     [new_item, a, b, c]  // No cloning!
     /// })
     /// ```
-    pub fn commit_with_peeked<F>(self, transform: F) -> Option<I::Item>
+    pub fn commit_with_peeked<F, T>(self, transform: F) -> Option<I::Item>
     where
-        F: FnOnce([I::Item; N]) -> alloc::vec::Vec<I::Item>,
+        F: FnOnce([I::Item; N]) -> T,
+        T: IntoIterator<Item = I::Item>,
+        T::IntoIter: DoubleEndedIterator,
     {
         let mut this = ManuallyDrop::new(self);
 
@@ -494,6 +496,9 @@ mod tests {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             guard.commit_with_peeked(|_| {
                 panic!("test panic");
+
+                #[allow(unreachable_code, reason = "for testing")]
+                []
             })
         }));
 

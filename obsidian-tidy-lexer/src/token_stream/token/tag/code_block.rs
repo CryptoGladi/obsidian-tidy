@@ -6,6 +6,8 @@ pub struct CodeBlock<'input> {
     fenced: Option<Cow<'input, str>>,
 }
 
+crate::__private::impl_as_target_self!(CodeBlock<'_>);
+
 impl<'input> From<pulldown_cmark::CodeBlockKind<'input>> for CodeBlock<'input> {
     fn from(kind: pulldown_cmark::CodeBlockKind<'input>) -> Self {
         let fenced = match kind {

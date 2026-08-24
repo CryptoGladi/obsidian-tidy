@@ -14,7 +14,7 @@ impl ObsidianMarkdownPatches {
     /// It disables features that conflict with custom Obsidian syntax (like callouts)
     /// or introduce unnecessary performance overhead.
     ///
-    /// It is break [`crate::CalloutInterceptor`]
+    /// Disabling this is required for [`crate::CalloutInterceptor`] to function correctly
     ///
     /// # Arguments
     ///

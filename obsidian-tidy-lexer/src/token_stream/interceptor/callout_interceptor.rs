@@ -38,6 +38,15 @@ impl From<CalloutInterceptor> for InterceptorEnum {
     }
 }
 
+/// For [`crate::TracingTokenStreamExt`] for tesing
+#[cfg(feature = "tracing")]
+#[cfg(test)]
+impl core::fmt::Display for CalloutInterceptor {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "CalloutInterceptor")
+    }
+}
+
 fn get_ascii_at_offset(s: &str, offset: usize) -> Option<char> {
     s.as_bytes()
         .get(offset)
@@ -73,7 +82,7 @@ impl CalloutInterceptor {
     }
 
     fn check_bracket_close(bracket_close_token: &Token<'_>) -> Option<()> {
-        let text = bracket_close_token.as_text()?;
+        let text: &str = bracket_close_token.as_text()?;
 
         if text != "]" {
             return None;
@@ -90,7 +99,9 @@ impl CalloutInterceptor {
         let text = kind_token.as_text()?;
 
         let kind_str = {
-            text.as_ref().strip_prefix('!')?;
+            if !text.starts_with('!') {
+                return None;
+            }
 
             let range = Range {
                 start: kind_range.start + 1,
@@ -171,7 +182,7 @@ impl CalloutInterceptor {
         };
 
         guard.commit_with_peeked(|[paragraph, bracket_open, kind, bracket_close]| {
-            alloc::vec![start_callout, paragraph, bracket_open, kind, bracket_close]
+            [start_callout, paragraph, bracket_open, kind, bracket_close]
         })
     }
 }
@@ -221,7 +232,7 @@ mod tests {
 
     fn make_token_stream(source: &str) -> impl Iterator<Item = (Token<'_>, Range<usize>)> {
         TokenStreamBuilder::new()
-            .add_interceptor(InterceptorEnum::from(CalloutInterceptor::default()))
+            .add_interceptor(CalloutInterceptor::default())
             .build(source)
             .with_tracing()
     }

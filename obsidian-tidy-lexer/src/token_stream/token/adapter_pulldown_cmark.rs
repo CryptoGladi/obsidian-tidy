@@ -53,6 +53,7 @@ impl<'input> From<pulldown_cmark::Tag<'input>> for Tag<'input> {
                 Tag::List(list)
             }
             MarkTag::Item => Tag::Item,
+            MarkTag::HtmlBlock => Tag::HtmlBlock,
             _ => todo!("{tag:?}"),
         }
     }
@@ -74,6 +75,7 @@ impl From<pulldown_cmark::TagEnd> for TagEnd {
             MarkTagEnd::Emphasis => TagEnd::Emphasis,
             MarkTagEnd::List(_) => TagEnd::List,
             MarkTagEnd::Item => TagEnd::Item,
+            MarkTagEnd::HtmlBlock => TagEnd::HtmlBlock,
             _ => todo!("{tag_end:?}"),
         }
     }

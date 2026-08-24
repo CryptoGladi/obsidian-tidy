@@ -38,6 +38,8 @@ pub struct Heading {
     level: HeadingLevel,
 }
 
+crate::__private::impl_as_target_self!(Heading);
+
 impl Heading {
     #[must_use]
     pub const fn new(level: HeadingLevel) -> Self {

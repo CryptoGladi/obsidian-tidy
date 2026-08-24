@@ -16,7 +16,9 @@ impl From<ListInterceptor> for InterceptorEnum {
     }
 }
 
-/// For [`TracingTokenStreamExt`]
+/// For [`crate::TracingTokenStreamExt`] for tesing
+#[cfg(feature = "tracing")]
+#[cfg(test)]
 impl core::fmt::Display for ListInterceptor {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "ListInterceptor")
@@ -93,7 +95,7 @@ impl<'input> Interceptor<'input> for ListInterceptor {
     }
 }
 
-static_assertions::assert_impl_all!(&mut ListInterceptor: Interceptor<'static>, core::fmt::Display);
+static_assertions::assert_impl_all!(&mut ListInterceptor: Interceptor<'static>);
 static_assertions::assert_impl_all!(alloc::boxed::Box<ListInterceptor>: Interceptor<'static>);
 
 #[cfg(test)]

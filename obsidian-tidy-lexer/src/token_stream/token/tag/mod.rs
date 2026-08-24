@@ -33,3 +33,5 @@ impl_enum_tag! {
     #[non_exhaustive]
     pub enum TagEnd { ... }
 }
+
+crate::__private::impl_as_target_self!(Tag<'_>, TagEnd);

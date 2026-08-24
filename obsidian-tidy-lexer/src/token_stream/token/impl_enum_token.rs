@@ -25,9 +25,28 @@ macro_rules! impl_enum_token {
                 $(
                     $(
                         #[must_use]
-                        $vis const fn [<as_ $variant:snake>](&self) -> ::core::option::Option<&$internal_type> {
+                        $vis fn [<as_ $variant:snake>](&self) -> ::core::option::Option<&<$internal_type as $crate::__private::AsRefTarget>::Target>
+                        where
+                            $internal_type: $crate::__private::AsRefTarget,
+                        {
                             if let Self::$variant(data) = self {
-                                return ::core::option::Option::Some(data);
+                                return ::core::option::Option::Some(
+                                    $crate::__private::AsRefTarget::as_target_ref(data)
+                                );
+                            }
+
+                            ::core::option::Option::None
+                        }
+
+                        #[must_use]
+                        $vis fn [<as_mut_ $variant:snake>](&mut self) -> ::core::option::Option<&mut <$internal_type as $crate::__private::AsMutTarget>::Target>
+                        where
+                            $internal_type: $crate::__private::AsMutTarget,
+                        {
+                            if let Self::$variant(data) = self {
+                                return ::core::option::Option::Some(
+                                    $crate::__private::AsMutTarget::as_target_mut(data)
+                                );
                             }
 
                             ::core::option::Option::None
@@ -65,6 +84,8 @@ mod tests {
 
     #[derive(Debug, Clone, PartialEq, Serialize)]
     pub struct List;
+
+    crate::__private::impl_as_target_self!(Heading, CodeBlock<'_>, Callout<'_>, List);
 
     impl_enum_token! {
         #[allow(dead_code)]

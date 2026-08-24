@@ -40,6 +40,8 @@ pub struct Callout<'input> {
     pub foldable: CalloutFoldable,
 }
 
+crate::__private::impl_as_target_self!(Callout<'_>);
+
 impl Callout<'_> {
     #[must_use]
     pub fn kind(&self) -> &str {

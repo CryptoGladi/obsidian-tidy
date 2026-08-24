@@ -44,6 +44,8 @@ pub struct List {
     pub(crate) delimiter: Option<ListDelimiter>,
 }
 
+crate::__private::impl_as_target_self!(List);
+
 impl List {
     #[must_use]
     pub const fn new(start_number: Option<u64>) -> Self {
