@@ -180,7 +180,7 @@ mod tests {
         #[test]
         #[cfg_attr(miri, ignore)]
         fn proptest_tracing_stream_identity(
-            source in r#"[a-zA-Z0-9 #>*-]{0,150}"#
+            source in r"[a-zA-Z0-9 #>*-]{0,150}"
         ) {
             let original_stream = TokenStreamBuilder::default().build(&source);
             let original_tokens: Vec<_> = original_stream.collect();

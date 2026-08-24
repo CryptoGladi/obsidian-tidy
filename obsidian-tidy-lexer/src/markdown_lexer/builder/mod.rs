@@ -1,4 +1,7 @@
+mod obsidian_markdown_patches;
+
 use super::MarkdownLexer;
+use obsidian_markdown_patches::ObsidianMarkdownPatches;
 use pulldown_cmark::Options as MarkOptions;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,15 +25,12 @@ impl MarkdownLexerBuilder {
 
     #[must_use]
     pub fn all() -> Self {
-        let mut options = MarkOptions::all();
+        let base_options = MarkOptions::all();
+        let patched_options = ObsidianMarkdownPatches::apply_all(base_options);
 
-        // Мы сделали свою реализацию callout
-        options.set(MarkOptions::ENABLE_GFM, false);
-
-        // Эта ломает парсинг и замедляет работу
-        options.set(MarkOptions::ENABLE_SMART_PUNCTUATION, false);
-
-        Self { options }
+        Self {
+            options: patched_options,
+        }
     }
 
     #[must_use]

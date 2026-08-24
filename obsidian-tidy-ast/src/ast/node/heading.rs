@@ -17,24 +17,27 @@ mod tests {
     use crate::prelude::{Document, TextContent};
 
     #[test]
-    #[cfg_attr(miri, ignore)]
     fn parse() {
         let text = "# Definition\nRust is one of the memory-safe programming languages";
         let document = Document::new(text);
         let ast = document.ast();
 
         assert_eq!(ast.count(|node| node.kind().is_heading()), 1);
+
+        #[cfg(not(miri))]
         insta::assert_json_snapshot!(ast);
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn parse_with_format() {
         let text = "# **Super** `Definition`\nSimple text";
         let document = Document::new(text);
         let ast = document.ast();
 
         assert_eq!(ast.count(|node| node.kind().is_heading()), 1);
+
+        #[cfg(not(miri))]
         insta::assert_json_snapshot!(ast);
     }
 

@@ -7,6 +7,20 @@ use alloc::borrow::Cow;
 use alloc::vec::Vec;
 use core::range::Range;
 
+const MESSAGE_UNBALANCED_TAGS: &str =
+    "unbalanced tags (pulldown-cmark invariant violated or interceptor logic bug)";
+
+#[cold]
+#[inline(never)]
+fn unbalanced_tags_fallback() -> Call {
+    #[cfg(feature = "tracing")]
+    tracing::warn!("{MESSAGE_UNBALANCED_TAGS}");
+
+    debug_assert!(false, "{MESSAGE_UNBALANCED_TAGS}");
+
+    Call::BlockQuote
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Call {
     BlockQuote,
@@ -103,8 +117,9 @@ impl CalloutInterceptor {
     ) -> InterceptResult<'input> {
         let guard = lexer.peek_many::<4>()?;
 
+        // The order of tokens is guaranteed.
         let [
-            (paragraph_token, paragraph_range),
+            (paragraph_token, _),
             (bracket_open_token, bracket_open_range),
             (kind_token, kind_range),
             (bracket_close_token, bracket_close_range),
@@ -139,6 +154,7 @@ impl CalloutInterceptor {
                 end: if foldable.is_none() {
                     bracket_close_range.end
                 } else {
+                    // Add `+` or `-`
                     bracket_close_range.end + 1
                 },
             };
@@ -154,12 +170,9 @@ impl CalloutInterceptor {
             (token, block_quote)
         };
 
-        let paragraph = (paragraph_token.clone(), *paragraph_range);
-        let bracket_open = (bracket_open_token.clone(), *bracket_open_range);
-        let kind = (kind_token.clone(), *kind_range);
-        let bracket_close = (bracket_close_token.clone(), *bracket_close_range);
-
-        guard.commit_returning_first([start_callout, paragraph, bracket_open, kind, bracket_close])
+        guard.commit_with_peeked(|[paragraph, bracket_open, kind, bracket_close]| {
+            alloc::vec![start_callout, paragraph, bracket_open, kind, bracket_close]
+        })
     }
 }
 
@@ -170,11 +183,10 @@ impl<'input> Interceptor<'input> for CalloutInterceptor {
         lexer: &mut Lookahead<LexerAdapter<'input>>,
         current: &(Token<'input>, Range<usize>),
     ) -> InterceptResult<'input> {
-        let current_token = &current.0;
-        let current_range = current.1;
+        let (current_token, current_range) = current;
 
         if let Some(Tag::BlockQuote) = current_token.as_start() {
-            if let Some(result) = Self::parse_start_callout(current_range, source, lexer) {
+            if let Some(result) = Self::parse_start_callout(*current_range, source, lexer) {
                 self.stack.push(Call::Callout);
                 return Some(result);
             }
@@ -183,38 +195,38 @@ impl<'input> Interceptor<'input> for CalloutInterceptor {
         }
 
         if let Some(TagEnd::BlockQuote) = current_token.as_end() {
-            // Теги обязаны быть сбалансированными!
-            #[expect(clippy::expect_used)]
-            let current = self.stack.pop().expect("unbalanced tags");
+            let current = self.stack.pop().unwrap_or_else(unbalanced_tags_fallback);
 
             let token = match current {
                 Call::BlockQuote => Token::End(TagEnd::BlockQuote),
                 Call::Callout => Token::End(TagEnd::Callout),
             };
 
-            return Some((token, current_range));
+            return Some((token, *current_range));
         }
 
         None
     }
 }
 
+static_assertions::assert_impl_all!(&mut CalloutInterceptor: Interceptor<'static>);
+static_assertions::assert_impl_all!(alloc::boxed::Box<CalloutInterceptor>: Interceptor<'static>);
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::markdown_lexer::MarkdownLexerBuilder;
     use crate::prelude::{TokenStreamBuilder, TracingTokenStreamExt};
     use proptest::prelude::*;
 
-    fn make_token_stream<'input>(
-        source: &'input str,
-    ) -> impl Iterator<Item = (Token<'input>, Range<usize>)> {
+    fn make_token_stream(source: &str) -> impl Iterator<Item = (Token<'_>, Range<usize>)> {
         TokenStreamBuilder::new()
             .add_interceptor(InterceptorEnum::from(CalloutInterceptor::default()))
             .build(source)
             .with_tracing()
     }
 
-    fn collect_tokens<'input>(source: &'input str) -> Vec<(Token<'input>, Range<usize>)> {
+    fn collect_tokens(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
         let lexer = make_token_stream(source);
         lexer.into_iter().collect()
     }
@@ -234,15 +246,12 @@ mod tests {
     fn count_end_callouts(tokens: &[(Token, Range<usize>)]) -> usize {
         tokens
             .iter()
-            .filter(|(token, _)| match token {
-                Token::End(TagEnd::Callout) => true,
-                _ => false,
-            })
+            .filter(|(token, _)| matches!(token, Token::End(TagEnd::Callout)))
             .count()
     }
 
     #[track_caller]
-    fn count_callout_block<'a, 'input>(tokens: &'a [(Token<'input>, Range<usize>)]) -> usize {
+    fn count_callout_block(tokens: &[(Token<'_>, Range<usize>)]) -> usize {
         let starts = find_callout_starts(tokens).len();
         let ends = count_end_callouts(tokens);
 
@@ -277,7 +286,7 @@ mod tests {
     }
 
     #[track_caller]
-    fn count_markdown_blockquote<'a, 'input>(tokens: &'a [(Token<'input>, Range<usize>)]) -> usize {
+    fn count_markdown_blockquote(tokens: &[(Token<'_>, Range<usize>)]) -> usize {
         let starts = count_markdown_blockquote_start(tokens);
         let ends = count_markdown_blockquote_ends(tokens);
 
@@ -287,7 +296,64 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn unbalanced_tags_graceful_degradation() {
+        let mut interceptor = CalloutInterceptor::new();
+        let source = "";
+        let lexer = MarkdownLexerBuilder::default().build(source);
+        let mut lookahead = Lookahead::new(LexerAdapter::new(lexer));
+
+        // We artificially create a closing tag when the stack is empty.
+        let end_token = Token::End(TagEnd::BlockQuote);
+        let range = Range::from(0..0);
+        let current = (end_token, range);
+
+        // In debug mode, debug_assert!(false, ...) MUST panic,
+        // so that the developer immediately learns of the invariant violation.
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            interceptor.try_intercept(source, &mut lookahead, &current)
+        }));
+
+        #[cfg(debug_assertions)]
+        {
+            assert!(
+                result.is_err(),
+                "Expected panic from debug_assert in debug mode"
+            );
+
+            let panic_error = result.unwrap_err();
+
+            let panic_message = panic_error
+                .downcast_ref::<&str>()
+                .copied()
+                .or_else(|| panic_error.downcast_ref::<String>().map(String::as_str))
+                .unwrap_or("Unknown panic message");
+
+            #[cfg(not(miri))]
+            assert!(logs_contain(MESSAGE_UNBALANCED_TAGS));
+
+            assert_eq!(
+                panic_message, MESSAGE_UNBALANCED_TAGS,
+                "Unexpected panic message: {panic_message}",
+            );
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            assert!(result.is_ok(), "Should not panic in release mode");
+
+            let intercepted = result.unwrap();
+
+            assert_eq!(
+                intercepted,
+                Some((Token::End(TagEnd::BlockQuote), 0..0)),
+                "Should fallback to BlockQuote end token gracefully"
+            );
+        }
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn simple_callout_tip() {
         let source = "> [!tip]\n> Content";
         let tokens = collect_tokens(source);
@@ -301,11 +367,12 @@ mod tests {
         assert_eq!(count_callout_block(&tokens), 1);
         assert_eq!(count_markdown_blockquote(&tokens), 0);
 
+        #[cfg(not(miri))]
         assert_json_snapshot!(tokens);
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_with_expanded_foldable() {
         let source = "> [!warning]+ Custom Title";
         let tokens = collect_tokens(source);
@@ -316,10 +383,12 @@ mod tests {
         assert_eq!(callouts[0].kind, "warning");
         assert_eq!(callouts[0].foldable, CalloutFoldable::Expanded);
 
+        #[cfg(not(miri))]
         assert_json_snapshot!(tokens);
     }
 
     #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_with_collapsed_foldable() {
         let source = "> [!note]- Hidden content";
         let tokens = collect_tokens(source);
@@ -332,6 +401,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_with_break() {
         let source = "> [!no\nte]- Hidden content";
         let tokens = collect_tokens(source);
@@ -341,6 +411,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn many_space() {
         let source = ">  [!tip] Text";
         let tokens = collect_tokens(source);
@@ -350,6 +421,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn one_space() {
         let source = ">[!tip] Text";
         let tokens = collect_tokens(source);
@@ -365,6 +437,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_all_kinds() {
         let kinds = [
             "tip",
@@ -381,29 +454,31 @@ mod tests {
             "question",
             "failure",
             "test-example",
+            "--bug",
         ];
 
         for kind in kinds {
-            let source = format!("> [!{}]", kind);
+            let source = format!("> [!{kind}]");
             let tokens = collect_tokens(&source);
             let callouts = find_callout_starts(&tokens);
 
-            assert_eq!(callouts.len(), 1, "should parse callout for kind: {}", kind);
-            assert_eq!(callouts[0].kind, kind, "kind mismatch for: {}", kind);
+            assert_eq!(callouts.len(), 1, "should parse callout for kind: {kind}");
+            assert_eq!(callouts[0].kind, kind, "kind mismatch for: {kind}");
         }
     }
 
     #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_unicode_kinds() {
         let kinds = ["tip", "заметка", "注意", "предупреждение", "SUPER-BUG"];
 
         for kind in kinds {
-            let source = format!("> [!{}]", kind);
+            let source = format!("> [!{kind}]");
             let tokens = collect_tokens(&source);
             let callouts = find_callout_starts(&tokens);
 
-            assert_eq!(callouts.len(), 1, "should parse callout for kind: {}", kind);
-            assert_eq!(callouts[0].kind, kind, "kind mismatch for: {}", kind);
+            assert_eq!(callouts.len(), 1, "should parse callout for kind: {kind}");
+            assert_eq!(callouts[0].kind, kind, "kind mismatch for: {kind}");
         }
     }
 
@@ -412,7 +487,7 @@ mod tests {
         #[cfg_attr(miri, ignore)]
         fn prop_callout_all_kinds(kind in r"[ \d\p{L}-]{1,10}") {
             let kind = &kind;
-            let source = format!("> [!{}]", kind);
+            let source = format!("> [!{kind}]");
             let tokens = collect_tokens(&source);
             let callouts = find_callout_starts(&tokens);
 
@@ -458,7 +533,7 @@ mod tests {
 
         let callouts = find_callout_starts(&tokens);
 
-        assert!(callouts.is_empty());
+        assert_eq!(callouts, [] as [&crate::Callout<'_>; 0]);
         assert_eq!(count_markdown_blockquote(&tokens), 1);
         assert_eq!(count_callout_block(&tokens), 0);
     }
@@ -469,19 +544,18 @@ mod tests {
         let tokens = collect_tokens(source);
 
         let callouts = find_callout_starts(&tokens);
-        assert!(callouts.is_empty());
 
+        assert_eq!(callouts, [] as [&crate::Callout<'_>; 0]);
         assert_eq!(count_markdown_blockquote(&tokens), 1);
         assert_eq!(count_callout_block(&tokens), 0);
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
     fn nested_blockquotes_counter_example() {
-        let source = r#"> [!tip] Start!
+        let source = r"> [!tip] Start!
 > > > Super quote
 > > End one quote
-> But we still in Callout!"#;
+> But we still in Callout!";
 
         let tokens = collect_tokens(source);
 
@@ -492,19 +566,20 @@ mod tests {
         assert_eq!(count_callout_block(&tokens), 1);
         assert_eq!(count_markdown_blockquote(&tokens), 2);
 
+        #[cfg(not(miri))]
         assert_json_snapshot!(tokens);
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn tags_are_balanced() {
-        let source = r#"> [!tip]
+        let source = r"> [!tip]
 > Content 1
 >
 > > [!warning]
 > > Content 2
 >
-> Content 3"#;
+> Content 3";
 
         let tokens = collect_tokens(source);
 
@@ -517,6 +592,7 @@ mod tests {
         );
         assert_eq!(callout_starts, 2);
 
+        #[cfg(not(miri))]
         assert_json_snapshot!(tokens);
     }
 
@@ -524,7 +600,7 @@ mod tests {
         #[test]
         #[cfg_attr(miri, ignore)]
         fn prop_tags_are_balanced(kind in "[A-Za-z ]{3,10}") {
-            let source = format!("> [!{}]\n> Content\n", kind);
+            let source = format!("> [!{kind}]\n> Content\n");
             let tokens = collect_tokens(&source);
 
             let starts = find_callout_starts(&tokens).len();
@@ -545,11 +621,11 @@ mod tests {
 
     #[test]
     fn multiple_sequential_callouts() {
-        let source = r#"> [!tip] First
+        let source = r"> [!tip] First
 
 > [!warning] Second
 
-> [!note] Third"#;
+> [!note] Third";
 
         let tokens = collect_tokens(source);
         let callouts = find_callout_starts(&tokens);
@@ -590,7 +666,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_with_markdown_inside() {
         let source = "> [!tip]\n> **Bold** and *italic*";
         let tokens = collect_tokens(source);
@@ -599,11 +675,12 @@ mod tests {
         assert_eq!(callouts.len(), 1);
         assert_eq!(callouts[0].kind, "tip");
 
+        #[cfg(not(miri))]
         assert_json_snapshot!(tokens);
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn callout_with_code_inside() {
         let source = "> [!tip]\n> Use `println!` macro";
         let tokens = collect_tokens(source);
@@ -611,6 +688,7 @@ mod tests {
         let callouts = find_callout_starts(&tokens);
         assert_eq!(callouts.len(), 1);
 
+        #[cfg(not(miri))]
         assert_json_snapshot!(tokens);
     }
 
@@ -620,17 +698,16 @@ mod tests {
         let tokens = collect_tokens(source);
 
         let (_, range) = tokens
-            .iter()
+            .into_iter()
             .find(|(token, _)| matches!(token, Token::Start(Tag::Callout(_))))
             .expect("should find StartCallout");
 
         assert!(range.start < range.end, "range should be valid");
 
-        let text = &source[range.clone()];
+        let text = &source[range];
         assert!(
             text.contains("!tip"),
-            "offset should cover callout content, got: {:?}",
-            text
+            "offset should cover callout content, got: {text:?}"
         );
     }
 }

@@ -11,6 +11,8 @@ pub enum HeadingLevel {
     H6,
 }
 
+static_assertions::assert_impl_all!(HeadingLevel: Copy, Clone);
+
 impl From<MarkHeadingLevel> for HeadingLevel {
     fn from(level: MarkHeadingLevel) -> Self {
         match level {
@@ -68,8 +70,7 @@ mod tests {
             assert_eq!(
                 level.to_string(),
                 expected,
-                "Failed formatting for {:?}",
-                level
+                "Failed formatting for {level:?}"
             );
         }
     }
@@ -90,15 +91,13 @@ mod tests {
         }
     }
 
-    fn make_token_stream<'input>(
-        source: &'input str,
-    ) -> impl Iterator<Item = (Token<'input>, Range<usize>)> {
+    fn make_token_stream(source: &str) -> impl Iterator<Item = (Token<'_>, Range<usize>)> {
         TokenStreamBuilder::<InterceptorEnum>::new()
             .build(source)
             .with_tracing()
     }
 
-    fn collect_tokens<'input>(source: &'input str) -> Vec<(Token<'input>, Range<usize>)> {
+    fn collect_tokens(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
         let lexer = make_token_stream(source);
         lexer.into_iter().collect()
     }
@@ -108,7 +107,7 @@ mod tests {
 
         tokens
             .into_iter()
-            .filter_map(|(token, _)| token.into_start().and_then(|tag| tag.into_heading()))
+            .filter_map(|(token, _)| token.into_start().and_then(super::super::Tag::into_heading))
             .collect()
     }
 
@@ -138,6 +137,6 @@ mod tests {
         let source = "####### H7";
 
         let headings = collect_headings(source);
-        assert!(headings.is_empty());
+        assert_eq!(headings, [] as [crate::Heading; 0]);
     }
 }

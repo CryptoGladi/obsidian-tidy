@@ -32,7 +32,6 @@ where
 {
     let raw = RangeOwned::<T>::deserialize(deserializer)?;
 
-    // 2. Создаем и возвращаем реальный core::range::Range
     Ok(Range {
         start: raw.start,
         end: raw.end,
@@ -72,7 +71,7 @@ mod tests {
             let range = TestStruct::new(start, end);
             let json = serde_json::to_string(&range).unwrap();
 
-            let result = format!(r#"{{"range":{{"start":{},"end":{}}}}}"#, start, end);
+            let result = format!(r#"{{"range":{{"start":{start},"end":{end}}}}}"#);
             proptest::prop_assert_eq!(json, result);
         }
 
@@ -80,7 +79,7 @@ mod tests {
         #[cfg_attr(miri, ignore)]
         fn deserializing(start: usize, end: usize) {
             let range = TestStruct::new(start, end);
-            let json = format!(r#"{{"range":{{"start":{},"end":{}}}}}"#, start, end);
+            let json = format!(r#"{{"range":{{"start":{start},"end":{end}}}}}"#);
 
             let result = serde_json::from_str(&json).unwrap();
 

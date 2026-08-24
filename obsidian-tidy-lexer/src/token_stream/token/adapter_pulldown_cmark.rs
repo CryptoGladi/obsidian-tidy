@@ -5,14 +5,8 @@ use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
     fn from(event: pulldown_cmark::Event<'input>) -> Self {
         match event {
-            MarkEvent::Start(tag) => {
-                let tag = Tag::from(tag);
-                Token::Start(tag)
-            }
-            MarkEvent::End(tag_end) => {
-                let tag_end = TagEnd::from(tag_end);
-                Token::End(tag_end)
-            }
+            MarkEvent::Start(tag_start) => Token::Start(tag_start.into()),
+            MarkEvent::End(tag_end) => Token::End(tag_end.into()),
             MarkEvent::Text(text) => Token::Text(text.into()),
             MarkEvent::SoftBreak => Token::SoftBreak,
             MarkEvent::HardBreak => Token::HardBreak,
@@ -20,7 +14,7 @@ impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
             MarkEvent::Rule => Token::Rule,
             MarkEvent::InlineMath(text) => Token::InlineMath(text.into()),
             MarkEvent::DisplayMath(text) => Token::DisplayMath(text.into()),
-            _ => todo!("{event:?}"),
+            _ => todo!("{event:?}"), // Потом доделаю!
         }
     }
 }

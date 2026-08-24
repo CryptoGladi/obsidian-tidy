@@ -113,11 +113,11 @@ mod tests {
     fn try_intercept<'input>(
         interceptor: &mut dyn Interceptor<'input>,
         source: &'input str,
-        current: (Token<'input>, Range<usize>),
+        current: &(Token<'input>, Range<usize>),
     ) -> InterceptResult<'input> {
         let adapter = create_adapter(source);
 
-        interceptor.try_intercept("dummy source", &mut Lookahead::new(adapter), &current)
+        interceptor.try_intercept("dummy source", &mut Lookahead::new(adapter), current)
     }
 
     #[test]
@@ -133,7 +133,7 @@ mod tests {
         let current = (dummy_token, dummy_range);
 
         let source = "dummy source";
-        let result = try_intercept(&mut tracing_interceptor, source, current);
+        let result = try_intercept(&mut tracing_interceptor, source, &current);
 
         assert!(result.is_some());
         let (replaced_token, replaced_range) = result.unwrap();
@@ -161,9 +161,9 @@ mod tests {
 
         let dummy_token = Token::Text(Cow::Borrowed("original"));
         let dummy_range = Range::from(0..8);
-        let current = (dummy_token, dummy_range.clone());
+        let current = (dummy_token, dummy_range);
 
-        let result = try_intercept(&mut tracing_interceptor, "Super test", current);
+        let result = try_intercept(&mut tracing_interceptor, "Super test", &current);
 
         assert!(result.is_none());
 
@@ -184,10 +184,10 @@ mod tests {
 
         let dummy_token = Token::Text(Cow::Borrowed("original"));
         let dummy_range = Range::from(0..8);
-        let current = (dummy_token, dummy_range.clone());
+        let current = (dummy_token, dummy_range);
 
         let source = "dummy source";
-        let result = try_intercept(&mut tracing_interceptor, source, current);
+        let result = try_intercept(&mut tracing_interceptor, source, &current);
 
         assert!(result.is_some());
 

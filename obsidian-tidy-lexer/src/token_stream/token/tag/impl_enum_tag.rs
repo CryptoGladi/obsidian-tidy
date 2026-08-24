@@ -126,7 +126,7 @@ mod tests {
             Item,
         }
 
-        /// Документация для TagEnd
+        /// Doc for [`TagEnd`]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum MyTagEnd { ... }
     }

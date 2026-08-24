@@ -7,6 +7,7 @@ pub use list_interceptor::ListInterceptor;
 use super::Token;
 use crate::token_stream::Lookahead;
 use crate::token_stream::markdown_lexer_adapter::MarkdownLexerAdapter as LexerAdapter;
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::range::Range;
 use derive_more::IsVariant;
@@ -23,6 +24,33 @@ pub trait Interceptor<'input> {
 }
 
 static_assertions::assert_obj_safe!(Interceptor);
+
+impl<'input, I: Interceptor<'input> + ?Sized> Interceptor<'input> for &mut I {
+    #[inline]
+    fn try_intercept(
+        &mut self,
+        source: &'input str,
+        lexer: &mut Lookahead<LexerAdapter<'input>>,
+        current: &(Token<'input>, Range<usize>),
+    ) -> InterceptResult<'input> {
+        Interceptor::try_intercept(&mut **self, source, lexer, current)
+    }
+}
+
+impl<'input, I: Interceptor<'input> + ?Sized> Interceptor<'input> for Box<I> {
+    #[inline]
+    fn try_intercept(
+        &mut self,
+        source: &'input str,
+        lexer: &mut Lookahead<LexerAdapter<'input>>,
+        current: &(Token<'input>, Range<usize>),
+    ) -> InterceptResult<'input> {
+        Interceptor::try_intercept(&mut **self, source, lexer, current)
+    }
+}
+
+static_assertions::assert_impl_all!(&mut dyn Interceptor<'static>: Interceptor<'static>);
+static_assertions::assert_impl_all!(Box<dyn Interceptor<'static>>: Interceptor<'static>);
 
 #[derive(Debug, Clone, PartialEq, Eq, IsVariant, strum::Display)]
 pub enum InterceptorEnum {
@@ -99,7 +127,7 @@ mod tests {
     #[test]
     fn vec_interceptor_empty() {
         let interceptors = vec_interceptor![];
-        assert!(interceptors.is_empty());
+        assert_eq!(interceptors, [] as [crate::InterceptorEnum; 0]);
     }
 
     #[test]
@@ -116,9 +144,9 @@ mod tests {
         let interceptor2 = CalloutInterceptor::new();
         let interceptor3 = CalloutInterceptor::new();
 
-        let interceptors = vec_interceptor![interceptor1, interceptor2, interceptor3];
+        let collection = vec_interceptor![interceptor1, interceptor2, interceptor3];
 
-        assert_eq!(interceptors.len(), 3);
+        assert_eq!(collection.len(), 3);
     }
 
     #[test]
@@ -127,12 +155,12 @@ mod tests {
         let interceptor2 = CalloutInterceptor::new();
         let interceptor3 = CalloutInterceptor::new();
 
-        let interceptors = vec_interceptor![
+        let collection = vec_interceptor![
             interceptor1,
             interceptor2,
             interceptor3, // trailing comma
         ];
 
-        assert_eq!(interceptors.len(), 3);
+        assert_eq!(collection.len(), 3);
     }
 }

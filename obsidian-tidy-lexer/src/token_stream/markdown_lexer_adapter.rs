@@ -37,16 +37,15 @@ mod tests {
         let lexer = MarkdownLexerBuilder::default().build("");
         let mut adapter = MarkdownLexerAdapter::new(lexer);
 
-        assert!(adapter.next().is_none())
+        assert!(adapter.next().is_none());
     }
 
     type AdapterWithRange<'input> = (Token<'input>, Range<usize>);
     type LexerWithRange<'input> = (MarkEvent<'input>, Range<usize>);
 
-    #[track_caller]
-    fn impl_eq_adapter_and_original<'input>(
-        markdown: &'input str,
-    ) -> Option<(AdapterWithRange<'input>, LexerWithRange<'input>)> {
+    fn impl_eq_adapter_and_original(
+        markdown: &str,
+    ) -> Option<(AdapterWithRange<'_>, LexerWithRange<'_>)> {
         let adapter = {
             let lexer = MarkdownLexerBuilder::default().build(markdown);
             MarkdownLexerAdapter::new(lexer)
@@ -79,10 +78,7 @@ mod tests {
 
         for markdown in markdowns {
             if let Some((token, adapter)) = impl_eq_adapter_and_original(markdown) {
-                panic!(
-                    "Error markdown: `{}`: token`{:?}`, adapter: `{:?}`",
-                    markdown, token, adapter
-                );
+                panic!("Error markdown: `{markdown}`: token`{token:?}`, adapter: `{adapter:?}`");
             }
         }
     }

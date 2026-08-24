@@ -92,7 +92,12 @@ impl<I> TokenStreamBuilder<I> {
 
     #[must_use]
     pub fn strict_markdown() -> Self {
-        Self::new().tables(true).tasklists(true).old_footnotes(true)
+        let lexer = MarkdownLexerBuilder::strict_markdown();
+
+        Self {
+            lexer,
+            ..Self::new()
+        }
     }
 
     #[must_use]

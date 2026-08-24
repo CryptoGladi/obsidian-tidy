@@ -1,6 +1,16 @@
 use alloc::collections::VecDeque;
 use core::mem::{ManuallyDrop, MaybeUninit};
 
+/// Disables the automatic rollback of peeked elements to the buffer.
+///
+/// When a `LookaheadGuard` is dropped normally, its peeked elements are
+/// returned to the buffer (rollback). Wrapping it in `NoRollback` prevents
+/// this behavior, allowing explicit control over the elements.
+///
+/// This is semantically equivalent to `ManuallyDrop`, but makes the intent
+/// clearer in the context of transactional lookahead operations.
+type NoRollback<T> = ManuallyDrop<T>;
+
 pub struct LookaheadGuard<'guard, I, const N: usize>
 where
     I: Iterator,
@@ -35,7 +45,7 @@ where
         T::IntoIter: DoubleEndedIterator,
     {
         let items = items.into_iter(); // If panic, then call drop
-        let mut this = ManuallyDrop::new(self);
+        let mut this = NoRollback::new(self);
 
         for item in &mut this.data {
             // SAFETY: all elements are initialized
@@ -65,7 +75,7 @@ where
         let mut items_iter = items.into_iter();
         let first = items_iter.next();
 
-        let mut this = ManuallyDrop::new(self);
+        let mut this = NoRollback::new(self);
 
         for item in &mut this.data {
             // SAFETY: all elements are initialized
@@ -86,10 +96,51 @@ where
     }
 
     pub fn commit_into(self) -> [I::Item; N] {
-        let this = ManuallyDrop::new(self);
+        let this = NoRollback::new(self);
 
         // SAFETY: all elements are initialized
         unsafe { core::ptr::read(this.data.as_ptr().cast::<[I::Item; N]>()) }
+    }
+
+    /// Commits the transaction, allows transforming the peeked elements,
+    /// and returns the first element of the result.
+    ///
+    /// The `transform` closure receives the N peeked elements (by value, no cloning!)
+    /// and returns a new sequence of items. The first item is returned to the caller,
+    /// and the remaining items are pushed to the buffer.
+    ///
+    /// # Panic Safety
+    ///
+    /// If `transform` panics, the N peeked elements are **lost** (dropped),
+    /// but the internal buffer remains valid. The `Lookahead` can continue
+    /// to work, but without these N elements.
+    ///
+    /// This behavior is consistent with other commit methods.
+    ///
+    /// # Example
+    /// ```ignore
+    /// guard.commit_with_peeked(|[a, b, c]| {
+    ///     vec![new_item, a, b, c]  // No cloning!
+    /// })
+    /// ```
+    pub fn commit_with_peeked<F>(self, transform: F) -> Option<I::Item>
+    where
+        F: FnOnce([I::Item; N]) -> alloc::vec::Vec<I::Item>,
+    {
+        let mut this = ManuallyDrop::new(self);
+
+        // SAFETY: all elements are initialized by peek_many
+        let peeked = unsafe { core::ptr::read(this.data.as_ptr().cast::<[I::Item; N]>()) };
+
+        let result = transform(peeked);
+        let mut iter = result.into_iter();
+        let first = iter.next();
+
+        for item in iter.rev() {
+            this.lookahead.buffer.push_front(item);
+        }
+
+        first
     }
 }
 
@@ -97,10 +148,15 @@ impl<I, const N: usize> Drop for LookaheadGuard<'_, I, N>
 where
     I: Iterator,
 {
+    /// Automatic rollback: returns all peeked elements back to the buffer.
+    ///
+    /// This is called when the guard is dropped without an explicit commit.
+    /// To prevent this behavior, wrap the guard in [`NoRollback`] before dropping.
     fn drop(&mut self) {
         for i in (0..N).rev() {
             unsafe {
                 // SAFETY: all elements are initialized
+                #[expect(clippy::indexing_slicing)]
                 let item =
                     core::mem::replace(&mut self.data[i], MaybeUninit::uninit()).assume_init();
 
@@ -141,6 +197,7 @@ where
     }
 
     #[expect(clippy::elidable_lifetime_names)]
+    #[expect(clippy::indexing_slicing)]
     pub fn peek_many<'guard, const N: usize>(
         &'guard mut self,
     ) -> Option<LookaheadGuard<'guard, I, N>> {
@@ -397,6 +454,46 @@ mod tests {
     }
 
     #[test]
+    fn commit_with_peeked() {
+        let source = vec!["A", "B", "C", "D"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<2>().unwrap();
+
+        let tokens = guard.data();
+        assert_eq!(tokens, &["A", "B"]);
+
+        let first = guard.commit_with_peeked(|[token1, token2]| vec!["F", "X", token1, token2]);
+
+        assert_eq!(first, Some("F"));
+
+        assert_eq!(lookahead.next(), Some("X"));
+        assert_eq!(lookahead.next(), Some("A"));
+        assert_eq!(lookahead.next(), Some("B"));
+    }
+
+    #[test]
+    fn commit_with_peeked_panic_safety() {
+        let source = vec!["A", "B", "C", "D"].into_iter();
+        let mut lookahead = Lookahead::new(source);
+
+        let guard = lookahead.peek_many::<2>().unwrap();
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            guard.commit_with_peeked(|_| {
+                panic!("test panic");
+            })
+        }));
+
+        assert!(result.is_err());
+
+        // The buffer is valid, but elements A and B are lost.
+        assert_eq!(lookahead.next(), Some("C"));
+        assert_eq!(lookahead.next(), Some("D"));
+        assert_eq!(lookahead.next(), None);
+    }
+
+    #[test]
     fn commit_into() {
         let source = vec!["A", "B", "C", "D", "E"].into_iter();
         let mut lookahead = Lookahead::new(source);
@@ -407,7 +504,7 @@ mod tests {
         assert_eq!(tokens[0], "A");
         assert_eq!(tokens[1], "B");
         assert_eq!(tokens[2], "C");
-        let cloned_tokens = tokens.clone();
+        let cloned_tokens = *tokens;
 
         let into_tokens = guard.commit_into();
         assert_eq!(cloned_tokens, into_tokens);
@@ -503,7 +600,7 @@ mod tests {
 
         {
             let guard1 = lookahead.peek_many::<3>().unwrap();
-            drop(guard1)
+            drop(guard1);
         }
 
         let guard2 = lookahead.peek_many::<1>().unwrap();
@@ -518,7 +615,7 @@ mod tests {
         let mut watchers = Vec::new();
 
         for i in 0..count {
-            let item = Rc::new(i as i32 * 10);
+            let item = Rc::new(i32::try_from(i).unwrap() * 10);
 
             watchers.push(Rc::clone(&item));
             items.push(item);

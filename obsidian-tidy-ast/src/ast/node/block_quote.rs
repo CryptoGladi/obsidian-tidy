@@ -18,25 +18,27 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
-    #[cfg_attr(miri, ignore)]
     fn ast() {
         let text = "# Define\n>My **super** quote";
         let document = Document::new(text);
         let ast = document.ast();
 
         assert!(ast.find(|node| node.kind().is_block_quote()).is_some());
+
+        #[cfg(not(miri))]
         insta::assert_json_snapshot!(ast);
     }
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
-    #[cfg_attr(miri, ignore)]
     fn nested_ast() {
         let text = "# Define\n>My **super** quote\n>> Quote by quote";
         let document = Document::new(text);
         let ast = document.ast();
 
         assert!(ast.find(|node| node.kind().is_block_quote()).is_some());
+
+        #[cfg(not(miri))]
         insta::assert_json_snapshot!(ast);
     }
 

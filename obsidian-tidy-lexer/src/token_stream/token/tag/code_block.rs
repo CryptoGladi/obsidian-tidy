@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CodeBlock<'input> {
-    pub fenced: Option<Cow<'input, str>>,
+    fenced: Option<Cow<'input, str>>,
 }
 
 impl<'input> From<pulldown_cmark::CodeBlockKind<'input>> for CodeBlock<'input> {
@@ -17,6 +17,12 @@ impl<'input> From<pulldown_cmark::CodeBlockKind<'input>> for CodeBlock<'input> {
     }
 }
 
+impl CodeBlock<'_> {
+    pub fn fenced(&self) -> Option<&str> {
+        self.fenced.as_ref().map(Cow::as_ref)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -26,24 +32,26 @@ mod tests {
 
     // --- Helpers ---
 
-    fn make_token_stream<'input>(
-        source: &'input str,
-    ) -> impl Iterator<Item = (Token<'input>, Range<usize>)> {
+    fn make_token_stream(source: &str) -> impl Iterator<Item = (Token<'_>, Range<usize>)> {
         TokenStreamBuilder::<InterceptorEnum>::new()
             .build(source)
             .with_tracing()
     }
 
-    fn collect_tokens<'input>(source: &'input str) -> Vec<(Token<'input>, Range<usize>)> {
-        make_token_stream(source).into_iter().collect()
+    fn collect_tokens(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
+        make_token_stream(source).collect()
     }
 
-    fn collect_code_blocks<'input>(source: &'input str) -> Vec<CodeBlock<'input>> {
+    fn collect_code_blocks(source: &str) -> Vec<CodeBlock<'_>> {
         let tokens = collect_tokens(source);
 
         tokens
             .into_iter()
-            .filter_map(|(token, _)| token.into_start().and_then(|tag| tag.into_code_block()))
+            .filter_map(|(token, _)| {
+                token
+                    .into_start()
+                    .and_then(super::super::Tag::into_code_block)
+            })
             .collect()
     }
 
@@ -55,7 +63,11 @@ mod tests {
         let tokens = collect_tokens(source);
         tokens
             .into_iter()
-            .filter(|(token, _)| token.as_end().is_some_and(|tag| tag.is_code_block()))
+            .filter(|(token, _)| {
+                token
+                    .as_end()
+                    .is_some_and(super::super::TagEnd::is_code_block)
+            })
             .count()
     }
 
@@ -129,7 +141,6 @@ mod tests {
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn fenced_code_block_with_complex_info_string() {
-        // pulldown-cmark сохраняет всю строку после ``` как есть
         let source = "```rust,ignore,should_panic\nfn main() {}\n```";
         let blocks = collect_code_blocks(source);
 

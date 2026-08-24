@@ -69,3 +69,69 @@ where
         Some(current)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::InterceptResult;
+    use std::sync::mpsc::{Receiver, Sender, channel};
+
+    struct DynMockInterceptor {
+        sender: Sender<i32>,
+        count: i32,
+    }
+
+    impl DynMockInterceptor {
+        fn new() -> (Self, Receiver<i32>) {
+            let (sender, receiver) = channel();
+
+            (Self { sender, count: 0 }, receiver)
+        }
+    }
+
+    impl<'input> Interceptor<'input> for DynMockInterceptor {
+        fn try_intercept(
+            &mut self,
+            _: &'input str,
+            _: &mut Lookahead<LexerAdapter<'input>>,
+            _: &(Token<'input>, Range<usize>),
+        ) -> InterceptResult<'input> {
+            self.count += 1;
+            self.sender.send(self.count).unwrap();
+
+            None
+        }
+    }
+
+    #[test]
+    fn dyn_check() {
+        let (mut mock, receiver) = DynMockInterceptor::new();
+        let dyn_mock_interceptor: &mut dyn Interceptor<'_> = &mut mock;
+
+        let mut stream = TokenStreamBuilder::new()
+            .add_interceptor(dyn_mock_interceptor)
+            .build("empty");
+
+        let _ = stream.next();
+        assert_eq!(receiver.try_recv(), Ok(1));
+
+        let _ = stream.next();
+        assert_eq!(receiver.try_recv(), Ok(2));
+    }
+
+    #[test]
+    fn boxed_check() {
+        let (mock, receiver) = DynMockInterceptor::new();
+        let boxed_mock_interceptor: Box<dyn Interceptor<'_>> = Box::new(mock);
+
+        let mut stream = TokenStreamBuilder::new()
+            .add_interceptor(boxed_mock_interceptor)
+            .build("empty");
+
+        let _ = stream.next();
+        assert_eq!(receiver.try_recv(), Ok(1));
+
+        let _ = stream.next();
+        assert_eq!(receiver.try_recv(), Ok(2));
+    }
+}

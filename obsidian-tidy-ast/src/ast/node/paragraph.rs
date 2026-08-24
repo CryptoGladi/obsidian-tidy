@@ -18,12 +18,13 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
-    #[cfg_attr(miri, ignore)]
     fn check_have_paragraph() {
         let document = Document::new("Super text");
         let ast = document.ast();
 
         assert!(ast.find(|node| node.kind().is_paragraph()).is_some());
+
+        #[cfg(not(miri))]
         insta::assert_json_snapshot!(ast);
     }
 

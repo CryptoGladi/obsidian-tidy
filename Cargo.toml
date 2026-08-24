@@ -77,6 +77,7 @@ undocumented_unsafe_blocks = "warn"
 needless_pass_by_value = "warn"
 missing_const_for_fn = "warn"
 or_fun_call = "warn"
+indexing_slicing = "warn"
 
 [lints]
 workspace = true
