@@ -103,7 +103,10 @@ impl MarkdownLexerBuilder {
     }
 
     #[must_use]
-    #[expect(clippy::elidable_lifetime_names, reason = "чтобы было более понятно")]
+    #[expect(
+        clippy::elidable_lifetime_names,
+        reason = "explicit 'input lifetime explicitly links MarkdownLexer validity to the source buffer"
+    )]
     pub fn build<'input>(self, text: &'input str) -> MarkdownLexer<'input> {
         MarkdownLexer::new(text, self.options)
     }

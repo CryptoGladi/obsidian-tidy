@@ -48,7 +48,7 @@ macro_rules! impl_enum_tag {
                 )*
             }
 
-            #[allow(dead_code)]
+            #[allow(dead_code, reason = "It is macros code")]
             impl<$( $a )?> $name_main<$( $a )?> {
                 $vis_main const fn to_end(&self) -> $name_end {
                     match self {

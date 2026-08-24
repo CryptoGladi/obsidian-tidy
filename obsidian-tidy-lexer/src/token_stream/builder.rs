@@ -107,7 +107,10 @@ impl<I> TokenStreamBuilder<I> {
     }
 
     #[must_use]
-    #[expect(clippy::elidable_lifetime_names, reason = "чтобы было более понятно")]
+    #[expect(
+        clippy::elidable_lifetime_names,
+        reason = "explicit 'input lifetime explicitly links TokenStream validity to the source buffer"
+    )]
     pub fn build<'input>(self, source: &'input str) -> TokenStream<'input, I> {
         let lexer = self.lexer.build(source);
 

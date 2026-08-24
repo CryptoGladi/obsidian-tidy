@@ -1,4 +1,4 @@
-use alloc::collections::VecDeque;
+use alloc::vec::Vec;
 use core::mem::{ManuallyDrop, MaybeUninit};
 
 /// Disables the automatic rollback of peeked elements to the buffer.
@@ -55,7 +55,7 @@ where
         }
 
         for item in items.rev() {
-            this.lookahead.buffer.push_front(item);
+            this.lookahead.buffer.push(item);
         }
     }
 
@@ -85,7 +85,7 @@ where
         }
 
         for item in items_iter.rev() {
-            this.lookahead.buffer.push_front(item);
+            this.lookahead.buffer.push(item);
         }
 
         first
@@ -137,7 +137,7 @@ where
         let first = iter.next();
 
         for item in iter.rev() {
-            this.lookahead.buffer.push_front(item);
+            this.lookahead.buffer.push(item);
         }
 
         first
@@ -156,11 +156,14 @@ where
         for i in (0..N).rev() {
             unsafe {
                 // SAFETY: all elements are initialized
-                #[expect(clippy::indexing_slicing)]
+                #[expect(
+                    clippy::indexing_slicing,
+                    reason = "Index `i` comes from `(0..N).rev()`, so it is guaranteed to be within array bounds"
+                )]
                 let item =
                     core::mem::replace(&mut self.data[i], MaybeUninit::uninit()).assume_init();
 
-                self.lookahead.buffer.push_front(item);
+                self.lookahead.buffer.push(item);
             }
         }
     }
@@ -177,7 +180,7 @@ where
     I: Iterator,
 {
     inner: I,
-    buffer: VecDeque<I::Item>,
+    buffer: Vec<I::Item>,
 }
 
 impl<I> Lookahead<I>
@@ -187,24 +190,33 @@ where
     pub const fn new(inner: I) -> Self {
         Self {
             inner,
-            buffer: VecDeque::new(),
+            buffer: Vec::new(),
         }
     }
 
-    #[expect(clippy::elidable_lifetime_names)]
+    #[expect(
+        clippy::elidable_lifetime_names,
+        reason = "Explicit `'guard` lifetime matches `peek_many` and emphasizes connection to the `Lookahead` borrow"
+    )]
     pub fn peek<'guard>(&'guard mut self) -> Option<LookaheadGuard<'guard, I, 1>> {
         self.peek_many::<1>()
     }
 
-    #[expect(clippy::elidable_lifetime_names)]
-    #[expect(clippy::indexing_slicing)]
+    #[expect(
+        clippy::elidable_lifetime_names,
+        reason = "Explicit `'guard` lifetime links the returned `LookaheadGuard` to the `Lookahead` borrow"
+    )]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "Index `i` is bound by `0..N` loop over an array of size `N`, making panic impossible"
+    )]
     pub fn peek_many<'guard, const N: usize>(
         &'guard mut self,
     ) -> Option<LookaheadGuard<'guard, I, N>> {
         let mut data: [MaybeUninit<I::Item>; N] = core::array::from_fn(|_| MaybeUninit::uninit());
 
         for i in 0..N {
-            if let Some(item) = self.buffer.pop_front() {
+            if let Some(item) = self.buffer.pop() {
                 data[i] = MaybeUninit::new(item);
             } else if let Some(item) = self.inner.next() {
                 data[i] = MaybeUninit::new(item);
@@ -215,7 +227,7 @@ where
                         let item =
                             core::mem::replace(&mut data[j], MaybeUninit::uninit()).assume_init();
 
-                        self.buffer.push_front(item);
+                        self.buffer.push(item);
                     }
                 }
 
@@ -234,7 +246,7 @@ where
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
-        if let Some(item) = self.buffer.pop_front() {
+        if let Some(item) = self.buffer.pop() {
             Some(item)
         } else {
             self.inner.next()

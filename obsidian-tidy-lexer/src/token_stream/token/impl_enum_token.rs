@@ -20,7 +20,7 @@ macro_rules! impl_enum_token {
                 )*
             }
 
-            #[allow(dead_code)]
+            #[allow(dead_code, reason = "It is macros code")]
             impl<$( $a )?> $name<$( $a )?> {
                 $(
                     $(

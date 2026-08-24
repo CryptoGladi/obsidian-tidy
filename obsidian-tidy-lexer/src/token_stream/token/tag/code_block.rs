@@ -1,7 +1,7 @@
 use alloc::borrow::Cow;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CodeBlock<'input> {
     fenced: Option<Cow<'input, str>>,
 }

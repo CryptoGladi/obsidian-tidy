@@ -1,9 +1,9 @@
 use alloc::borrow::Cow;
 use core::range::Range;
 use derive_more::IsVariant;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, IsVariant, Serialize, Deserialize)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, IsVariant)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum CalloutFoldable {
     /// `[!tip]+` — развёрнутый
     Expanded,
@@ -29,11 +29,12 @@ impl From<char> for CalloutFoldable {
 }
 
 /// Only for interceptor
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Callout<'input> {
     pub kind: Cow<'input, str>,
 
-    #[serde(with = "crate::__private::range_serde")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::__private::range_serde"))]
     pub header_offset: Range<usize>,
 
     pub foldable: CalloutFoldable,

@@ -1,5 +1,5 @@
 use super::{Tag, TagEnd, Token};
-use crate::{CodeBlock, Heading, HeadingLevel, List};
+use crate::{CodeBlock, Heading, HeadingLevel, List, TaskListMarker};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 
 impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
@@ -14,7 +14,12 @@ impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
             MarkEvent::Rule => Token::Rule,
             MarkEvent::InlineMath(text) => Token::InlineMath(text.into()),
             MarkEvent::DisplayMath(text) => Token::DisplayMath(text.into()),
-            _ => todo!("{event:?}"), // Потом доделаю!
+            MarkEvent::Html(text) => Token::Html(text.into()),
+            MarkEvent::InlineHtml(text) => Token::InlineHtml(text.into()),
+            MarkEvent::FootnoteReference(text) => Token::FootnoteReference(text.into()),
+            MarkEvent::TaskListMarker(is_done) => {
+                Token::TaskListMarker(TaskListMarker::new(is_done))
+            }
         }
     }
 }

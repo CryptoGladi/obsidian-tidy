@@ -5,8 +5,9 @@ edition = "2024"
 license = "MIT OR Apache-2.0"
 
 [features]
-default = ["tracing"]
+default = ["tracing", "serde"]
 tracing = ["dep:tracing"]
+serde = ["dep:serde"]
 
 [dependencies]
 # TODO ADD  cargo build -p obsidian-tidy-parser --target thumbv7m-none-eabi -Zbuild-std=core,alloc
@@ -15,7 +16,7 @@ tracing = ["dep:tracing"]
 pulldown-cmark = { git = "https://github.com/pulldown-cmark/pulldown-cmark", rev = "41bca7b3daf86358c32b6dc46aba50c926be5c8d", default-features = false, features = [
     "hashbrown",
 ] }
-serde = { workspace = true, features = ["derive", "alloc"] }
+serde = { workspace = true, optional = true, features = ["derive", "alloc"] }
 derive_more = { workspace = true, features = ["is_variant"] }
 strum = { workspace = true, features = ["derive"] }
 tracing = { workspace = true, optional = true }

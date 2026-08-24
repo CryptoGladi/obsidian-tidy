@@ -1,11 +1,10 @@
-use serde::{Deserialize, Serialize};
-
 /// Represents the specific marker or delimiter used to denote a list item in Markdown source.
 ///
 /// While Markdown renderers often treat `-`, `*`, and `+` as visually identical,
 /// preserving the exact delimiter is crucial for linters and formatters to maintain
 /// the original source code style and detect inconsistencies.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ListDelimiter {
     /// Unordered list marker using a hyphen/dash (`-`).
     Dash,
@@ -25,7 +24,8 @@ pub enum ListDelimiter {
 
 static_assertions::assert_impl_all!(ListDelimiter: Copy, Clone);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct List {
     /// The starting number for an ordered list (e.g., `1` in `1. Item`).
     /// Always `None` for unordered lists.
@@ -69,7 +69,10 @@ impl List {
     /// [`TokenStreamBuilder`]: crate::TokenStreamBuilder
     #[must_use]
     #[track_caller]
-    #[expect(clippy::expect_used)]
+    #[expect(
+        clippy::expect_used,
+        reason = "This is a panicking version of the API; for a safe alternative use `delimiter_opt`"
+    )]
     pub const fn delimiter(&self) -> ListDelimiter {
         self.delimiter.expect(
             "List delimiter is missing. \

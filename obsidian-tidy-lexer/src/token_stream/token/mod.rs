@@ -1,15 +1,17 @@
 mod adapter_pulldown_cmark;
 mod impl_enum_token;
 mod tag;
+mod task_list_marker;
 
 pub use tag::*;
+pub use task_list_marker::TaskListMarker;
 
 use alloc::borrow::Cow;
 use impl_enum_token::impl_enum_token;
-use serde::{Deserialize, Serialize};
 
 impl_enum_token! {
-    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[non_exhaustive]
     pub enum Token<'input> {
         Start(Tag<'input>),
@@ -17,6 +19,7 @@ impl_enum_token! {
 
         Text(Cow<'input, str>),
         Code(Cow<'input, str>),
+        FootnoteReference(Cow<'input, str>),
 
         SoftBreak,
         HardBreak,
@@ -24,7 +27,11 @@ impl_enum_token! {
         InlineMath(Cow<'input, str>),
         DisplayMath(Cow<'input, str>),
 
+        Html(Cow<'input, str>),
+        InlineHtml(Cow<'input, str>),
+
         Rule,
+        TaskListMarker(TaskListMarker)
     }
 }
 
