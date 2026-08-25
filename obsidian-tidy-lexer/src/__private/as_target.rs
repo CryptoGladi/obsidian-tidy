@@ -101,6 +101,14 @@ impl<T> AsRefTarget for Vec<T> {
     }
 }
 
+impl<T, const N: usize> AsRefTarget for [T; N] {
+    type Target = [T; N];
+
+    fn as_target_ref(&self) -> &Self::Target {
+        self
+    }
+}
+
 impl<'b, T: ?Sized> AsRefTarget for &'b T {
     type Target = T;
 
@@ -204,6 +212,14 @@ impl<T> AsMutTarget for Vec<T> {
 
     fn as_target_mut(&mut self) -> &mut Self::Target {
         self.as_mut_slice()
+    }
+}
+
+impl<T, const N: usize> AsMutTarget for [T; N] {
+    type Target = [T; N];
+
+    fn as_target_mut(&mut self) -> &mut Self::Target {
+        self
     }
 }
 
