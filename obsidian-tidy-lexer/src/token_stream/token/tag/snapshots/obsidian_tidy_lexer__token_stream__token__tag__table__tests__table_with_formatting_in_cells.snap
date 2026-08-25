@@ -1,0 +1,246 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/table.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Table": {
+          "alignments": [
+            "None"
+          ]
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 58
+    }
+  ],
+  [
+    {
+      "Start": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Text": "Header"
+    },
+    {
+      "start": 2,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "End": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 22,
+      "end": 35
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 23,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "Start": "Strong"
+    },
+    {
+      "start": 24,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Text": "bold"
+    },
+    {
+      "start": 26,
+      "end": 30
+    }
+  ],
+  [
+    {
+      "End": "Strong"
+    },
+    {
+      "start": 24,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 23,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 22,
+      "end": 35
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 35,
+      "end": 48
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 36,
+      "end": 46
+    }
+  ],
+  [
+    {
+      "Start": "Emphasis"
+    },
+    {
+      "start": 37,
+      "end": 45
+    }
+  ],
+  [
+    {
+      "Text": "italic"
+    },
+    {
+      "start": 38,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "End": "Emphasis"
+    },
+    {
+      "start": 37,
+      "end": 45
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 36,
+      "end": 46
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 35,
+      "end": 48
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 48,
+      "end": 58
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 49,
+      "end": 57
+    }
+  ],
+  [
+    {
+      "Code": "code"
+    },
+    {
+      "start": 50,
+      "end": 56
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 49,
+      "end": 57
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 48,
+      "end": 58
+    }
+  ],
+  [
+    {
+      "End": "Table"
+    },
+    {
+      "start": 0,
+      "end": 58
+    }
+  ]
+]

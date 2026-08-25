@@ -1,0 +1,175 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/table.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Table": {
+          "alignments": [
+            "None",
+            "None"
+          ]
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 71
+    }
+  ],
+  [
+    {
+      "Start": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 24
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": "Header 1"
+    },
+    {
+      "start": 2,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 12,
+      "end": 22
+    }
+  ],
+  [
+    {
+      "Text": "Header 2"
+    },
+    {
+      "start": 13,
+      "end": 21
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 12,
+      "end": 22
+    }
+  ],
+  [
+    {
+      "End": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 24
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 48,
+      "end": 71
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 49,
+      "end": 59
+    }
+  ],
+  [
+    {
+      "Text": "Cell 1"
+    },
+    {
+      "start": 50,
+      "end": 56
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 49,
+      "end": 59
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 60,
+      "end": 70
+    }
+  ],
+  [
+    {
+      "Text": "Cell 2"
+    },
+    {
+      "start": 61,
+      "end": 67
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 60,
+      "end": 70
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 48,
+      "end": 71
+    }
+  ],
+  [
+    {
+      "End": "Table"
+    },
+    {
+      "start": 0,
+      "end": 71
+    }
+  ]
+]

@@ -1,0 +1,87 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/mod.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 53
+    }
+  ],
+  [
+    {
+      "Start": "Subscript"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": "subscript"
+    },
+    {
+      "start": 1,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "End": "Subscript"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": " "
+    },
+    {
+      "start": 11,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "Start": "Strikethrough"
+    },
+    {
+      "start": 12,
+      "end": 53
+    }
+  ],
+  [
+    {
+      "Text": "if also enabled this is strikethrough"
+    },
+    {
+      "start": 14,
+      "end": 51
+    }
+  ],
+  [
+    {
+      "End": "Strikethrough"
+    },
+    {
+      "start": 12,
+      "end": 53
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 53
+    }
+  ]
+]

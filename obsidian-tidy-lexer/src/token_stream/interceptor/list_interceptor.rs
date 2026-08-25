@@ -29,7 +29,7 @@ impl core::fmt::Display for ListInterceptor {
 #[inline(never)]
 fn warn_delimiter_already_exists() {
     #[cfg(feature = "tracing")]
-    tracing::warn!("{MESSAGE_DELIMITER_ALREADY_EXISTS}");
+    tracing::error!("{MESSAGE_DELIMITER_ALREADY_EXISTS}");
 
     debug_assert!(false, "{MESSAGE_DELIMITER_ALREADY_EXISTS}");
 }

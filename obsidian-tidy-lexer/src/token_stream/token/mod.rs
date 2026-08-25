@@ -31,7 +31,10 @@ impl_enum_token! {
         InlineHtml(Cow<'input, str>),
 
         Rule,
-        TaskListMarker(TaskListMarker)
+        TaskListMarker(TaskListMarker),
+
+        InlineLink,
+        Refe
     }
 }
 

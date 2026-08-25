@@ -1,5 +1,5 @@
 use super::{Tag, TagEnd, Token};
-use crate::{CodeBlock, Heading, HeadingLevel, List, TaskListMarker};
+use crate::{CodeBlock, Heading, HeadingLevel, List, Table, TaskListMarker};
 use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
 
 impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
@@ -28,32 +28,29 @@ impl<'input> From<pulldown_cmark::Tag<'input>> for Tag<'input> {
     fn from(tag: pulldown_cmark::Tag<'input>) -> Self {
         match tag {
             MarkTag::Paragraph => Tag::Paragraph,
-            MarkTag::Heading { level, .. } => {
-                let level = HeadingLevel::from(level);
-                let heading = Heading::new(level);
-
-                Tag::Heading(heading)
-            }
-            MarkTag::CodeBlock(block) => {
-                let code_block = CodeBlock::from(block);
-
-                Tag::CodeBlock(code_block)
-            }
+            MarkTag::Heading { level, .. } => Tag::Heading(Heading::new(HeadingLevel::from(level))),
+            MarkTag::CodeBlock(block) => Tag::CodeBlock(CodeBlock::from(block)),
             MarkTag::BlockQuote(quote) => {
-                // Мы отключили эту опцию!
+                // We have disabled this option!
                 debug_assert!(quote.is_none());
 
                 Tag::BlockQuote
             }
             MarkTag::Strong => Tag::Strong,
             MarkTag::Emphasis => Tag::Emphasis,
-            MarkTag::List(number_item) => {
-                let list = List::new(number_item);
-
-                Tag::List(list)
-            }
+            MarkTag::Strikethrough => Tag::Strikethrough,
+            MarkTag::List(number_item) => Tag::List(List::new(number_item)),
             MarkTag::Item => Tag::Item,
             MarkTag::HtmlBlock => Tag::HtmlBlock,
+            MarkTag::DefinitionList => Tag::DefinitionList,
+            MarkTag::DefinitionListTitle => Tag::DefinitionListTitle,
+            MarkTag::DefinitionListDefinition => Tag::DefinitionListDefinition,
+            MarkTag::Table(alignmant) => Tag::Table(Table::from(alignmant)),
+            MarkTag::TableHead => Tag::TableHead,
+            MarkTag::TableRow => Tag::TableRow,
+            MarkTag::TableCell => Tag::TableCell,
+            MarkTag::Superscript => Tag::Superscript,
+            MarkTag::Subscript => Tag::Subscript,
             _ => todo!("{tag:?}"),
         }
     }
@@ -73,9 +70,19 @@ impl From<pulldown_cmark::TagEnd> for TagEnd {
             }
             MarkTagEnd::Strong => TagEnd::Strong,
             MarkTagEnd::Emphasis => TagEnd::Emphasis,
+            MarkTagEnd::Strikethrough => TagEnd::Strikethrough,
             MarkTagEnd::List(_) => TagEnd::List,
             MarkTagEnd::Item => TagEnd::Item,
             MarkTagEnd::HtmlBlock => TagEnd::HtmlBlock,
+            MarkTagEnd::DefinitionList => TagEnd::DefinitionList,
+            MarkTagEnd::DefinitionListTitle => TagEnd::DefinitionListTitle,
+            MarkTagEnd::DefinitionListDefinition => TagEnd::DefinitionListDefinition,
+            MarkTagEnd::Table => TagEnd::Table,
+            MarkTagEnd::TableHead => TagEnd::TableHead,
+            MarkTagEnd::TableRow => TagEnd::TableRow,
+            MarkTagEnd::TableCell => TagEnd::TableCell,
+            MarkTagEnd::Superscript => TagEnd::Superscript,
+            MarkTagEnd::Subscript => TagEnd::Subscript,
             _ => todo!("{tag_end:?}"),
         }
     }

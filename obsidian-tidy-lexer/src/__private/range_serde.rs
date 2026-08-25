@@ -59,7 +59,7 @@ mod tests {
     {
         pub fn new(start: T, end: T) -> Self {
             Self {
-                range: std::range::Range { start, end },
+                range: core::range::Range { start, end },
             }
         }
     }

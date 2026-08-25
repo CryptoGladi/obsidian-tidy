@@ -2,13 +2,17 @@ mod callout;
 mod code_block;
 mod heading;
 mod impl_enum_tag;
+mod links;
 mod list;
+mod table;
 
 pub use callout::{Callout, CalloutFoldable};
 pub use code_block::CodeBlock;
 pub use heading::{Heading, HeadingLevel};
 use impl_enum_tag::impl_enum_tag;
+pub use links::*;
 pub use list::{List, ListDelimiter};
+pub use table::{Alignment, Table};
 
 impl_enum_tag! {
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -21,11 +25,29 @@ impl_enum_tag! {
         BlockQuote,
         Callout(Callout<'input>),
         Strong,
+        Strikethrough,
         Emphasis,
         HtmlBlock,
 
         List(List),
-        Item
+        Item,
+
+        DefinitionList,
+        DefinitionListTitle,
+        DefinitionListDefinition,
+
+        Table(Table),
+        TableHead,
+        TableRow,
+        TableCell,
+
+        /// It is not supported in Obsidian
+        Superscript,
+
+        /// It is not supported in Obsidian
+        Subscript,
+
+        Link(Link<'input>)
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,3 +57,116 @@ impl_enum_tag! {
 }
 
 crate::__private::impl_as_target_self!(Tag<'_>, TagEnd);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{InterceptorEnum, Token, TokenStreamBuilder, TracingTokenStreamExt};
+    use core::range::Range;
+
+    macro_rules! assert_json_snapshot {
+        ($tokens:ident) => {{
+            let tokens: Vec<_> = $tokens
+                .into_iter()
+                .map(|(token, range)| (token, std::ops::Range::from(range)))
+                .collect();
+
+            insta::assert_json_snapshot!(tokens);
+        }};
+    }
+
+    fn token_stream(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
+        TokenStreamBuilder::<InterceptorEnum>::new()
+            .build(source)
+            .with_tracing()
+            .collect()
+    }
+
+    fn check_start<F>(tokens: &[(Token, Range<usize>)], predicate: F) -> bool
+    where
+        F: FnMut(&Tag) -> bool,
+    {
+        let mut predicate = predicate;
+
+        tokens
+            .iter()
+            .any(|(token, _)| token.as_start().map_or(false, &mut predicate))
+    }
+
+    fn check_end<F>(tokens: &[(Token, Range<usize>)], predicate: F) -> bool
+    where
+        F: FnMut(&TagEnd) -> bool,
+    {
+        let mut predicate = predicate;
+
+        tokens
+            .iter()
+            .any(|(token, _)| token.as_end().map_or(false, &mut predicate))
+    }
+
+    #[test]
+    #[cfg_attr(not(miri), tracing_test::traced_test)]
+    fn definition_list() {
+        let source = r#"title 1
+  : definition 1
+title 2
+  : definition 2"#;
+
+        let tokens = token_stream(source);
+
+        assert!(!tokens.is_empty());
+
+        assert!(check_start(&tokens, |start| start.is_definition_list()));
+        assert!(check_start(&tokens, |start| start.is_definition_list_title()));
+        assert!(check_start(&tokens, |start| start.is_definition_list_definition()));
+
+        assert!(check_end(&tokens, |end| end.is_definition_list()));
+        assert!(check_end(&tokens, |end| end.is_definition_list_title()));
+        assert!(check_end(&tokens, |end| end.is_definition_list_definition()));
+
+        #[cfg(not(miri))]
+        assert_json_snapshot!(tokens);
+    }
+
+    #[test]
+    fn strikethrough() {
+        // TODO
+        // Error in documentation pulldown-cmark
+        // <https://docs.rs/pulldown-cmark/latest/pulldown_cmark/enum.Tag.html#variant.Strikethrough>
+        let source = "Super ~~very~~ test";
+        let tokens = token_stream(source);
+
+        assert!(!tokens.is_empty());
+        assert!(check_start(&tokens, |start| start.is_strikethrough()));
+        assert!(check_end(&tokens, |end| end.is_strikethrough()));
+
+        #[cfg(not(miri))]
+        assert_json_snapshot!(tokens);
+    }
+
+    #[test]
+    fn superscript() {
+        let source = "f(x) = x^2^";
+        let tokens = token_stream(source);
+
+        assert!(!tokens.is_empty());
+        assert!(check_start(&tokens, |start| start.is_superscript()));
+        assert!(check_end(&tokens, |end| end.is_superscript()));
+
+        #[cfg(not(miri))]
+        assert_json_snapshot!(tokens);
+    }
+
+    #[test]
+    fn subscript() {
+        let source = "~subscript~ ~~if also enabled this is strikethrough~~";
+        let tokens = token_stream(source);
+
+        assert!(!tokens.is_empty());
+        assert!(check_start(&tokens, |start| start.is_subscript()));
+        assert!(check_end(&tokens, |end| end.is_subscript()));
+
+        #[cfg(not(miri))]
+        assert_json_snapshot!(tokens);
+    }
+}

@@ -1,0 +1,285 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/table.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Table": {
+          "alignments": [
+            "Left",
+            "Center",
+            "Right",
+            "None"
+          ]
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 98
+    }
+  ],
+  [
+    {
+      "Start": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Text": "Left"
+    },
+    {
+      "start": 2,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 8,
+      "end": 16
+    }
+  ],
+  [
+    {
+      "Text": "Center"
+    },
+    {
+      "start": 9,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 8,
+      "end": 16
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 17,
+      "end": 24
+    }
+  ],
+  [
+    {
+      "Text": "Right"
+    },
+    {
+      "start": 18,
+      "end": 23
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 17,
+      "end": 24
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 25,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "Text": "None"
+    },
+    {
+      "start": 26,
+      "end": 30
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 25,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "End": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 66,
+      "end": 98
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 67,
+      "end": 73
+    }
+  ],
+  [
+    {
+      "Text": "L"
+    },
+    {
+      "start": 68,
+      "end": 69
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 67,
+      "end": 73
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 74,
+      "end": 82
+    }
+  ],
+  [
+    {
+      "Text": "C"
+    },
+    {
+      "start": 75,
+      "end": 76
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 74,
+      "end": 82
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 83,
+      "end": 90
+    }
+  ],
+  [
+    {
+      "Text": "R"
+    },
+    {
+      "start": 84,
+      "end": 85
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 83,
+      "end": 90
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 91,
+      "end": 97
+    }
+  ],
+  [
+    {
+      "Text": "N"
+    },
+    {
+      "start": 92,
+      "end": 93
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 91,
+      "end": 97
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 66,
+      "end": 98
+    }
+  ],
+  [
+    {
+      "End": "Table"
+    },
+    {
+      "start": 0,
+      "end": 98
+    }
+  ]
+]

@@ -14,7 +14,7 @@ const MESSAGE_UNBALANCED_TAGS: &str =
 #[inline(never)]
 fn unbalanced_tags_fallback() -> Call {
     #[cfg(feature = "tracing")]
-    tracing::warn!("{MESSAGE_UNBALANCED_TAGS}");
+    tracing::error!("{MESSAGE_UNBALANCED_TAGS}");
 
     debug_assert!(false, "{MESSAGE_UNBALANCED_TAGS}");
 

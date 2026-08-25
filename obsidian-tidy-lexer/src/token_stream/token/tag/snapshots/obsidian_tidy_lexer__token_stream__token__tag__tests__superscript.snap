@@ -1,0 +1,60 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/mod.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": "f(x) = x"
+    },
+    {
+      "start": 0,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "Start": "Superscript"
+    },
+    {
+      "start": 8,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": "2"
+    },
+    {
+      "start": 9,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "End": "Superscript"
+    },
+    {
+      "start": 8,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ]
+]

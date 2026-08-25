@@ -1,0 +1,121 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/mod.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "DefinitionList"
+    },
+    {
+      "start": 0,
+      "end": 49
+    }
+  ],
+  [
+    {
+      "Start": "DefinitionListTitle"
+    },
+    {
+      "start": 0,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "Text": "title 1"
+    },
+    {
+      "start": 0,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "End": "DefinitionListTitle"
+    },
+    {
+      "start": 0,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "Start": "DefinitionListDefinition"
+    },
+    {
+      "start": 8,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "Text": "definition 1"
+    },
+    {
+      "start": 12,
+      "end": 24
+    }
+  ],
+  [
+    "SoftBreak",
+    {
+      "start": 24,
+      "end": 25
+    }
+  ],
+  [
+    {
+      "Text": "title 2"
+    },
+    {
+      "start": 25,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "End": "DefinitionListDefinition"
+    },
+    {
+      "start": 8,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "Start": "DefinitionListDefinition"
+    },
+    {
+      "start": 33,
+      "end": 49
+    }
+  ],
+  [
+    {
+      "Text": "definition 2"
+    },
+    {
+      "start": 37,
+      "end": 49
+    }
+  ],
+  [
+    {
+      "End": "DefinitionListDefinition"
+    },
+    {
+      "start": 33,
+      "end": 49
+    }
+  ],
+  [
+    {
+      "End": "DefinitionList"
+    },
+    {
+      "start": 0,
+      "end": 49
+    }
+  ]
+]
