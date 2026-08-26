@@ -11,11 +11,10 @@ use alloc::borrow::Cow;
 impl_enum! {
     #[derive(Debug, Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "serde", serde(bound(deserialize = "'input: 'de")))]
     pub enum Token<'input> {
         Start(Tag<'input>),
         End(TagEnd),
-
         Text(Cow<'input, str>),
         Code(Cow<'input, str>),
         FootnoteReference(Cow<'input, str>),

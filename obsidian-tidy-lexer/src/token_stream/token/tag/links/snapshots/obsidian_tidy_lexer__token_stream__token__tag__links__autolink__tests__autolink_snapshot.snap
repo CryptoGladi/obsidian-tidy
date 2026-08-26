@@ -1,0 +1,110 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/links/autolink.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 60
+    }
+  ],
+  [
+    {
+      "Text": "Visit "
+    },
+    {
+      "start": 0,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "Start": {
+        "Link": {
+          "Autolink": {
+            "url": "https://rust-lang.org",
+            "kind": "Uri"
+          }
+        }
+      }
+    },
+    {
+      "start": 6,
+      "end": 29
+    }
+  ],
+  [
+    {
+      "Text": "https://rust-lang.org"
+    },
+    {
+      "start": 7,
+      "end": 28
+    }
+  ],
+  [
+    {
+      "End": "Link"
+    },
+    {
+      "start": 6,
+      "end": 29
+    }
+  ],
+  [
+    {
+      "Text": " or email "
+    },
+    {
+      "start": 29,
+      "end": 39
+    }
+  ],
+  [
+    {
+      "Start": {
+        "Link": {
+          "Autolink": {
+            "url": "admin@rust-lang.org",
+            "kind": "Email"
+          }
+        }
+      }
+    },
+    {
+      "start": 39,
+      "end": 60
+    }
+  ],
+  [
+    {
+      "Text": "admin@rust-lang.org"
+    },
+    {
+      "start": 40,
+      "end": 59
+    }
+  ],
+  [
+    {
+      "End": "Link"
+    },
+    {
+      "start": 39,
+      "end": 60
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 60
+    }
+  ]
+]

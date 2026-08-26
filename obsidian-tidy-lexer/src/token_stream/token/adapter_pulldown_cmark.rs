@@ -1,7 +1,7 @@
 use super::{Tag, TagEnd, Token};
 use crate::{
-    Autolink, CodeBlock, Heading, HeadingLevel, InlineLink, Link, List, ReferenceLink, Table,
-    TaskListMarker, WikiLink,
+    Autolink, AutolinkKind, CodeBlock, Heading, HeadingLevel, InlineLink, Link, List,
+    ReferenceLink, Table, TaskListMarker, WikiLink,
 };
 use alloc::borrow::Cow;
 use pulldown_cmark::{
@@ -63,11 +63,11 @@ fn adapter_link<'input>(
         }),
         MarkLinkType::Autolink => Link::Autolink(Autolink {
             url: dest_url,
-            is_email: false,
+            kind: AutolinkKind::Uri,
         }),
         MarkLinkType::Email => Link::Autolink(Autolink {
             url: dest_url,
-            is_email: true,
+            kind: AutolinkKind::Email,
         }),
         MarkLinkType::WikiLink { has_pothole } => Link::WikiLink(WikiLink {
             destination: dest_url,

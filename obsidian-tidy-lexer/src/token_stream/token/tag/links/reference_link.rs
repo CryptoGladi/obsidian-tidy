@@ -13,7 +13,7 @@ pub struct ReferenceLink<'input> {
 }
 
 impl<'input> ReferenceLink<'input> {
-    pub fn reference(&'input self) -> &'input str {
+    pub fn reference(&self) -> &str {
         self.reference.as_ref()
     }
 
@@ -21,11 +21,11 @@ impl<'input> ReferenceLink<'input> {
         self.is_known
     }
 
-    pub fn destination(&'input self) -> Option<&'input str> {
+    pub fn destination(&self) -> Option<&str> {
         self.destination.as_ref().map(Cow::as_ref)
     }
 
-    pub fn title(&'input self) -> Option<&'input str> {
+    pub fn title(&self) -> Option<&str> {
         self.title.as_ref().map(Cow::as_ref)
     }
 }

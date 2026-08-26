@@ -8,11 +8,11 @@ pub struct InlineLink<'input> {
 }
 
 impl<'input> InlineLink<'input> {
-    pub fn destination(&'input self) -> &'input str {
+    pub fn destination(&self) -> &str {
         self.destination.as_ref()
     }
 
-    pub fn title(&'input self) -> Option<&'input str> {
+    pub fn title(&self) -> Option<&str> {
         self.title.as_ref().map(Cow::as_ref)
     }
 }
@@ -39,7 +39,9 @@ mod tests {
     }
 
     fn count_start_inline_links(source: &str) -> usize {
-        collect_inline_links(source).len()
+        make_token_stream(source)
+            .filter(|(token, _)| token.as_start().is_some_and(|tag| tag.is_inline_link()))
+            .count()
     }
 
     fn count_end_inline_links(source: &str) -> usize {

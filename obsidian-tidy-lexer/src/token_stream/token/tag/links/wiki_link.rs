@@ -13,7 +13,7 @@ pub struct WikiLink<'input> {
 }
 
 impl<'input> WikiLink<'input> {
-    pub fn destination(&'input self) -> &'input str {
+    pub fn destination(&self) -> &str {
         self.destination.as_ref()
     }
 

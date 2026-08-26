@@ -17,7 +17,7 @@ pub use table::{Alignment, Table};
 impl_enum_tag! {
     #[derive(Debug, Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "serde", serde(bound(deserialize = "'input: 'de")))]
     pub enum Tag<'input> {
         Paragraph,
         Heading(Heading),
@@ -52,7 +52,6 @@ impl_enum_tag! {
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-    #[non_exhaustive]
     pub enum TagEnd { ... }
 }
 
@@ -71,6 +70,26 @@ impl<'input> Tag<'input> {
 
     pub fn into_inline_link(self) -> Option<InlineLink<'input>> {
         if let Self::Link(Link::Inline(link)) = self {
+            return Some(link);
+        }
+
+        None
+    }
+
+    pub fn is_autolink(&self) -> bool {
+        matches!(self, Self::Link(Link::Autolink(_)))
+    }
+
+    pub fn as_autolink(&self) -> Option<&Autolink<'input>> {
+        if let Self::Link(Link::Autolink(link)) = self {
+            return Some(link);
+        }
+
+        None
+    }
+
+    pub fn into_autolink(self) -> Option<Autolink<'input>> {
+        if let Self::Link(Link::Autolink(link)) = self {
             return Some(link);
         }
 
