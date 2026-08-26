@@ -6,10 +6,10 @@ use alloc::borrow::Cow;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ReferenceLink<'input> {
-    reference: Cow<'input, str>,           // То, что написано в [ref]
-    is_known: bool,                        // Нашел ли pulldown-cmark определение этой ссылки
-    destination: Option<Cow<'input, str>>, // Разрешенный URL (если is_known = true)
-    title: Option<Cow<'input, str>>,       // Разрешенный title (если is_known = true)
+    pub(crate) reference: Cow<'input, str>, // То, что написано в [ref]
+    pub(crate) is_known: bool,              // Нашел ли pulldown-cmark определение этой ссылки
+    pub(crate) destination: Option<Cow<'input, str>>, // Разрешенный URL (если is_known = true)
+    pub(crate) title: Option<Cow<'input, str>>, // Разрешенный title (если is_known = true)
 }
 
 impl<'input> ReferenceLink<'input> {

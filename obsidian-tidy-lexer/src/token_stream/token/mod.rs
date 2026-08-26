@@ -1,15 +1,14 @@
 mod adapter_pulldown_cmark;
-mod impl_enum_token;
 mod tag;
 mod task_list_marker;
 
 pub use tag::*;
 pub use task_list_marker::TaskListMarker;
 
+use crate::__private::impl_enum;
 use alloc::borrow::Cow;
-use impl_enum_token::impl_enum_token;
 
-impl_enum_token! {
+impl_enum! {
     #[derive(Debug, Clone, PartialEq, Eq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[non_exhaustive]
@@ -31,10 +30,7 @@ impl_enum_token! {
         InlineHtml(Cow<'input, str>),
 
         Rule,
-        TaskListMarker(TaskListMarker),
-
-        InlineLink,
-        Refe
+        TaskListMarker(TaskListMarker)
     }
 }
 

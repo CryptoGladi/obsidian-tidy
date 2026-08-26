@@ -1,4 +1,4 @@
-macro_rules! impl_enum_token {
+macro_rules! impl_enum {
     {
         $( #[$meta_enum:meta] )*
         $vis:vis enum $name:ident $( <$a:lifetime> )? {
@@ -67,7 +67,7 @@ macro_rules! impl_enum_token {
     };
 }
 
-pub(super) use impl_enum_token;
+pub(crate) use impl_enum;
 
 #[cfg(test)]
 mod tests {
@@ -87,7 +87,7 @@ mod tests {
 
     crate::__private::impl_as_target_self!(Heading, CodeBlock<'_>, Callout<'_>, List);
 
-    impl_enum_token! {
+    impl_enum! {
         #[allow(dead_code)]
         #[derive(Debug, Clone, PartialEq, Serialize)]
         pub enum MyToken<'input> {

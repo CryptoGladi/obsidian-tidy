@@ -1,6 +1,80 @@
 use super::{Tag, TagEnd, Token};
-use crate::{CodeBlock, Heading, HeadingLevel, List, Table, TaskListMarker};
-use pulldown_cmark::{Event as MarkEvent, Tag as MarkTag, TagEnd as MarkTagEnd};
+use crate::{
+    Autolink, CodeBlock, Heading, HeadingLevel, InlineLink, Link, List, ReferenceLink, Table,
+    TaskListMarker, WikiLink,
+};
+use alloc::borrow::Cow;
+use pulldown_cmark::{
+    Event as MarkEvent, LinkType as MarkLinkType, Tag as MarkTag, TagEnd as MarkTagEnd,
+};
+
+fn adapter_link<'input>(
+    link: MarkLinkType,
+    dest_url: Cow<'input, str>,
+    title: Cow<'input, str>,
+    id: Cow<'input, str>,
+) -> Link<'input> {
+    #[cfg(feature = "tracing")]
+    tracing::warn!(?link, ?dest_url, ?title, ?id, "adapter_link");
+
+    let clean_title = (!title.is_empty()).then(|| title);
+    let clean_destination = (!dest_url.is_empty()).then(|| dest_url.clone());
+
+    match link {
+        MarkLinkType::Inline => Link::Inline(InlineLink {
+            destination: dest_url,
+            title: clean_title,
+        }),
+        MarkLinkType::Reference => Link::Reference(ReferenceLink {
+            reference: id,
+            is_known: true,
+            destination: clean_destination,
+            title: clean_title,
+        }),
+        MarkLinkType::ReferenceUnknown => Link::Reference(ReferenceLink {
+            reference: id,
+            is_known: false,
+            destination: None,
+            title: None,
+        }),
+        MarkLinkType::Collapsed => Link::Reference(ReferenceLink {
+            reference: id,
+            is_known: true,
+            destination: clean_destination,
+            title: clean_title,
+        }),
+        MarkLinkType::CollapsedUnknown => Link::Reference(ReferenceLink {
+            reference: id,
+            is_known: true,
+            destination: clean_destination,
+            title: clean_title,
+        }),
+        MarkLinkType::Shortcut => Link::Reference(ReferenceLink {
+            reference: id,
+            is_known: true,
+            destination: clean_destination,
+            title: clean_title,
+        }),
+        MarkLinkType::ShortcutUnknown => Link::Reference(ReferenceLink {
+            reference: id,
+            is_known: false,
+            destination: None,
+            title: None,
+        }),
+        MarkLinkType::Autolink => Link::Autolink(Autolink {
+            url: dest_url,
+            is_email: false,
+        }),
+        MarkLinkType::Email => Link::Autolink(Autolink {
+            url: dest_url,
+            is_email: true,
+        }),
+        MarkLinkType::WikiLink { has_pothole } => Link::WikiLink(WikiLink {
+            destination: dest_url,
+            has_pothole,
+        }),
+    }
+}
 
 impl<'input> From<pulldown_cmark::Event<'input>> for Token<'input> {
     fn from(event: pulldown_cmark::Event<'input>) -> Self {
@@ -51,6 +125,28 @@ impl<'input> From<pulldown_cmark::Tag<'input>> for Tag<'input> {
             MarkTag::TableCell => Tag::TableCell,
             MarkTag::Superscript => Tag::Superscript,
             MarkTag::Subscript => Tag::Subscript,
+            MarkTag::Link {
+                link_type,
+                dest_url,
+                title,
+                id,
+            } => Tag::Link(adapter_link(
+                link_type,
+                dest_url.into(),
+                title.into(),
+                id.into(),
+            )),
+            MarkTag::Image {
+                link_type,
+                dest_url,
+                title,
+                id,
+            } => Tag::Link(adapter_link(
+                link_type,
+                dest_url.into(),
+                title.into(),
+                id.into(),
+            )),
             _ => todo!("{tag:?}"),
         }
     }
@@ -83,6 +179,7 @@ impl From<pulldown_cmark::TagEnd> for TagEnd {
             MarkTagEnd::TableCell => TagEnd::TableCell,
             MarkTagEnd::Superscript => TagEnd::Superscript,
             MarkTagEnd::Subscript => TagEnd::Subscript,
+            MarkTagEnd::Link | MarkTagEnd::Image => TagEnd::Link,
             _ => todo!("{tag_end:?}"),
         }
     }

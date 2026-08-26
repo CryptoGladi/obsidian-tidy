@@ -56,6 +56,28 @@ impl_enum_tag! {
     pub enum TagEnd { ... }
 }
 
+impl<'input> Tag<'input> {
+    pub fn is_inline_link(&self) -> bool {
+        matches!(self, Self::Link(Link::Inline(_)))
+    }
+
+    pub fn as_inline_link(&self) -> Option<&InlineLink<'input>> {
+        if let Self::Link(Link::Inline(link)) = self {
+            return Some(link);
+        }
+
+        None
+    }
+
+    pub fn into_inline_link(self) -> Option<InlineLink<'input>> {
+        if let Self::Link(Link::Inline(link)) = self {
+            return Some(link);
+        }
+
+        None
+    }
+}
+
 crate::__private::impl_as_target_self!(Tag<'_>, TagEnd);
 
 #[cfg(test)]

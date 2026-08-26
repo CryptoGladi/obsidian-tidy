@@ -1,0 +1,85 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/links/inline_link.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "Start": {
+        "Link": {
+          "Inline": {
+            "destination": "https://example.com",
+            "title": "title"
+          }
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "Start": "Strong"
+    },
+    {
+      "start": 1,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Text": "bold"
+    },
+    {
+      "start": 3,
+      "end": 7
+    }
+  ],
+  [
+    {
+      "End": "Strong"
+    },
+    {
+      "start": 1,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Text": " link"
+    },
+    {
+      "start": 9,
+      "end": 14
+    }
+  ],
+  [
+    {
+      "End": "Link"
+    },
+    {
+      "start": 0,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 44
+    }
+  ]
+]
