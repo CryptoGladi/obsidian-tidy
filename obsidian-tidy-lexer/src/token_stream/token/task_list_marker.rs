@@ -23,8 +23,10 @@ mod tests {
     use super::*;
     use crate::prelude::{InterceptorEnum, TokenStreamBuilder, TracingTokenStreamExt};
 
+    // ⚠️ CRITICAL: Require `tasklists(true)`
     fn collect_task_markers(source: &str) -> Vec<TaskListMarker> {
         TokenStreamBuilder::<InterceptorEnum>::new()
+            .tasklists(true)
             .build(source)
             .with_tracing()
             .filter_map(|(token, _)| token.into_task_list_marker())

@@ -28,7 +28,9 @@ impl CodeBlock<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::{InterceptorEnum, Token, TokenStreamBuilder, TracingTokenStreamExt};
+    use crate::prelude::{
+        InterceptorEnum, Tag, TagEnd, Token, TokenStreamBuilder, TracingTokenStreamExt,
+    };
     use alloc::borrow::Cow;
     use core::range::Range;
 
@@ -49,11 +51,7 @@ mod tests {
 
         tokens
             .into_iter()
-            .filter_map(|(token, _)| {
-                token
-                    .into_start()
-                    .and_then(super::super::Tag::into_code_block)
-            })
+            .filter_map(|(token, _)| token.into_start().and_then(Tag::into_code_block))
             .collect()
     }
 
@@ -65,11 +63,7 @@ mod tests {
         let tokens = collect_tokens(source);
         tokens
             .into_iter()
-            .filter(|(token, _)| {
-                token
-                    .as_end()
-                    .is_some_and(super::super::TagEnd::is_code_block)
-            })
+            .filter(|(token, _)| token.as_end().is_some_and(TagEnd::is_code_block))
             .count()
     }
 

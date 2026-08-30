@@ -1,5 +1,6 @@
 mod callout;
 mod code_block;
+mod footnote_definition;
 mod heading;
 mod impl_enum_tag;
 mod links;
@@ -8,11 +9,13 @@ mod table;
 
 pub use callout::{Callout, CalloutFoldable};
 pub use code_block::CodeBlock;
+pub use footnote_definition::FootnoteDefinition;
 pub use heading::{Heading, HeadingLevel};
-use impl_enum_tag::impl_enum_tag;
 pub use links::*;
 pub use list::{List, ListDelimiter};
 pub use table::{Alignment, Table};
+
+use impl_enum_tag::impl_enum_tag;
 
 impl_enum_tag! {
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,6 +31,7 @@ impl_enum_tag! {
         Strikethrough,
         Emphasis,
         HtmlBlock,
+        FootnoteDefinition(FootnoteDefinition<'input>),
 
         List(List),
         Item,
@@ -116,13 +120,6 @@ mod tests {
         }};
     }
 
-    fn token_stream(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
-        TokenStreamBuilder::<InterceptorEnum>::new()
-            .build(source)
-            .with_tracing()
-            .collect()
-    }
-
     fn check_start<F>(tokens: &[(Token, Range<usize>)], predicate: F) -> bool
     where
         F: FnMut(&Tag) -> bool,
@@ -145,6 +142,7 @@ mod tests {
             .any(|(token, _)| token.as_end().map_or(false, &mut predicate))
     }
 
+    // ⚠️ CRITICAL: Definition list require `definition_list(true)`
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn definition_list() {
@@ -153,7 +151,11 @@ mod tests {
 title 2
   : definition 2"#;
 
-        let tokens = token_stream(source);
+        let tokens: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .definition_list(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         assert!(!tokens.is_empty());
 
@@ -169,13 +171,18 @@ title 2
         assert_json_snapshot!(tokens);
     }
 
+    // ⚠️ CRITICAL: Strikethrough require `strikethrough(true)`
     #[test]
     fn strikethrough() {
         // TODO
         // Error in documentation pulldown-cmark
         // <https://docs.rs/pulldown-cmark/latest/pulldown_cmark/enum.Tag.html#variant.Strikethrough>
         let source = "Super ~~very~~ test";
-        let tokens = token_stream(source);
+        let tokens: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .strikethrough(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         assert!(!tokens.is_empty());
         assert!(check_start(&tokens, |start| start.is_strikethrough()));
@@ -185,10 +192,15 @@ title 2
         assert_json_snapshot!(tokens);
     }
 
+    // ⚠️ CRITICAL: Require `superscript(true)`
     #[test]
     fn superscript() {
         let source = "f(x) = x^2^";
-        let tokens = token_stream(source);
+        let tokens: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .superscript(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         assert!(!tokens.is_empty());
         assert!(check_start(&tokens, |start| start.is_superscript()));
@@ -198,10 +210,15 @@ title 2
         assert_json_snapshot!(tokens);
     }
 
+    // ⚠️ CRITICAL: Require `subscript(true)`
     #[test]
     fn subscript() {
         let source = "~subscript~ ~~if also enabled this is strikethrough~~";
-        let tokens = token_stream(source);
+        let tokens: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .subscript(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         assert!(!tokens.is_empty());
         assert!(check_start(&tokens, |start| start.is_subscript()));

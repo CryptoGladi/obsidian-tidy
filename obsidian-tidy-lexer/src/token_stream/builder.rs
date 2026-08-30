@@ -24,7 +24,15 @@ impl<I> TokenStreamBuilder<I> {
     pub fn new() -> Self {
         Self {
             interceptors: Vec::new(),
-            lexer: MarkdownLexerBuilder::default(),
+            lexer: MarkdownLexerBuilder::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn all() -> Self {
+        Self {
+            interceptors: Vec::new(),
+            lexer: MarkdownLexerBuilder::all(),
         }
     }
 

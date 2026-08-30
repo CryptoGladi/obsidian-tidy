@@ -128,11 +128,16 @@ mod tests {
         assert_eq!(count, 1);
     }
 
+    // ⚠️ CRITICAL: Require `math(true)`
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn token_inline_math() {
         let source = "Formula $E=mc^2$ here";
-        let stream = token_stream(source);
+        let stream: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .math(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         let tokens: Vec<_> = stream
             .iter()
@@ -142,11 +147,16 @@ mod tests {
         assert_eq!(tokens, ["E=mc^2"]);
     }
 
+    // ⚠️ CRITICAL: Require `math(true)`
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn token_display_math() {
         let source = "Formula $$E=mc^2$$ here";
-        let stream = token_stream(source);
+        let stream: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .math(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         let tokens: Vec<_> = stream
             .iter()
@@ -195,11 +205,17 @@ mod tests {
         assert_eq!(count, 1);
     }
 
+    // ⚠️ CRITICAL: Footnotes require `old_footnotes(true)` to be parsed.
+    // Without this option, `[^1]: text` is treated as plain paragraph text
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn token_footnote_reference() {
         let source = "Text[^1] here";
-        let stream = token_stream(source);
+        let stream: Vec<_> = TokenStreamBuilder::<InterceptorEnum>::new()
+            .old_footnotes(true)
+            .build(source)
+            .with_tracing()
+            .collect();
 
         let tokens: Vec<_> = stream
             .iter()

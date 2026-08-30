@@ -1,7 +1,7 @@
 use super::{Tag, TagEnd, Token};
 use crate::{
-    Autolink, AutolinkKind, CodeBlock, Heading, HeadingLevel, InlineLink, Link, List,
-    ReferenceLink, Table, TaskListMarker, WikiLink,
+    Autolink, AutolinkKind, CodeBlock, FootnoteDefinition, Heading, HeadingLevel, InlineLink, Link,
+    List, ReferenceLink, Table, TaskListMarker, WikiLink,
 };
 use alloc::borrow::Cow;
 use pulldown_cmark::{
@@ -147,6 +147,9 @@ impl<'input> From<pulldown_cmark::Tag<'input>> for Tag<'input> {
                 title.into(),
                 id.into(),
             )),
+            MarkTag::FootnoteDefinition(text) => {
+                Tag::FootnoteDefinition(FootnoteDefinition { text: text.into() })
+            }
             _ => todo!("{tag:?}"),
         }
     }
@@ -180,6 +183,7 @@ impl From<pulldown_cmark::TagEnd> for TagEnd {
             MarkTagEnd::Superscript => TagEnd::Superscript,
             MarkTagEnd::Subscript => TagEnd::Subscript,
             MarkTagEnd::Link | MarkTagEnd::Image => TagEnd::Link,
+            MarkTagEnd::FootnoteDefinition => TagEnd::FootnoteDefinition,
             _ => todo!("{tag_end:?}"),
         }
     }

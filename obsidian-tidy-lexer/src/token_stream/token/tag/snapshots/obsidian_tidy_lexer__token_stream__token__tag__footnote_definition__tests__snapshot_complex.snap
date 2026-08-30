@@ -1,0 +1,228 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/footnote_definition.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Heading": {
+          "level": "H1"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": "Document"
+    },
+    {
+      "start": 2,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "End": "Heading"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 12,
+      "end": 47
+    }
+  ],
+  [
+    {
+      "Text": "Paragraph with"
+    },
+    {
+      "start": 12,
+      "end": 26
+    }
+  ],
+  [
+    {
+      "FootnoteReference": "note"
+    },
+    {
+      "start": 26,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "Text": " a reference."
+    },
+    {
+      "start": 33,
+      "end": 46
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 12,
+      "end": 47
+    }
+  ],
+  [
+    {
+      "Start": {
+        "FootnoteDefinition": {
+          "text": "note"
+        }
+      }
+    },
+    {
+      "start": 48,
+      "end": 105
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 57,
+      "end": 105
+    }
+  ],
+  [
+    {
+      "Text": "A "
+    },
+    {
+      "start": 57,
+      "end": 59
+    }
+  ],
+  [
+    {
+      "Start": "Strong"
+    },
+    {
+      "start": 59,
+      "end": 67
+    }
+  ],
+  [
+    {
+      "Text": "bold"
+    },
+    {
+      "start": 61,
+      "end": 65
+    }
+  ],
+  [
+    {
+      "End": "Strong"
+    },
+    {
+      "start": 59,
+      "end": 67
+    }
+  ],
+  [
+    {
+      "Text": " footnote with "
+    },
+    {
+      "start": 67,
+      "end": 82
+    }
+  ],
+  [
+    {
+      "Code": "code"
+    },
+    {
+      "start": 82,
+      "end": 88
+    }
+  ],
+  [
+    {
+      "Text": " and "
+    },
+    {
+      "start": 88,
+      "end": 93
+    }
+  ],
+  [
+    {
+      "Start": {
+        "Link": {
+          "Inline": {
+            "destination": "url",
+            "title": null
+          }
+        }
+      }
+    },
+    {
+      "start": 93,
+      "end": 104
+    }
+  ],
+  [
+    {
+      "Text": "link"
+    },
+    {
+      "start": 94,
+      "end": 98
+    }
+  ],
+  [
+    {
+      "End": "Link"
+    },
+    {
+      "start": 93,
+      "end": 104
+    }
+  ],
+  [
+    {
+      "Text": "."
+    },
+    {
+      "start": 104,
+      "end": 105
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 57,
+      "end": 105
+    }
+  ],
+  [
+    {
+      "End": "FootnoteDefinition"
+    },
+    {
+      "start": 48,
+      "end": 105
+    }
+  ]
+]

@@ -1,0 +1,100 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/footnote_definition.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "Text": "Text"
+    },
+    {
+      "start": 0,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "FootnoteReference": "1"
+    },
+    {
+      "start": 4,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "Text": " here."
+    },
+    {
+      "start": 8,
+      "end": 14
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "Start": {
+        "FootnoteDefinition": {
+          "text": "1"
+        }
+      }
+    },
+    {
+      "start": 16,
+      "end": 39
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 22,
+      "end": 39
+    }
+  ],
+  [
+    {
+      "Text": "Footnote content."
+    },
+    {
+      "start": 22,
+      "end": 39
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 22,
+      "end": 39
+    }
+  ],
+  [
+    {
+      "End": "FootnoteDefinition"
+    },
+    {
+      "start": 16,
+      "end": 39
+    }
+  ]
+]

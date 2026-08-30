@@ -69,8 +69,10 @@ mod tests {
         }};
     }
 
+    // ⚠️ CRITICAL: Tables require `tables(true)` to be parsed
     fn token_stream(source: &str) -> Vec<(Token<'_>, Range<usize>)> {
         TokenStreamBuilder::<InterceptorEnum>::new()
+            .tables(true)
             .build(source)
             .with_tracing()
             .collect()

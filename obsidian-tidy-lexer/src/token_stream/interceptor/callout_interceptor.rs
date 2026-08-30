@@ -357,7 +357,7 @@ mod tests {
 
             assert_eq!(
                 intercepted,
-                Some((Token::End(TagEnd::BlockQuote), 0..0)),
+                Some((Token::End(TagEnd::BlockQuote), (0..0).into())),
                 "Should fallback to BlockQuote end token gracefully"
             );
         }

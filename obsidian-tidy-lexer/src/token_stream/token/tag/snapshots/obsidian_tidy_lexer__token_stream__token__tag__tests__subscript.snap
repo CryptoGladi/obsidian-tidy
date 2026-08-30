@@ -50,25 +50,7 @@ expression: tokens
   ],
   [
     {
-      "Start": "Strikethrough"
-    },
-    {
-      "start": 12,
-      "end": 53
-    }
-  ],
-  [
-    {
-      "Text": "if also enabled this is strikethrough"
-    },
-    {
-      "start": 14,
-      "end": 51
-    }
-  ],
-  [
-    {
-      "End": "Strikethrough"
+      "Text": "~~if also enabled this is strikethrough~~"
     },
     {
       "start": 12,
