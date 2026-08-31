@@ -1,7 +1,5 @@
 use super::Tag;
-use obsidian_tidy_lexer::{Heading, HeadingLevel};
-
-// TODO
+pub use obsidian_tidy_lexer::{Heading, HeadingLevel};
 
 impl Tag<'_, Heading> {
     #[must_use]

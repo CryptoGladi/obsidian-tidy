@@ -4,8 +4,8 @@ pub mod stack;
 use alloc::vec::Vec;
 use core::range::Range;
 use node::{
-    BlockQuote, Callout, CodeBlock, Emphasis, HtmlBlock, Item, List, Node, NodeKind, Paragraph,
-    Root, Strong, Tag,
+    BlockQuote, CodeBlock, Emphasis, HtmlBlock, Item, List, Node, NodeKind, Paragraph, Root,
+    Strong, Tag,
 };
 use obsidian_tidy_lexer::{Tag as TokenTag, TagEnd, Token};
 use stack::{Frame, Stack};
@@ -60,10 +60,10 @@ where
                 stack.push_parent(Node::new(NodeKind::BlockQuote(tag), offset));
             }
             TokenTag::Callout(callout) => {
-                let callout = Callout::from(callout);
-                let tag = Tag::new(callout, children);
+                //let callout = Callout::from(callout);
+                //let tag = Tag::new(callout, children);
 
-                stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
+                //stack.push_parent(Node::new(NodeKind::Callout(tag), offset));
             }
             TokenTag::CodeBlock(code_block) => {
                 let code_block = CodeBlock::from(code_block);
@@ -175,16 +175,15 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use obsidian_tidy_lexer::{InterceptorEnum, TokenStream};
+    use obsidian_tidy_lexer::{InterceptorEnum, TokenStreamBuilder};
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
     fn empty() {
         let document = "";
-        let lexer = MarkdownLexerBuilder::default().build(document);
-        let token_stream = TokenStream::<InterceptorEnum>::new(document, lexer, []);
+        let stream = TokenStreamBuilder::<InterceptorEnum>::new().build(document);
 
-        let ast = token_stream.build_ast();
+        let ast = stream.build_ast();
 
         let children = ast.as_root().unwrap().children();
         assert!(children.is_empty());

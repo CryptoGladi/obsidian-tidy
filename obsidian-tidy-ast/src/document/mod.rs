@@ -1,5 +1,6 @@
-use crate::prelude::{ASTBuildExt, Node, TokenStream, TokenStreamBuilder};
+use crate::prelude::{ASTBuildExt, Node};
 use alloc::string::String;
+use obsidian_tidy_lexer::{TokenStream, TokenStreamBuilder};
 use ouroboros::self_referencing;
 
 #[cfg(not(feature = "no_std"))]

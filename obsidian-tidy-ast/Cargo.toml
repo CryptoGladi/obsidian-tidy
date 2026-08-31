@@ -10,7 +10,7 @@ no_std = ["dep:spin"]
 tracing = ["dep:tracing"]
 
 [dependencies]
-obsidian-tidy-lexer.workspace = true
+obsidian-tidy-lexer = { workspace = true, features = ["serde"] }
 tracing = { workspace = true, optional = true, features = ["attributes"] }
 derive_more = { workspace = true, features = ["is_variant"] }
 pastey.workspace = true

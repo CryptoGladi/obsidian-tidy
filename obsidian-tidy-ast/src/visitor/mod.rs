@@ -3,8 +3,9 @@ mod macros;
 
 pub use fold::{Fold, FoldVisitorExt};
 
-use crate::ast::node::{CodeBlock, Emphasis, HtmlBlock, Item, List};
-use crate::prelude::{BlockQuote, Callout, Heading, Node, Paragraph, Root, Strong};
+use crate::prelude::{
+    BlockQuote, CodeBlock, Emphasis, Heading, HtmlBlock, Item, List, Node, Paragraph, Root, Strong,
+};
 use macros::define_visitor;
 
 define_visitor! {
@@ -15,7 +16,7 @@ define_visitor! {
         Strong: Strong,
         Emphasis: Emphasis,
         BlockQuote: BlockQuote,
-        Callout: Callout,
+        //Callout: Callout,
         CodeBlock: CodeBlock,
         HtmlBlock: HtmlBlock,
         List: List,

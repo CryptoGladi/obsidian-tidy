@@ -1,9 +1,6 @@
 mod kind;
 
-use crate::{
-    prelude::{Node, NodeKind, Tag},
-    token_stream::token::CalloutFoldable,
-};
+use crate::prelude::{Node, NodeKind, Tag};
 use alloc::borrow::Cow;
 use alloc::string::ToString;
 use core::range::Range;

@@ -1,5 +1,5 @@
 ---
-source: obsidian-tidy-parser/src/ast/node/paragraph.rs
+source: obsidian-tidy-ast/src/ast/node/paragraph.rs
 expression: ast
 ---
 {

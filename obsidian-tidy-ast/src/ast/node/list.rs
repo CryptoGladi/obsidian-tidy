@@ -1,38 +1,15 @@
 use super::{Item, Tag};
-use obsidian_tidy_lexer::{List as TokenList, ListDelimiter};
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct List {
-    pub start_number: Option<u64>,
-    pub delimiter: Option<ListDelimiter>,
-}
-
-impl From<TokenList> for List {
-    fn from(value: TokenList) -> Self {
-        // TODO использовать это везде, чтобы точно не забыть указать новые поля
-        // При обновлении версий
-        let TokenList {
-            start_number,
-            delimiter,
-        } = value;
-
-        Self {
-            start_number,
-            delimiter,
-        }
-    }
-}
+pub use obsidian_tidy_lexer::{List, ListDelimiter};
 
 impl<'ast> Tag<'ast, List> {
     #[must_use]
     pub const fn start_number(&self) -> Option<u64> {
-        self.kind.start_number
+        self.kind.start_number()
     }
 
     #[must_use]
     pub const fn delimiter(&self) -> Option<ListDelimiter> {
-        self.kind.delimiter
+        self.kind.delimiter_opt()
     }
 
     pub fn items(&'ast self) -> impl Iterator<Item = &'ast Tag<'ast, Item>> {

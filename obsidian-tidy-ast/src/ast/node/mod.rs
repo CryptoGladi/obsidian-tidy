@@ -1,5 +1,5 @@
 mod block_quote;
-pub mod callout;
+//pub mod callout;
 mod code_block;
 mod emphasis;
 mod heading;
@@ -14,7 +14,7 @@ mod strong;
 mod text_content;
 
 pub use block_quote::BlockQuote;
-pub use callout::Callout;
+//pub use callout::Callout;
 pub use code_block::CodeBlock;
 pub use emphasis::Emphasis;
 pub use heading::Heading;
@@ -31,7 +31,6 @@ use alloc::borrow::Cow;
 use alloc::boxed::Box;
 use core::range::Range;
 use derive_more::IsVariant;
-use obsidian_tidy_lexer::Heading;
 use serde::{Deserialize, Serialize};
 use strum::Display;
 
@@ -63,7 +62,7 @@ pub enum NodeKind<'ast> {
     Strong(Tag<'ast, Strong>),
     Emphasis(Tag<'ast, Emphasis>),
     BlockQuote(Tag<'ast, BlockQuote>),
-    Callout(Tag<'ast, Callout<'ast>>),
+    //Callout(Tag<'ast, Callout<'ast>>),
     HtmlBlock(Tag<'ast, HtmlBlock>),
     CodeBlock(Tag<'ast, CodeBlock<'ast>>),
     List(Tag<'ast, List>),
