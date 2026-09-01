@@ -1,14 +1,18 @@
+mod footnote_index;
+
+pub use footnote_index::{FootnoteIndex, FootnoteIndexExt};
+
 use alloc::borrow::Cow;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FootnoteDefinition<'input> {
-    pub(crate) text: Cow<'input, str>,
+    pub(crate) label: Cow<'input, str>,
 }
 
 impl FootnoteDefinition<'_> {
-    pub fn text(&self) -> &str {
-        self.text.as_ref()
+    pub fn label(&self) -> &str {
+        self.label.as_ref()
     }
 }
 
@@ -85,7 +89,7 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "1");
+        assert_eq!(definitions[0].label(), "1");
         assert_balanced(source);
     }
 
@@ -96,7 +100,7 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "note");
+        assert_eq!(definitions[0].label(), "note");
         assert_balanced(source);
     }
 
@@ -109,9 +113,9 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 3);
-        assert_eq!(definitions[0].text(), "1");
-        assert_eq!(definitions[1].text(), "2");
-        assert_eq!(definitions[2].text(), "3");
+        assert_eq!(definitions[0].label(), "1");
+        assert_eq!(definitions[1].label(), "2");
+        assert_eq!(definitions[2].label(), "3");
         assert_balanced(source);
     }
 
@@ -124,7 +128,7 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "long");
+        assert_eq!(definitions[0].label(), "long");
         assert_balanced(source);
     }
 
@@ -135,7 +139,7 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "fmt");
+        assert_eq!(definitions[0].label(), "fmt");
         assert_balanced(source);
 
         // Verify that formatting tokens are present inside the footnote
@@ -168,7 +172,7 @@ mod tests {
 
         assert!(has_code);
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "code");
+        assert_eq!(definitions[0].label(), "code");
         assert_balanced(source);
     }
 
@@ -179,7 +183,7 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "link");
+        assert_eq!(definitions[0].label(), "link");
         assert_balanced(source);
     }
 
@@ -232,7 +236,7 @@ mod tests {
         let definitions = collect_footnote_definitions(source);
 
         assert_eq!(definitions.len(), 1);
-        assert_eq!(definitions[0].text(), "1");
+        assert_eq!(definitions[0].label(), "1");
         assert_balanced(source);
 
         // Verify that the reference token is also present
@@ -304,7 +308,7 @@ Paragraph with[^note] a reference.
                 "Should parse exactly one footnote definition: source = `{}`", source
             );
             prop_assert_eq!(
-                definitions[0].text(), label.as_str(),
+                definitions[0].label(), label.as_str(),
                 "Label mismatch: source = `{}`", source
             );
 

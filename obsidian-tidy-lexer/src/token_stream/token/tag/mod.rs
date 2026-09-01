@@ -9,7 +9,7 @@ mod table;
 
 pub use callout::{Callout, CalloutFoldable};
 pub use code_block::CodeBlock;
-pub use footnote_definition::FootnoteDefinition;
+pub use footnote_definition::*;
 pub use heading::{Heading, HeadingLevel};
 pub use links::*;
 pub use list::{List, ListDelimiter};

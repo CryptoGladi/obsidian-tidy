@@ -1,0 +1,55 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/footnote_definition/footnote_index.rs
+expression: slice
+---
+[
+  [
+    {
+      "Start": {
+        "FootnoteDefinition": {
+          "label": "1"
+        }
+      }
+    },
+    {
+      "start": 28,
+      "end": 57
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 34,
+      "end": 57
+    }
+  ],
+  [
+    {
+      "Text": "This is the definition."
+    },
+    {
+      "start": 34,
+      "end": 57
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 34,
+      "end": 57
+    }
+  ],
+  [
+    {
+      "End": "FootnoteDefinition"
+    },
+    {
+      "start": 28,
+      "end": 57
+    }
+  ]
+]

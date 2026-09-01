@@ -148,7 +148,7 @@ impl<'input> From<pulldown_cmark::Tag<'input>> for Tag<'input> {
                 id.into(),
             )),
             MarkTag::FootnoteDefinition(text) => {
-                Tag::FootnoteDefinition(FootnoteDefinition { text: text.into() })
+                Tag::FootnoteDefinition(FootnoteDefinition { label: text.into() })
             }
             _ => todo!("{tag:?}"),
         }

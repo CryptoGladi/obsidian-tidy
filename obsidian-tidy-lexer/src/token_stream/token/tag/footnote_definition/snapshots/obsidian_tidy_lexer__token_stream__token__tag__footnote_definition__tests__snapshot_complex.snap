@@ -1,5 +1,5 @@
 ---
-source: obsidian-tidy-lexer/src/token_stream/token/tag/footnote_definition.rs
+source: obsidian-tidy-lexer/src/token_stream/token/tag/footnote_definition/mod.rs
 expression: tokens
 ---
 [
@@ -83,7 +83,7 @@ expression: tokens
     {
       "Start": {
         "FootnoteDefinition": {
-          "text": "note"
+          "label": "note"
         }
       }
     },
