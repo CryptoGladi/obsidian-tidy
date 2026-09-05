@@ -52,15 +52,9 @@ fn detect_delimiter(source: &str, start: usize) -> Option<ListDelimiter> {
         // That's why detect_delimiter uses b'0'..=b'9' instead of b'1'..=b'9':
         // if we excluded '0', then "05. text" would not be recognized as a list.
         b'0'..=b'9' => {
-            let mut i = start;
+            let end = bytes[start..].iter().find(|c| !c.is_ascii_digit())?;
 
-            while let Some(current) = bytes.get(i)
-                && current.is_ascii_digit()
-            {
-                i += 1;
-            }
-
-            match bytes.get(i)? {
+            match end {
                 b'.' => Some(ListDelimiter::Period),
                 b')' => Some(ListDelimiter::OneParen),
                 _ => None,

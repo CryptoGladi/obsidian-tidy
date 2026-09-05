@@ -264,6 +264,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg_attr(miri, ignore)]
     fn snapshot_simple() {
         let source = "Text[^1] here.
 
@@ -274,6 +275,7 @@ mod tests {
 
     #[test]
     #[cfg_attr(not(miri), tracing_test::traced_test)]
+    #[cfg_attr(miri, ignore)]
     fn snapshot_complex() {
         let source = "# Document
 

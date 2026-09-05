@@ -251,10 +251,13 @@ mod tests {
         let meta = index.definition_meta("1").unwrap();
         assert_eq!(meta.label(), "1");
 
+        #[cfg(not(miri))]
         assert_footnote_snapshot!(index, "1");
         //assert_eq!(
         //    &index.full_slice_by_label("1").unwrap()[1..2],
         //    index.content_by_label("1").unwrap()
         //);
     }
+
+    // TODO
 }
