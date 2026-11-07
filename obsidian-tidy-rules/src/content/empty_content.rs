@@ -1,45 +1,39 @@
 //! Rule for search notes with empty content
 
 use obsidian_parser::note::Note as _;
-use obsidian_tidy_core::rule::violation::{Error as ViolationError, Violation};
-use obsidian_tidy_core::rule::{Category, Content, Rule};
-use obsidian_tidy_core::{Note, NoteError};
+use obsidian_tidy_core::{
+    Note, NoteError,
+    prelude::RuleRunner,
+    rule::{Content, Violation},
+};
+use obsidian_tidy_macros::Rule;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::{instrument, trace};
+use tracing::instrument;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Rule, Default, Deserialize, Serialize, Debug)]
+#[rule_metadata(
+     name = "empty-content",
+     description = "Rule for search notes with empty content",
+     category = Category::Content,
+     default
+ )]
+#[serde(deny_unknown_fields)]
 pub struct EmptyContent;
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Error from parser: `{0}`")]
     Parser(#[from] NoteError),
-
-    #[error("Failed create violation: `{0}`")]
-    Violation(#[from] ViolationError),
 }
 
-impl Rule for EmptyContent {
+impl RuleRunner for EmptyContent {
     type Error = self::Error;
-
-    fn name(&self) -> &'static str {
-        "empty-content"
-    }
-
-    fn description(&self) -> &'static str {
-        "Rule for search notes with empty content"
-    }
-
-    fn category(&self) -> Category {
-        Category::Content
-    }
 
     #[instrument(skip(_content))]
     fn check(&self, _content: &Content, note: &Note) -> Result<Vec<Violation>, Self::Error> {
-        trace!("Run check `EmptyContent`");
-
         if note.count_words_from_content()? == 0 {
-            let violation = Violation::new("Note is empty", 1..=1)?;
+            let violation = Violation::new("Note is empty", ..);
             return Ok(vec![violation]);
         }
 

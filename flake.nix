@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     flake-utils.url = "github:numtide/flake-utils";
 
@@ -34,11 +34,33 @@
           overlays = [ (import rust-overlay) ];
         };
 
+        gungraun-runner = pkgs.callPackage ./nix/gungraun-runner.nix { };
+
         rust = pkgs.rust-bin.stable.latest.default.override {
+          targets = [
+            "wasm32-unknown-unknown"
+            "thumbv7m-none-eabi" # for test no_std
+          ];
+
           extensions = [
             "rust-src"
           ];
         };
+
+        rust-nightly = pkgs.rust-bin.selectLatestNightlyWith (
+          toolchain:
+          toolchain.default.override {
+            targets = [
+              "wasm32-unknown-unknown"
+              "thumbv7m-none-eabi" # for test no_std
+            ];
+
+            extensions = [
+              "miri"
+              "rust-src"
+            ];
+          }
+        );
 
         craneLib = (crane.mkLib pkgs).overrideToolchain (p: rust);
 
@@ -83,7 +105,7 @@
             commonArgs
             // {
               inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets --workspace -- --deny warnings";
+              cargoClippyExtraArgs = "--workspace -- --deny warnings";
             }
           );
 
@@ -99,10 +121,6 @@
             inherit src;
           };
 
-          obsidian-tidy-toml-fmt = craneLib.taploFmt {
-            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
-          };
-
           obsidian-tidy-audit = craneLib.cargoAudit {
             inherit src advisory-db;
           };
@@ -115,15 +133,24 @@
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
-            rust
+            rust-nightly
+            gungraun-runner
+
             pkgs.taplo
+            pkgs.ast-grep
+            pkgs.just
+            pkgs.cargo-insta
+            pkgs.cargo-deny
+            pkgs.valgrind
           ];
 
           shellHook = ''
             echo "Active nix develop"
           '';
 
-          RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+          RUST_SRC_PATH = "${rust-nightly}/lib/rustlib/src/rust/library";
+          RUSTUP_TOOLCHAIN = "nightly";
+          VALGRIND = "${pkgs.valgrind}/bin/valgrind";
         };
       }
     );

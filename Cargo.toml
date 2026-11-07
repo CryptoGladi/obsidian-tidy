@@ -2,62 +2,92 @@
 name = "obsidian-tidy"
 version = "0.1.0"
 edition = "2024"
-authors = ["CryptoGladi <dam.almaev@gmail.com> "]
+authors = ["CryptoGladi <dam.almaev@gmail.com>"]
 description = "Blazingly fast Obsidian vault linter"
 repository = "https://github.com/CryptoGladi/obsidian-tidy"
 documentation = "https://docs.rs/obsidian-tidy/latest/obsidian_tidy"
-license = "MIT"
+license = "GPL-3.0-or-later"
 keywords = ["obsidian", "vault", "linter", "tidy", "knowledge-graph", "graph"]
 categories = ["parser-implementations", "data-structures"]
+
+[profile.bench]
+debug = true
 
 [workspace]
 members = [
   "obsidian-tidy-core",
   "obsidian-tidy-rules",
-  "obsidian-tidy-logging",
+  "obsidian-tidy-logger",
   "obsidian-tidy-cli",
   "obsidian-tidy-config",
+  "obsidian-tidy-macros",
+  "obsidian-tidy-lexer",
+  "obsidian-tidy-ast",
 ]
 
 [workspace.dependencies]
-obsidian-tidy-logging = { path = "./obsidian-tidy-logging" }
+obsidian-tidy-logger = { path = "./obsidian-tidy-logger" }
 obsidian-tidy-core = { path = "./obsidian-tidy-core" }
 obsidian-tidy-rules = { path = "./obsidian-tidy-rules" }
 obsidian-tidy-config = { path = "./obsidian-tidy-config" }
 obsidian-tidy-cli = { path = "./obsidian-tidy-cli" }
-tracing = "0.1"
+obsidian-tidy-macros = { path = "./obsidian-tidy-macros" }
+obsidian-tidy-lexer = { path = "./obsidian-tidy-lexer", default-features = false }
+obsidian-tidy-ast = { path = "./obsidian-tidy-ast", default-features = false }
+tokio = { version = "1.52", features = ["macros", "rt-multi-thread"] }
+futures = "0.3"
+tracing = { version = "0.1", default-features = false }
 obsidian-parser = { version = "0.9", features = ["petgraph", "rayon"] }
-serde = { version = "1", features = ["derive"] }
-thiserror = "2"
-toml = "0.9"
-tracing-test = "0.2"
-itertools = "0.14"
+serde = { version = "1", default-features = false }
+thiserror = { version = "2", default-features = false }
+serde_json = { version = "1.0", default-features = false }
+tracing-test = { version = "0.2", default-features = false }
+itertools = { version = "0.14", default-features = false }
 clap = { version = "4.5", features = ["env", "derive", "unicode", "string"] }
 rayon = "1.11"
-tracing-subscriber = "0.3"
-
-[workspace.lints.rust]
-unsafe_code = "forbid"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "ansi"] }
+erased-serde = { version = "0.4", default-features = false }
+proptest = "1.11"
+tempfile = "3.25"
+strum = { version = "0.28", default-features = false }
+derive_more = { version = "2", default-features = false }
+miette = { version = "7.6", features = ["fancy", "syntect-highlighter"] }
+serial_test = "3.4"
+gag = "1"
+insta = { version = "1.47", features = ["json"] }
+criterion = { version = "0.8", features = ["html_reports"] }
+static_assertions = "1.1"
+dhat = "0.3"
+inventory = "0.3"
+gungraun = "0.19"
+pastey = "0.2"
+ouroboros = "0.18"
 
 [workspace.lints.rustdoc]
 broken_intra_doc_links = "deny"
+private_intra_doc_links = "allow"
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }
-panic = "deny"
+unwrap_used = "deny"
+allow_attributes_without_reason = "deny"
+panic = "warn"
+expect_used = "warn"
 missing_errors_doc = "allow"
 undocumented_unsafe_blocks = "warn"
 needless_pass_by_value = "warn"
 missing_const_for_fn = "warn"
+or_fun_call = "warn"
+indexing_slicing = "warn"
 
 [lints]
 workspace = true
 
 [dependencies]
-obsidian-tidy-logging.workspace = true
+obsidian-tidy-logger.workspace = true
 obsidian-tidy-core.workspace = true
 obsidian-tidy-cli.workspace = true
 tracing.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-color-eyre = "0.6"
+miette.workspace = true

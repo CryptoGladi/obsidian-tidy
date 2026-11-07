@@ -1,0 +1,83 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/interceptor/list_interceptor.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "List": {
+          "start_number": null,
+          "delimiter": "Dash"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "Start": "Item"
+    },
+    {
+      "start": 0,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Text": "Item 1"
+    },
+    {
+      "start": 2,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "End": "Item"
+    },
+    {
+      "start": 0,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Start": "Item"
+    },
+    {
+      "start": 9,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "Text": "Item 2"
+    },
+    {
+      "start": 11,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "End": "Item"
+    },
+    {
+      "start": 9,
+      "end": 17
+    }
+  ],
+  [
+    {
+      "End": "List"
+    },
+    {
+      "start": 0,
+      "end": 17
+    }
+  ]
+]

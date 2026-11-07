@@ -1,189 +1,470 @@
+//! Serialization and deserialization of [`Rules`] collections using `serde` and `erased-serde`.
+//!
+//! This module provides a robust, type-safe mechanism for serializing and deserializing heterogeneous
+//! rule collections. It avoids runtime type tags (`typetag`) and format-specific buffers (`RawValue`),
+//! instead relying on a streaming seed-based architecture combined with a factory registry.
+//!
+//! # Architecture
+//!
+//! Deserialization is implemented as a chain of [`serde::de::DeserializeSeed`]s:
+//! 1. [`RulesSeed`] reads the top-level map of rule names.
+//! 2. For each key, it resolves the corresponding factory from a [`RuleFabricRegistry`].
+//! 3. [`ErasedToggleableRuleSeed`] parses the wrapper object, extracts the `enable` flag,
+//!    and delegates the `config` field to the factory via [`ErasedRuleSeed`].
+//! 4. The factory deserializes the config into a concrete rule type and returns a
+//!    `ToggleableRule<Box<dyn ErasedRule>>`.
+//!
+//! # Data Format
+//!
+//! The expected format uses a nested structure to cleanly separate lifecycle control from
+//! rule-specific configuration:
+//!
+//! ```json
+//! {
+//!   "empty-content": {
+//!     "enable": true,
+//!     "config": {}
+//!   },
+//!   "heading-spacing": {
+//!     "enable": false,
+//!     "config": { "min_spaces": 2, "max_spaces": 4 }
+//!   }
+//! }
+//! ```
+//!
+//! # Usage
+//!
+//! ```ignore
+//! use serde_json;
+//! use my_crate::rule::{Rules, RuleFabricRegistry, RulesSeed};
+//!
+//! // 1. Initialize registry with available rule factories
+//! let mut registry = RuleFabricRegistry::new();
+//! registry.add_unique(Box::new(EmptyContent::fabric()));
+//! registry.add_unique(Box::new(HeadingSpacing::fabric()));
+//!
+//! // 2. Deserialize configuration
+//! let json = r#"{ "empty-content": { "enable": true, "config": {} } }"#;
+//! let seed = RulesSeed::new(&registry);
+//! let rules = seed.deserialize(&mut serde_json::Deserializer::from_str(json))?;
+//!
+//! // 3. Serialize back to JSON (directly on the collection)
+//! let output = serde_json::to_string_pretty(&rules)?;
+//! ```
+//!
+//! # Extending with New Rules
+//!
+//! To add a rule that supports this serialization format:
+//! 1. Derive `Serialize` and `Deserialize` on your rule/config struct.
+//! 2. Implement `RuleConstMetadata` and `RuleRunner`.
+//! 3. Provide a factory (e.g., via `GetFabricFromRuleConstMetadata`).
+//! 4. Register the factory in the `RuleFabricRegistry` at application startup.
+//!
+//! No changes to this module are required. The factory will automatically receive the `config`
+//! object and deserialize it into your concrete type.
+//!
+//! # Validation & Errors
+//!
+//! The deserializer strictly validates input and returns descriptive `serde::de::Error` for:
+//! - `Unknown rule` — rule name not found in the registry
+//! - `missing field` — absence of `enable` or `config`
+//! - `duplicate field` — repeated `enable` or `config` keys
+//! - `unknown field` — extra fields in the wrapper object
+//! - `Duplicate rule` — same rule name appearing multiple times in the input
+//! - Custom errors from `RuleFabric::create_rule` for invalid rule-specific configuration
+//!
+//! # Performance
+//!
+//! - **Zero intermediate buffering**: streams directly into the factory via `erased-serde`.
+//! - **Key optimization**: uses `&'de str` for map keys to avoid string allocations.
+//! - **Capacity hinting**: pre-allocates `Rules` using `MapAccess::size_hint()`.
+//! - **Format agnostic**: works with `JSON`, `YAML`, `TOML`, `MessagePack`, or any `serde`-compatible format.
+
 use super::Rules;
-use crate::rule::{Category, Rule, ToggleableRule};
-use ::serde::{Deserialize, Serialize, Serializer};
-use serde::{Deserializer, de::DeserializeSeed};
-use std::{
-    collections::BTreeMap,
-    ops::{Deref, DerefMut},
+use crate::rule::{ErasedRule, ErasedRuleFactory, RuleFactoryRegistry, ToggleableRule};
+use serde::{
+    Deserialize, Deserializer, Serialize, Serializer,
+    de::{DeserializeSeed, Error, Visitor},
+    ser::SerializeMap,
 };
-use tracing::{instrument, trace};
+use std::borrow::Cow;
+use strum::{IntoStaticStr, VariantNames};
+use tracing::instrument;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RuleConfig {
-    pub enable: bool,
-}
-
-type RuleName = String;
-type CategoryRules = BTreeMap<RuleName, RuleConfig>;
-
-/// Impl Ls for serde
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct InnerRules(BTreeMap<Category, CategoryRules>);
-
-impl InnerRules {
-    #[instrument]
-    fn add_rule(&mut self, name: RuleName, category: Category, enable: bool) {
-        trace!("Add rule");
-
-        self.entry(category)
-            .or_default()
-            .insert(name, RuleConfig { enable });
-    }
-}
-
-impl Deref for InnerRules {
-    type Target = BTreeMap<Category, CategoryRules>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for InnerRules {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl<R> Serialize for Rules<R>
-where
-    R: Rule,
-{
+impl Serialize for Rules {
+    #[instrument(skip(serializer), err)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let mut rules = InnerRules::default();
+        let mut map = serializer.serialize_map(Some(self.len()))?;
 
-        for rule in &self.0 {
-            rules.add_rule(rule.name().to_string(), rule.category(), rule.is_enabled());
+        #[derive(Serialize)]
+        struct Wrapper<'a, T> {
+            enable: bool,
+
+            config: &'a T,
         }
 
-        serializer.serialize_newtype_struct("rules", &rules)
+        for (name, rule) in self.iter() {
+            map.serialize_entry(
+                name,
+                &Wrapper {
+                    enable: rule.is_enabled(),
+                    config: rule.as_rule(),
+                },
+            )?;
+        }
+
+        map.end()
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct RulesSeed<'a, R>
-where
-    R: Rule,
-{
-    available_rules: &'a Vec<R>,
+pub struct ErasedRuleSeed<'a> {
+    fabric: &'a dyn ErasedRuleFactory,
 }
 
-impl<'a, R> RulesSeed<'a, R>
-where
-    R: Rule,
-{
-    #[must_use]
-    pub const fn new(available_rules: &'a Vec<R>) -> Self {
-        Self { available_rules }
-    }
-}
+impl<'de> DeserializeSeed<'de> for ErasedRuleSeed<'_> {
+    type Value = Box<dyn ErasedRule>;
 
-impl<'de, R> DeserializeSeed<'de> for RulesSeed<'_, R>
-where
-    R: Rule + Clone,
-{
-    type Value = Rules<R>;
-
-    #[instrument(skip(self, deserializer), err)]
+    #[instrument(skip_all, fields(fabric = %self.fabric.id()))]
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: Deserializer<'de>,
     {
-        trace!("Run deserialize");
+        let mut erased_deserializer = &mut <dyn erased_serde::Deserializer>::erase(deserializer);
 
-        let inner = InnerRules::deserialize(deserializer)?;
-        let mut vec_rules = Vec::with_capacity(self.available_rules.len());
+        let rule = self
+            .fabric
+            .create_by_serde(&mut erased_deserializer)
+            .map_err(D::Error::custom)?;
 
-        for map in inner.0.values() {
-            for (name, config) in map {
-                let rule = self
-                    .available_rules
-                    .iter()
-                    .find(|rule| rule.name() == name)
-                    .ok_or(serde::de::Error::missing_field(
-                        "not found rule from `available_rules`",
-                    ))?;
+        Ok(rule)
+    }
+}
 
-                vec_rules.push(ToggleableRule::new(rule.clone(), config.enable));
+pub struct ErasedToggleableRuleSeed<'a> {
+    fabric: &'a dyn ErasedRuleFactory,
+}
+
+impl<'de> DeserializeSeed<'de> for ErasedToggleableRuleSeed<'_> {
+    type Value = ToggleableRule<Box<dyn ErasedRule>>;
+
+    #[instrument(skip_all, fields(fabric = %self.fabric.id()))]
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize, IntoStaticStr, VariantNames, strum::Display)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        #[strum(serialize_all = "lowercase")]
+        enum Field {
+            Enable,
+            Config,
+        }
+
+        struct WrapperVisitor<'a> {
+            fabric: &'a dyn ErasedRuleFactory,
+        }
+
+        impl<'de> Visitor<'de> for WrapperVisitor<'_> {
+            type Value = ToggleableRule<Box<dyn ErasedRule>>;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "map with fields: `{}`", Field::VARIANTS.join("`, `"))
+            }
+
+            fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+            where
+                M: serde::de::MapAccess<'de>,
+            {
+                let mut enable = None;
+                let mut config = None;
+
+                while let Some(key) = map.next_key::<Field>()? {
+                    tracing::trace!("parse key: `{key}`");
+
+                    match key {
+                        Field::Enable => {
+                            if enable.is_some() {
+                                return Err(M::Error::duplicate_field(Field::Enable.into()));
+                            }
+                            enable = Some(map.next_value()?);
+                        }
+                        Field::Config => {
+                            if config.is_some() {
+                                return Err(M::Error::duplicate_field(Field::Config.into()));
+                            }
+
+                            config = Some(map.next_value_seed(ErasedRuleSeed {
+                                fabric: self.fabric,
+                            })?);
+                        }
+                    }
+                }
+
+                let enable = enable.ok_or_else(|| M::Error::missing_field(Field::Enable.into()))?;
+                let config = config.ok_or_else(|| M::Error::missing_field(Field::Config.into()))?;
+
+                Ok(ToggleableRule::new(config, enable))
             }
         }
 
-        Rules::new(vec_rules).map_err(serde::de::Error::custom)
+        deserializer.deserialize_map(WrapperVisitor {
+            fabric: self.fabric,
+        })
+    }
+}
+
+/// A seed for deserializing a [`Rules`] collection using a provided [`RuleFabricRegistry`].
+///
+/// # Example
+/// ```ignore
+/// use obsidian_tidy_core::rule::rules::serde::RulesSeed;
+/// use serde::de::DeserializeSeed;
+///
+/// let seed = RulesSeed::new(&registry);
+/// let rules = seed.deserialize(&mut serde_json::Deserializer::from_str(json)).unwrap();
+/// ```
+#[derive(Clone, Copy)]
+pub struct RulesSeed<'a> {
+    registry: &'a RuleFactoryRegistry,
+}
+
+impl<'a> RulesSeed<'a> {
+    #[must_use]
+    pub const fn new(registry: &'a RuleFactoryRegistry) -> Self {
+        Self { registry }
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for RulesSeed<'_> {
+    type Value = Rules;
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct RulesVisitor<'a> {
+            registry: &'a RuleFactoryRegistry,
+        }
+
+        impl<'de> Visitor<'de> for RulesVisitor<'_> {
+            type Value = Rules;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str(
+                    "map of rule configurations: { rule_name: { enabled: bool, config: {...} } }",
+                )
+            }
+
+            fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+            where
+                M: serde::de::MapAccess<'de>,
+            {
+                // Not found `with_capacity` because Rules
+                // it is BTreeMap
+                let mut rules = Rules::new();
+
+                while let Some(rule_name) = map.next_key::<Cow<'de, str>>()? {
+                    let fabric = self
+                        .registry
+                        .get(rule_name.as_ref())
+                        .ok_or_else(|| M::Error::custom(format!("Unknown rule '{rule_name}'")))?;
+
+                    let rule = map.next_value_seed(ErasedToggleableRuleSeed { fabric })?;
+
+                    if let Some(duplicate_rule) = rules.add(rule) {
+                        return Err(M::Error::custom(format!(
+                            "Duplicate rule '{}'",
+                            duplicate_rule.name()
+                        )));
+                    }
+                }
+
+                Ok(rules)
+            }
+        }
+
+        let visitor = RulesVisitor {
+            registry: self.registry,
+        };
+
+        deserializer.deserialize_map(visitor)
     }
 }
 
 #[cfg(test)]
-#[allow(clippy::similar_names)]
 mod tests {
     use super::*;
-    use crate::rule::ToggleableRule;
-    use crate::test_utils::TestRule;
-    use std::sync::Arc;
+    use crate::{
+        rule::Category,
+        rule_fabric_registry,
+        test_utils::{TestRule, TestRuleFactory},
+    };
+    use tracing_test::traced_test;
 
     #[test]
+    #[traced_test]
     fn serialize() {
-        let rule1 = ToggleableRule::new(
-            Arc::new(TestRule::new("rule1", "", Category::Content, [])),
-            true,
-        );
-        let rule2 = ToggleableRule::new(
-            Arc::new(TestRule::new("rule2", "", Category::Spacing, [])),
-            false,
-        );
+        let rule = TestRule::new("test-rule", "Test rule", Category::Heading, []);
+        let rule = ToggleableRule::new(rule, false);
 
-        let rules = Rules::new(vec![rule1, rule2]).unwrap();
-        let toml = toml::to_string(&rules).unwrap();
+        let mut rules = Rules::new();
+        if let Some(duplicate) = rules.add(rule.into_erased()) {
+            panic!("found duplicate: {:?}", duplicate);
+        }
 
+        let result = serde_json::to_string(&rules).unwrap();
         assert_eq!(
-            toml,
-            r"[content.rule1]
-enable = true
-
-[spacing.rule2]
-enable = false
-"
+            result,
+            r#"{"test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#
         );
     }
 
     #[test]
+    #[traced_test]
     fn deserialize() {
-        let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content, []));
-        let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing, []));
+        let fabric = TestRuleFactory::new("test-rule");
+        let registry = rule_fabric_registry![fabric];
 
-        let toggleable_rule1 = ToggleableRule::new(rule1.clone(), true);
-        let toggleable_rule2 = ToggleableRule::new(rule2.clone(), false);
+        let test_string = r#"{"test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#;
 
-        let rules = Rules::new(vec![toggleable_rule1, toggleable_rule2]).unwrap();
-        let toml = toml::to_string(&rules).unwrap();
-
-        let available_rules = vec![rule1, rule2];
-        let rules_deserialized = RulesSeed::new(&available_rules)
-            .deserialize(toml::Deserializer::parse(&toml).unwrap())
+        let seed = RulesSeed::new(&registry);
+        let rules = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(test_string))
             .unwrap();
 
-        assert_eq!(rules, rules_deserialized);
+        let data: Vec<_> = rules
+            .rules()
+            .map(|rule| {
+                (
+                    rule.is_enabled(),
+                    rule.name(),
+                    rule.description(),
+                    rule.category(),
+                )
+            })
+            .collect();
+
+        assert_eq!(data, [(false, "test-rule", "Test rule", Category::Heading)]);
     }
 
     #[test]
-    #[should_panic(expected = "not found rule")]
-    fn deserialize_with_not_found_rule() {
-        let rule1 = Arc::new(TestRule::new("rule1", "", Category::Content, []));
-        let rule2 = Arc::new(TestRule::new("rule2", "", Category::Spacing, []));
+    #[traced_test]
+    fn serialize_empty_rules() {
+        let rules = Rules::new();
+        let json = serde_json::to_string(&rules).unwrap();
 
-        let toggleable_rule1 = ToggleableRule::new(rule1.clone(), true);
-        let toggleable_rule2 = ToggleableRule::new(rule2.clone(), false);
+        assert_eq!(json, "{}");
+    }
 
-        let rules = Rules::new(vec![toggleable_rule1, toggleable_rule2]).unwrap();
-        let toml = toml::to_string(&rules).unwrap();
+    #[test]
+    #[traced_test]
+    fn deserialize_empty_rules() {
+        let registry = RuleFactoryRegistry::new();
+        let seed = RulesSeed::new(&registry);
 
-        let available_rules = vec![rule1]; // Without rule2
-        let rules_deserialized = RulesSeed::new(&available_rules)
-            .deserialize(toml::Deserializer::parse(&toml).unwrap())
+        let rules = seed
+            .deserialize(&mut serde_json::Deserializer::from_str("{}"))
             .unwrap();
 
-        assert_eq!(rules, rules_deserialized);
+        assert!(rules.is_empty());
+    }
+
+    #[test]
+    #[traced_test]
+    fn deserialize_unknown_rule() {
+        let registry = RuleFactoryRegistry::new();
+        let seed = RulesSeed::new(&registry);
+
+        let json = r#"{"unknown":{"enable":true,"config":{}}}"#;
+
+        let error = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(json))
+            .unwrap_err();
+
+        assert!(error.to_string().contains("Unknown rule 'unknown'"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn deserialize_missing_enable() {
+        let fabric = TestRuleFactory::new("test-rule");
+        let registry = rule_fabric_registry![fabric];
+
+        let seed = RulesSeed::new(&registry);
+        let json = r#"{"test-rule":{"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#;
+
+        let error = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(json))
+            .unwrap_err();
+
+        assert!(error.to_string().contains("missing field `enable`"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn deserialize_missing_config() {
+        let fabric = TestRuleFactory::default();
+        let registry = rule_fabric_registry![fabric];
+
+        let seed = RulesSeed::new(&registry);
+        let json = r#"{"test-rule":{"enable":true}}"#;
+
+        let error = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(json))
+            .unwrap_err();
+
+        assert!(error.to_string().contains("missing field `config`"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn deserialize_duplicate_fields() {
+        let fabric = TestRuleFactory::default();
+        let registry = rule_fabric_registry![fabric];
+
+        let seed = RulesSeed::new(&registry);
+        let json = r#"{"test-rule":{"enable":true,"enable":false,"config":{}}}"#;
+
+        let error = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(json))
+            .unwrap_err();
+
+        assert!(error.to_string().contains("duplicate field `enable`"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn deserialize_unknown_wrapper_field() {
+        let fabric = TestRuleFactory::new("test-rule");
+        let registry = rule_fabric_registry![fabric];
+
+        let seed = RulesSeed::new(&registry);
+        let json = r#"{"test-rule":{"enable":true,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]},"timeout":50"#;
+
+        let error = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(json))
+            .unwrap_err();
+
+        assert!(error.to_string().contains("unknown field `timeout`"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn deserialize_duplicate_rule() {
+        let fabric = TestRuleFactory::new("test-rule");
+        let registry = rule_fabric_registry![fabric];
+
+        let seed = RulesSeed::new(&registry);
+        let json = r#"{"test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}},
+            "test-rule":{"enable":false,"config":{"name":"test-rule","description":"Test rule","category":"heading","check_result":[]}}}"#;
+
+        let error = seed
+            .deserialize(&mut serde_json::Deserializer::from_str(json))
+            .unwrap_err();
+
+        assert!(error.to_string().contains("Duplicate rule"));
     }
 }

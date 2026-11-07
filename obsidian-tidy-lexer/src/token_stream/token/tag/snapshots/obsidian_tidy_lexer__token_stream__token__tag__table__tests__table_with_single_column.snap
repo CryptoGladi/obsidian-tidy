@@ -1,0 +1,120 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/table.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Table": {
+          "alignments": [
+            "None"
+          ]
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Start": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "Text": "Single"
+    },
+    {
+      "start": 2,
+      "end": 8
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "End": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 22,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 23,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "Text": "Cell"
+    },
+    {
+      "start": 24,
+      "end": 28
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 23,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 22,
+      "end": 32
+    }
+  ],
+  [
+    {
+      "End": "Table"
+    },
+    {
+      "start": 0,
+      "end": 32
+    }
+  ]
+]

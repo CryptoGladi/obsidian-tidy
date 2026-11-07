@@ -1,0 +1,319 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/table.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Table": {
+          "alignments": [
+            "None",
+            "None"
+          ]
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 71
+    }
+  ],
+  [
+    {
+      "Start": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "Text": "H1"
+    },
+    {
+      "start": 2,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 6,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "Text": "H2"
+    },
+    {
+      "start": 7,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 6,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "End": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 24,
+      "end": 40
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 25,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "Text": "R1C1"
+    },
+    {
+      "start": 26,
+      "end": 30
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 25,
+      "end": 31
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 32,
+      "end": 38
+    }
+  ],
+  [
+    {
+      "Text": "R1C2"
+    },
+    {
+      "start": 33,
+      "end": 37
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 32,
+      "end": 38
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 24,
+      "end": 40
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 40,
+      "end": 56
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 41,
+      "end": 47
+    }
+  ],
+  [
+    {
+      "Text": "R2C1"
+    },
+    {
+      "start": 42,
+      "end": 46
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 41,
+      "end": 47
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 48,
+      "end": 54
+    }
+  ],
+  [
+    {
+      "Text": "R2C2"
+    },
+    {
+      "start": 49,
+      "end": 53
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 48,
+      "end": 54
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 40,
+      "end": 56
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 56,
+      "end": 71
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 57,
+      "end": 63
+    }
+  ],
+  [
+    {
+      "Text": "R3C1"
+    },
+    {
+      "start": 58,
+      "end": 62
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 57,
+      "end": 63
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 64,
+      "end": 70
+    }
+  ],
+  [
+    {
+      "Text": "R3C2"
+    },
+    {
+      "start": 65,
+      "end": 69
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 64,
+      "end": 70
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 56,
+      "end": 71
+    }
+  ],
+  [
+    {
+      "End": "Table"
+    },
+    {
+      "start": 0,
+      "end": 71
+    }
+  ]
+]

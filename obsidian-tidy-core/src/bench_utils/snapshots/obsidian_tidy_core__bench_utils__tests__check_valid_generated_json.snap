@@ -1,0 +1,159 @@
+---
+source: obsidian-tidy-core/src/bench_utils/mod.rs
+assertion_line: 55
+expression: json
+---
+{
+  "rule-type-0-0": {
+    "config": {
+      "max_spaces": 4,
+      "min_spaces": 2
+    },
+    "enable": true
+  },
+  "rule-type-0-10": {
+    "config": {
+      "max_spaces": 4,
+      "min_spaces": 2
+    },
+    "enable": true
+  },
+  "rule-type-0-15": {
+    "config": {
+      "max_spaces": 4,
+      "min_spaces": 2
+    },
+    "enable": true
+  },
+  "rule-type-0-5": {
+    "config": {
+      "max_spaces": 4,
+      "min_spaces": 2
+    },
+    "enable": true
+  },
+  "rule-type-1-1": {
+    "config": {
+      "format": "%Y-%m-%d"
+    },
+    "enable": false
+  },
+  "rule-type-1-11": {
+    "config": {
+      "format": "%Y-%m-%d"
+    },
+    "enable": false
+  },
+  "rule-type-1-16": {
+    "config": {
+      "format": "%Y-%m-%d"
+    },
+    "enable": false
+  },
+  "rule-type-1-6": {
+    "config": {
+      "format": "%Y-%m-%d"
+    },
+    "enable": false
+  },
+  "rule-type-2-12": {
+    "config": {
+      "words": [
+        "foo",
+        "bar"
+      ]
+    },
+    "enable": true
+  },
+  "rule-type-2-17": {
+    "config": {
+      "words": [
+        "foo",
+        "bar"
+      ]
+    },
+    "enable": true
+  },
+  "rule-type-2-2": {
+    "config": {
+      "words": [
+        "foo",
+        "bar"
+      ]
+    },
+    "enable": true
+  },
+  "rule-type-2-7": {
+    "config": {
+      "words": [
+        "foo",
+        "bar"
+      ]
+    },
+    "enable": true
+  },
+  "rule-type-3-13": {
+    "config": {
+      "check_size": true,
+      "min_bytes": 50
+    },
+    "enable": true
+  },
+  "rule-type-3-18": {
+    "config": {
+      "check_size": true,
+      "min_bytes": 50
+    },
+    "enable": true
+  },
+  "rule-type-3-3": {
+    "config": {
+      "check_size": true,
+      "min_bytes": 50
+    },
+    "enable": true
+  },
+  "rule-type-3-8": {
+    "config": {
+      "check_size": true,
+      "min_bytes": 50
+    },
+    "enable": true
+  },
+  "rule-type-4-14": {
+    "config": {
+      "allow_extra": true,
+      "required_tags": [
+        "todo"
+      ]
+    },
+    "enable": false
+  },
+  "rule-type-4-19": {
+    "config": {
+      "allow_extra": true,
+      "required_tags": [
+        "todo"
+      ]
+    },
+    "enable": false
+  },
+  "rule-type-4-4": {
+    "config": {
+      "allow_extra": true,
+      "required_tags": [
+        "todo"
+      ]
+    },
+    "enable": false
+  },
+  "rule-type-4-9": {
+    "config": {
+      "allow_extra": true,
+      "required_tags": [
+        "todo"
+      ]
+    },
+    "enable": false
+  }
+}

@@ -1,0 +1,175 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/table.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Table": {
+          "alignments": [
+            "Left",
+            "Center"
+          ]
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "Start": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "Text": "H1"
+    },
+    {
+      "start": 2,
+      "end": 4
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 1,
+      "end": 5
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 6,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "Text": "H2"
+    },
+    {
+      "start": 7,
+      "end": 9
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 6,
+      "end": 10
+    }
+  ],
+  [
+    {
+      "End": "TableHead"
+    },
+    {
+      "start": 0,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "Start": "TableRow"
+    },
+    {
+      "start": 29,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 30,
+      "end": 36
+    }
+  ],
+  [
+    {
+      "Text": "C1"
+    },
+    {
+      "start": 31,
+      "end": 33
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 30,
+      "end": 36
+    }
+  ],
+  [
+    {
+      "Start": "TableCell"
+    },
+    {
+      "start": 37,
+      "end": 43
+    }
+  ],
+  [
+    {
+      "Text": "C2"
+    },
+    {
+      "start": 38,
+      "end": 40
+    }
+  ],
+  [
+    {
+      "End": "TableCell"
+    },
+    {
+      "start": 37,
+      "end": 43
+    }
+  ],
+  [
+    {
+      "End": "TableRow"
+    },
+    {
+      "start": 29,
+      "end": 44
+    }
+  ],
+  [
+    {
+      "End": "Table"
+    },
+    {
+      "start": 0,
+      "end": 44
+    }
+  ]
+]

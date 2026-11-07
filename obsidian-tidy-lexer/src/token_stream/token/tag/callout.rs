@@ -1,0 +1,60 @@
+use alloc::borrow::Cow;
+use core::range::Range;
+use derive_more::IsVariant;
+
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, IsVariant)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum CalloutFoldable {
+    /// `[!tip]+` — развёрнутый
+    Expanded,
+
+    /// `[!tip]-` — свёрнутый
+    Collapsed,
+
+    /// `[!tip]` — обычный
+    #[default]
+    None,
+}
+
+static_assertions::assert_impl_all!(CalloutFoldable: Copy, Clone);
+
+impl From<char> for CalloutFoldable {
+    fn from(value: char) -> Self {
+        match value {
+            '+' => CalloutFoldable::Expanded,
+            '-' => CalloutFoldable::Collapsed,
+            _ => CalloutFoldable::None,
+        }
+    }
+}
+
+/// Only for interceptor
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Callout<'input> {
+    pub kind: Cow<'input, str>,
+
+    #[cfg_attr(feature = "serde", serde(with = "crate::__private::range_serde"))]
+    pub header_offset: Range<usize>,
+
+    pub foldable: CalloutFoldable,
+}
+
+crate::__private::impl_as_target_self!(Callout<'_>);
+
+impl Callout<'_> {
+    #[must_use]
+    pub fn kind(&self) -> &str {
+        self.kind.as_ref()
+    }
+
+    #[must_use]
+    pub const fn header_offset(&self) -> Range<usize> {
+        self.header_offset
+    }
+
+    #[must_use]
+    pub const fn foldable(&self) -> CalloutFoldable {
+        self.foldable
+    }
+}

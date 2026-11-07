@@ -1,0 +1,56 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/interceptor/list_interceptor.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "List": {
+          "start_number": 5,
+          "delimiter": "Period"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "Start": "Item"
+    },
+    {
+      "start": 0,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "Text": "The answer"
+    },
+    {
+      "start": 5,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "End": "Item"
+    },
+    {
+      "start": 0,
+      "end": 15
+    }
+  ],
+  [
+    {
+      "End": "List"
+    },
+    {
+      "start": 0,
+      "end": 15
+    }
+  ]
+]

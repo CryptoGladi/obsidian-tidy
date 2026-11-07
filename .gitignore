@@ -1,5 +1,8 @@
 target/
 .direnv/
 /result
+.vscode/
 
-.obsidian-tidy.toml
+.obsidian-tidy.json
+dhat-heap.json
+proptest-regressions

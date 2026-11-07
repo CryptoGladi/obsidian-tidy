@@ -17,15 +17,14 @@ pub struct Directories {
 }
 
 impl Default for Directories {
-    #[allow(clippy::panic)]
+    #[expect(clippy::expect_used)]
     fn default() -> Self {
-        trace!("Init directories");
+        trace!("init directories");
 
-        if let Some(project_dirs) = ProjectDirs::from("com", "CryptoGladi", "obsidian-tidy") {
-            return Directories { project_dirs };
-        }
+        let project_dirs = ProjectDirs::from("com", "CryptoGladi", "obsidian-tidy")
+            .expect("no valid home directory path could be retrieved from the operating system");
 
-        panic!("No valid home directory path could be retrieved from the operating system");
+        Self { project_dirs }
     }
 }
 
@@ -81,8 +80,8 @@ impl Directories {
     ///
     /// #[cfg(target_os = "linux")]
     /// assert_eq!(
-    ///     directories.config_dir(),
-    ///     "/home/gladi/.config/obsidian-tidy/logs"
+    ///     directories.logs_dir().to_string_lossy(),
+    ///     "/home/gladi/.local/share/obsidian-tidy/logs"
     /// );
     /// ```
     #[must_use]

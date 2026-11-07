@@ -1,0 +1,87 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/interceptor/callout_interceptor.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": {
+        "Callout": {
+          "kind": "warning",
+          "header_offset": {
+            "start": 2,
+            "end": 13
+          },
+          "foldable": "Expanded"
+        }
+      }
+    },
+    {
+      "start": 0,
+      "end": 26
+    }
+  ],
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 26
+    }
+  ],
+  [
+    {
+      "Text": "["
+    },
+    {
+      "start": 2,
+      "end": 3
+    }
+  ],
+  [
+    {
+      "Text": "!warning"
+    },
+    {
+      "start": 3,
+      "end": 11
+    }
+  ],
+  [
+    {
+      "Text": "]"
+    },
+    {
+      "start": 11,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "Text": "+ Custom Title"
+    },
+    {
+      "start": 12,
+      "end": 26
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 2,
+      "end": 26
+    }
+  ],
+  [
+    {
+      "End": "Callout"
+    },
+    {
+      "start": 0,
+      "end": 26
+    }
+  ]
+]

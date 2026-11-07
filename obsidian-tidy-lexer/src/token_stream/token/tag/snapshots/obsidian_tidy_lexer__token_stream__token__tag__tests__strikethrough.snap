@@ -1,0 +1,69 @@
+---
+source: obsidian-tidy-lexer/src/token_stream/token/tag/mod.rs
+expression: tokens
+---
+[
+  [
+    {
+      "Start": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "Text": "Super "
+    },
+    {
+      "start": 0,
+      "end": 6
+    }
+  ],
+  [
+    {
+      "Start": "Strikethrough"
+    },
+    {
+      "start": 6,
+      "end": 14
+    }
+  ],
+  [
+    {
+      "Text": "very"
+    },
+    {
+      "start": 8,
+      "end": 12
+    }
+  ],
+  [
+    {
+      "End": "Strikethrough"
+    },
+    {
+      "start": 6,
+      "end": 14
+    }
+  ],
+  [
+    {
+      "Text": " test"
+    },
+    {
+      "start": 14,
+      "end": 19
+    }
+  ],
+  [
+    {
+      "End": "Paragraph"
+    },
+    {
+      "start": 0,
+      "end": 19
+    }
+  ]
+]

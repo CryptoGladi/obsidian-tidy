@@ -2,18 +2,21 @@
 name = "obsidian-tidy-rules"
 version = "0.0.0"
 edition = "2024"
+license = "GPL-3.0-or-later"
 
 [lints]
 workspace = true
 
 [dependencies]
 obsidian-tidy-core.workspace = true
+obsidian-tidy-macros.workspace = true
 obsidian-parser.workspace = true
 tracing.workspace = true
 thiserror.workspace = true
+serde.workspace = true
 
 [dev-dependencies]
 tracing-test.workspace = true
+tempfile.workspace = true
 rand = "0.10"
-tempfile = "3.25"
 lipsum = "0.9.1"
